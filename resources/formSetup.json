@@ -1,0 +1,23 @@
+{
+  "companyTypes": [
+    "Sole Proprietorship",
+    "General Partnership",
+    "Limited Liability C",
+    "Limited Liability P",
+    "Corporate",
+    "Other"
+  ],
+  "payrollFrequencies": ["Weekly", "Biweekly", "Semimonthly", "Monthly"],
+  "kindOfDocuments": ["W2", "1099 Nec", "Both", "N/A"],
+  "reportMethods": ["Email", "Text", "Portal", "Call"],
+  "kindOfPayments": ["Direct Deposit", "Check"],
+  "pickupMethods": ["Mail", "No delivery", "Pick up", "UPS Blue"],
+  "reportsDeliveryMethod": ["Email", "Portal"],
+  "yesNo": ["No", "Yes"],
+  "taxImpoundIntervals": ["Each pay period", "Monthly", "Quarterly"],
+  "salexTaxManagementMethods": [
+    "PuntualPayroll is responsible for submitting the reports and pay the taxes.",
+    "PunctualPayroll only submit the reports"
+  ],
+  "salesTaxPaymentMethod": ["Bank Account", "Credit Card"]
+}

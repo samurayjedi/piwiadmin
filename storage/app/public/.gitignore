@@ -1,0 +1,9 @@
+*
+!.gitignore
+!/images/
+!/images/*
+!/documents/
+!/documents/*
+!/documents/*/*
+!/tmp/
+!/tmp/.gitkeep

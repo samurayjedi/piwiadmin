@@ -9,7 +9,6 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
-import PercentIcon from '@mui/icons-material/Percent';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
 import PaymentsIcon from '@mui/icons-material/Payments';
@@ -19,10 +18,11 @@ import { useErrors } from '@/hooks';
 import Select from '@/src/lib/piwi/core/Select';
 import Options from '@/src/lib/piwi/core/Options';
 import TextFieldMasked from '@/src/lib/piwi/core/TextFieldMasked';
-import TextFieldCurrency from '@/src/lib/piwi/core/TextFieldCurrency';
+import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
 import type { Category } from '../../Categories';
 import type { Brand } from '../../Brands';
 import { Product } from '../Products';
+import ProfitField from './ProfitField';
 
 export default function ProductForm({ id, onSubmit }: ProductFormProps) {
   const { t } = useTranslation();
@@ -108,7 +108,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                 name="price"
                 subscription={{ value: true }}
                 render={({ input }) => (
-                  <TextFieldCurrency
+                  <TextFieldDolarBs
                     {...input}
                     variant="standard"
                     label={t('Price')}
@@ -134,7 +134,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                 name="sale_price"
                 subscription={{ value: true }}
                 render={({ input }) => (
-                  <TextFieldCurrency
+                  <TextFieldDolarBs
                     {...input}
                     variant="standard"
                     label={t('Sale Price')}
@@ -156,40 +156,14 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
               />
             </Grid>
             <Grid item xs={6} md={2}>
-              <Field
-                name="profit_percent"
-                subscription={{ value: true }}
-                render={({ input }) => (
-                  <TextFieldCurrency
-                    {...input}
-                    variant="standard"
-                    thousandSeparator={false}
-                    prefix=""
-                    suffix="%"
-                    label={`${t('Profit')} %`}
-                    fullWidth
-                    color="secondary"
-                    disabled={submitting}
-                    onChange={onChangeDecorator(input.onChange)}
-                    error={Boolean(fuckErrors[input.name])}
-                    helperText={fuckErrors[input.name]}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PercentIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                )}
-              />
+              <ProfitField />
             </Grid>
             <Grid item xs={12} md={4}>
               <Field
                 name="tax"
                 subscription={{ value: true }}
                 render={({ input }) => (
-                  <TextFieldCurrency
+                  <TextFieldDolarBs
                     {...input}
                     variant="standard"
                     label={t('Tax')}
@@ -349,7 +323,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                             name="wholesale_price"
                             subscription={{ value: true }}
                             render={(pollito) => (
-                              <TextFieldCurrency
+                              <TextFieldDolarBs
                                 {...pollito.input}
                                 variant="standard"
                                 label={t('Wholesale Price')}

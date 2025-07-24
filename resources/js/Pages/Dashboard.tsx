@@ -20,6 +20,7 @@ import StatusAlert from '@/src/Components/StatusAlert';
 import GroupIcon from '@mui/icons-material/Group';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import ChecklistIcon from '@mui/icons-material/Checklist';
 import { useAppSelector } from '@/store/hooks';
 
 export default function Dashboard() {
@@ -38,6 +39,14 @@ export default function Dashboard() {
               startIcon={<AddShoppingCartIcon />}
             >
               {t('New sale')}
+            </CardButton>
+            <CardButton
+              LinkComponent={Link}
+              href={route('sales')}
+              variant="contained"
+              startIcon={<ChecklistIcon />}
+            >
+              {t('Listado')}
             </CardButton>
           </Section>
           <Section title={t('Products')} direction="row">

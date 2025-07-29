@@ -1,12 +1,13 @@
-import _ from 'lodash';
-import { usePage, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Container } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
+import { usePaginatorProps } from '@/hooks';
+import { useBrands } from './hooks';
 
 export default function Brands() {
-  const { page, count, rows } = usePage().props;
-  const brands = _.get(usePage(), 'props.brands', []) as Brand[];
+  const { page, count, rows } = usePaginatorProps();
+  const brands = useBrands();
 
   return (
     <AppLayout>
@@ -49,9 +50,9 @@ export default function Brands() {
               });
             });
           }}
-          page={page as number}
-          count={count as number}
-          rows={rows as number}
+          page={page}
+          count={count}
+          rows={rows}
           onRowsPerPageChange={(ev) =>
             router.get(
               route('brands', {
@@ -67,12 +68,4 @@ export default function Brands() {
       </Container>
     </AppLayout>
   );
-}
-
-export interface Brand {
-  id: number;
-  brand_label: string;
-  brand_slug: string;
-  created_at: string;
-  updated_at: string;
 }

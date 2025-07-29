@@ -16,11 +16,11 @@ class SaleItem extends AbstractModel
     public function toArray() {
         return [
             ...parent::toArray(),
-            'sale_id' => $this->sale_id,
-            'product_id' => $this->product_id,
-            'quantity' => $this->quantity,
-            'unit_price' => $this->unit_price,
-            'discount_id' => $this->discount_id,
+            'sale_id' => (int)$this->sale_id,
+            'product_id' => (int)$this->product_id,
+            'quantity' => (int)$this->quantity,
+            'unit_price' => (float)$this->unit_price,
+            'discount_id' => $this->discount_id ? (int)$this->discount_id : null,
         ];
     }
 

@@ -15,17 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('barcode')->unique();
             $table->string('name');
-            $table->string('price');
-            $table->string('sale_price');
-            $table->string('tax');
-            $table->string('stock');
+            $table->decimal('price', 10, 2);
+            $table->decimal('profit', 10, 2);
+            $table->integer('stock');
             $table->string('category');
             $table->foreign('category')->references('category_slug')->on('categories');
             $table->string('brand');
             $table->foreign('brand')->references('brand_slug')->on('brands');
             $table->boolean('wholesale');
-            $table->string('wholesale_qty')->nullable();
-            $table->string('wholesale_price')->nullable();
+            $table->integer('wholesale_qty')->nullable();
+            $table->decimal('wholesale_profit', 10, 2)->nullable();
             $table->timestamps();
         });
     }

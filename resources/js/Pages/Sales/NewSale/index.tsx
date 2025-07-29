@@ -12,15 +12,18 @@ import {
   TableCell,
   Button,
   IconButton,
+  Typography,
 } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import CartRow from './CartRow';
-import SearchProductDialog, { type Cart } from './SearchProductDialog';
-import { getPrice, CartContext } from './hooks';
+import SearchProductDialog from './SearchProductDialog';
+import { CartContext } from './hooks';
+import { getPrice } from '../hooks';
 import PaymentDialog from './PaymentDialog';
+import { Cart } from '../types';
 
 export default function NewSale() {
   const { t } = useTranslation();
@@ -29,15 +32,13 @@ export default function NewSale() {
   const [searchProductOpen, setSearchProductOpen] = useState(true);
   const [onCashOpen, setOnCashOpen] = useState(false);
   const [cart, setCart] = useState<Cart[]>([]);
-  const [subtotal, taxes, total] = useMemo(() => {
-    let st = 0;
-    let tx = 0;
+  const total = useMemo(() => {
+    let t2 = 0;
     cart.forEach((c) => {
-      st += getPrice(c) * c.qty;
-      tx += parseInt(c.tax, 10) * c.qty;
+      t2 += getPrice(c) * c.qty;
     });
 
-    return [st, tx, st + tx];
+    return Math.round(t2 * 100) / 100;
   }, [cart]);
 
   const handleSearchProductClose = useCallback(() => {
@@ -68,7 +69,7 @@ export default function NewSale() {
         } else {
           mergedCart[index].qty = Math.min(
             mergedCart[index].qty + newCart[i].qty,
-            parseInt(mergedCart[index].stock, 10),
+            mergedCart[index].stock,
           );
         }
       }
@@ -114,8 +115,9 @@ export default function NewSale() {
                     <TableCell sx={{ minWidth: 100 }}>{t('Barcode')}</TableCell>
                     <TableCell width="100%">{t('Name')}</TableCell>
                     <TableCell sx={{ minWidth: 150 }}>{t('Price')}</TableCell>
-                    <TableCell sx={{ minWidth: 150 }}>{t('Tax')}</TableCell>
-                    <TableCell sx={{ minWidth: 150 }}>{t('Amount')}</TableCell>
+                    <TableCell sx={{ minWidth: 150 }}>
+                      {t('Quantity')}
+                    </TableCell>
                     <TableCell align="right" sx={{ minWidth: 100 }}>
                       {t('Subtotal')}
                     </TableCell>
@@ -136,45 +138,30 @@ export default function NewSale() {
                         );
                       })}
                       <TableRow>
-                        <TableCell colSpan={4} rowSpan={3} />
-                        <TableCell colSpan={2}>{t('Subtotal')}</TableCell>
-                        <TableCell align="right">
-                          <LabelDolarBs value={subtotal} />
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>{t('Tax')}</TableCell>
-                        <TableCell align="right">
-                          {((100 * taxes) / (subtotal + taxes)).toFixed(2)} %
+                        <TableCell colSpan={3} />
+                        <TableCell colSpan={2}>
+                          <Typography variant="h6" fontWeight="bold">
+                            {t('Total')}
+                          </Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <LabelDolarBs value={taxes} />
-                          <input type="hidden" name="taxes" value={taxes} />
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell colSpan={2}>{t('Total')}</TableCell>
-                        <TableCell align="right">
-                          <input type="hidden" name="total" value={total} />
                           <LabelDolarBs value={total} />
                         </TableCell>
                       </TableRow>
                     </>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={6} align="center">
                         {t("You haven't added any products")}
                       </TableCell>
                     </TableRow>
                   )}
                   <TableRow>
-                    <TableCell>
-                      <IconButton onClick={() => setSearchProductOpen(true)}>
-                        <AddShoppingCartIcon />
-                      </IconButton>
-                    </TableCell>
                     <TableCell colSpan={6}>
                       <BtnsContainer>
+                        <IconButton onClick={() => setSearchProductOpen(true)}>
+                          <AddShoppingCartIcon />
+                        </IconButton>
                         <FormGap />
                         <FormButton
                           ref={buttonRef}

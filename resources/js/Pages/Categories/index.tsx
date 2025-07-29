@@ -1,12 +1,13 @@
-import _ from 'lodash';
-import { usePage, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Container } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
+import { usePaginatorProps } from '@/hooks';
+import { useCategories } from './hooks';
 
 export default function Categories() {
-  const { page, count, rows } = usePage().props;
-  const categories = _.get(usePage(), 'props.categories', []) as Category[];
+  const { page, count, rows } = usePaginatorProps();
+  const categories = useCategories();
 
   return (
     <AppLayout>
@@ -49,9 +50,9 @@ export default function Categories() {
               });
             });
           }}
-          page={page as number}
-          count={count as number}
-          rows={rows as number}
+          page={page}
+          count={count}
+          rows={rows}
           onRowsPerPageChange={(ev) =>
             router.get(
               route('categories', {
@@ -67,12 +68,4 @@ export default function Categories() {
       </Container>
     </AppLayout>
   );
-}
-
-export interface Category {
-  id: number;
-  category_label: string;
-  category_slug: string;
-  created_at: string;
-  updated_at: string;
 }

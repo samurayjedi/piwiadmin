@@ -6,9 +6,9 @@ use App\Models\AbstractModel;
 
 class Sale extends AbstractModel
 {
-    public $user_id, $client_id, $payment_type, $tax_amount;
+    public $user_id, $client_id, $payment_type;
     public $total_amount, $amount_paid, $status;
-    public $due_date, $quotas, $payment_interval, $notes;
+    public $due_date, $notification_interval, $notes;
 
     public function __construct() {
         $this->table = 'sales';
@@ -17,16 +17,14 @@ class Sale extends AbstractModel
     public function toArray() {
         return [
             ...parent::toArray(),
-            'user_id' => $this->user_id,
-            'client_id' => $this->client_id,
+            'user_id' => (int)$this->user_id,
+            'client_id' => (int)$this->client_id,
             'payment_type' => $this->payment_type,
-            'tax_amount' => $this->tax_amount,
-            'total_amount' => $this->total_amount,
-            'amount_paid' => $this->amount_paid,
+            'total_amount' => (float)$this->total_amount,
+            'amount_paid' => (float)$this->amount_paid,
             'status' => $this->status,
             'due_date' => $this->due_date,
-            'quotas' => $this->quotas,
-            'payment_interval' => $this->payment_interval,
+            'notification_interval' => $this->notification_interval,
             'notes' => $this->notes,
         ];
     }
@@ -36,13 +34,11 @@ class Sale extends AbstractModel
         $this->user_id = is_array($piwi) ? $piwi['user_id'] : $piwi->user_id;
         $this->client_id = is_array($piwi) ? $piwi['client_id'] : $piwi->client_id;
         $this->payment_type = is_array($piwi) ? $piwi['payment_type'] : $piwi->payment_type;
-        $this->tax_amount = is_array($piwi) ? $piwi['tax_amount'] : $piwi->tax_amount;
         $this->total_amount = is_array($piwi) ? $piwi['total_amount'] : $piwi->total_amount;
         $this->amount_paid = is_array($piwi) ? $piwi['amount_paid'] : $piwi->amount_paid;
         $this->status = is_array($piwi) ? $piwi['status'] : $piwi->status;
         $this->due_date = is_array($piwi) ? $piwi['due_date'] : $piwi->due_date;
-        $this->quotas = is_array($piwi) ? $piwi['quotas'] : $piwi->quotas;
-        $this->payment_interval = is_array($piwi) ? $piwi['payment_interval'] : $piwi->payment_interval;
+        $this->notification_interval = is_array($piwi) ? $piwi['notification_interval'] : $piwi->notification_interval;
         $this->notes = is_array($piwi) ? $piwi['notes'] : $piwi->notes;
     }
 }

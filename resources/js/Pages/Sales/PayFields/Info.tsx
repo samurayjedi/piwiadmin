@@ -3,12 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useFormState, useForm } from 'react-final-form';
 import { Typography } from '@mui/material';
 import { useAppSelector } from '@/store/hooks';
-import { useStepperContext } from '../hooks';
 
-export default function Info() {
+export default function Info({ total, methods = ['cash'] }: InfoProps) {
   const { t } = useTranslation();
   const dolar = useAppSelector((state) => state.currencies.dolar);
-  const { amount } = useStepperContext();
+
   const form = useForm();
   const { values } = useFormState({
     subscription: {
@@ -17,16 +16,16 @@ export default function Info() {
   });
   const paymentType = values.payment_type;
 
-  if (paymentType === 'cash') {
+  if (methods.includes(paymentType)) {
     if (values.payment_methods) {
       const selectedPayments = values.payment_methods as string[];
       let payed = 0;
       selectedPayments.forEach((method) => {
         payed += parseFloat(values[method]) ?? 0;
       });
+      const change = payed - total;
 
-      if (payed > amount) {
-        const change = payed - amount;
+      if (!isNaN(change) && change > 0) {
         form.change(
           'notes',
           `${t('Change was given by the ammount')}: ${change.toLocaleString(
@@ -45,6 +44,8 @@ export default function Info() {
       }
     }
   }
+
+  form.change('notes', null);
 
   return <div />;
 }
@@ -77,3 +78,8 @@ const InfoContainer = styled.div({
   display: 'flex',
   flexFlow: 'column',
 });
+
+interface InfoProps {
+  total: number;
+  methods?: SellType[];
+}

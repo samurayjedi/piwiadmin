@@ -1,9 +1,7 @@
-import React, { RefObject, useContext, useMemo } from 'react';
-import _ from 'lodash';
+import React, { RefObject, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { usePage } from '@inertiajs/react';
-import { type PaymentMethod } from '@/Pages/PaymentMethods';
-import { Cart } from './SearchProductDialog';
+
+import { sell_types } from '@/consts';
 
 export const CartContext = React.createContext<CartContextType>(null);
 export function useCartContext() {
@@ -15,46 +13,11 @@ export function useCartContext() {
   return ctx;
 }
 
-export const getPrice = ({
-  sale_price,
-  qty,
-  wholesale,
-  wholesale_price,
-  wholesale_qty,
-}: Cart) => {
-  if (wholesale) {
-    if (qty >= parseInt(wholesale_qty, 10)) {
-      return parseInt(wholesale_price, 10);
-    }
-  }
-
-  return parseInt(sale_price, 10);
-};
-
-export const SALE_TYPES = ['cash', 'credit', 'layaway'];
 export function useSaleTypesItems() {
   const { t } = useTranslation();
-  const labels = useMemo(() => [t('Cash'), t('Credit'), t('Layaway')], [t]);
   const items: Record<string, string> = {};
-  SALE_TYPES.forEach((slug, i) => {
-    items[slug] = labels[i];
-  });
-
-  return items;
-}
-
-export function usePaymentMethodsItems() {
-  const { t } = useTranslation();
-
-  const payment_methods = _.get(
-    usePage(),
-    'props.payment_methods',
-    [],
-  ) as PaymentMethod[];
-  const items: Record<string, string> = {};
-
-  payment_methods.forEach(({ payment_slug, payment_label }) => {
-    items[payment_slug] = t(payment_label);
+  sell_types.forEach((slug) => {
+    items[slug] = t(items[slug]);
   });
 
   return items;

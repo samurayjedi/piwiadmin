@@ -1,10 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  ChangeEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { Product } from '@/Pages/Inventory/Products';
 import { TableCell, TableRow } from '@mui/material';
 import Spinner from '@/src/lib/piwi/core/Spinner';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import HiddenFields from '../HiddenFields';
+import { getPrice } from '../../hooks';
 
 export default function ProductRow({
   onKeyDown,
@@ -12,7 +18,8 @@ export default function ProductRow({
   ...p
 }: ProductRowProps) {
   const { t } = useTranslation();
-  const { barcode, name, sale_price, stock } = p;
+  const [qty, setQty] = useState(0);
+  const { barcode, name, stock } = p;
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -23,12 +30,20 @@ export default function ProductRow({
     }
   }, [index]);
 
+  const handleSpinnerChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const v = parseInt(e.target.value, 10);
+      setQty(Math.max(0, Math.min(stock, v)));
+    },
+    [stock],
+  );
+
   return (
     <TableRow>
       <TableCell>{barcode}</TableCell>
       <TableCell>{name}</TableCell>
       <TableCell>
-        <LabelDolarBs value={parseInt(sale_price, 10)} />
+        <LabelDolarBs value={getPrice({ ...p, qty })} />
       </TableCell>
       <TableCell>{stock}</TableCell>
       <TableCell>
@@ -39,8 +54,10 @@ export default function ProductRow({
           label={t('Quantity')}
           variant="standard"
           min={0}
-          max={parseInt(stock, 10)}
+          max={stock}
+          value={qty}
           onKeyDown={onKeyDown}
+          onChange={handleSpinnerChange}
         />
       </TableCell>
     </TableRow>

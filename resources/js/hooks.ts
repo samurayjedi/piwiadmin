@@ -1,11 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { FieldArrayRenderProps } from 'react-final-form-arrays';
+import { useState, useEffect, useMemo } from 'react';
 import _ from 'lodash';
-import { usePage, router } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { createTheme } from '@mui/material/styles';
 import { esES, enUS } from '@mui/material/locale';
-import { route } from 'ziggy-js';
 
 const MaterialLocales = {
   'es-ES': esES,
@@ -51,8 +49,14 @@ export function usePiwiTheme() {
   return themeWithLocale;
 }
 
+export function useAppPage() {
+  const page = usePage();
+
+  return page as typeof page & AppPageProps;
+}
+
 export function useErrors() {
-  const { errors } = usePage().props;
+  const { errors } = useAppPage().props;
   const [fuckErrors, setFuckErrors] = useState(errors);
 
   useEffect(() => {
@@ -77,89 +81,17 @@ export function useErrors() {
   return [fuckErrors, onChangeDecorator, removeError] as const;
 }
 
-/** No works with input type file!!!! */
-export function useSubmitHandler(link: string) {
-  const callback = useCallback(
-    (data: Record<string, any>) =>
-      new Promise<void>((resolve) =>
-        router.post(route(link), data, {
-          onFinish: () => resolve(),
-        }),
-      ),
-    [link],
-  );
+export function usePaginatorProps() {
+  const { count, page, rows } = useAppPage().props;
+  if (count === undefined || page === undefined || rows === undefined) {
+    throw new Error(
+      'This page uses a paginator, but the required props are not available.',
+    );
+  }
 
-  return callback;
-}
-
-export function useSuperSubmitHandler(link: string) {
-  const callback = useCallback(
-    (data: Record<string, any>) =>
-      new Promise<void>((resolve) => {
-        const formData = new FormData();
-        let haveFiles = false;
-        /** i make it a function for recursively append objects */
-        function appendToFormData(value: any, key: string) {
-          if (Array.isArray(value) || typeof value === 'object') {
-            _.forEach(value, (v, index) => {
-              const k = `${key}[${index}]`;
-              if (Array.isArray(v) || typeof v === 'object') {
-                appendToFormData(v, k);
-              } else {
-                formData.append(k, v);
-              }
-            });
-          } else {
-            formData.append(key, value);
-          }
-        }
-        _.forEach(data, (value: any, key) => {
-          /** if the key is a input type file name, append the files selected */
-          if (typeof value === 'string') {
-            const fields = document.getElementsByName(key);
-            const el: HTMLInputElement | null = fields[0] as HTMLInputElement;
-            if (el && el.files) {
-              const isMultiple = el.hasAttribute('multiple');
-              if (isMultiple) {
-                for (let i = 0; i < el.files.length; i++) {
-                  formData.append(`${key}[]`, el.files[i]);
-                }
-              } else {
-                formData.append(key, el.files[0]);
-              }
-
-              haveFiles = true;
-              return;
-            }
-          }
-          /** otherwise, append normally */
-          appendToFormData(value, key);
-        });
-
-        router.post(route(link), formData, {
-          onFinish: () => resolve(),
-          forceFormData: haveFiles,
-        });
-      }),
-    [link],
-  );
-
-  return callback;
-}
-
-export function useRffCheckOnChange() {
-  const [, , removeError] = useErrors();
-
-  return (fields: RffFields) => (ev: unknown) => {
-    removeError(fields.name);
-    const checked = _.get(ev, 'target.checked', false) as boolean;
-    const value = _.get(ev, 'target.value', '') as string;
-    if (checked) {
-      fields.push(value);
-    } else {
-      fields.remove(fields.value.indexOf(value));
-    }
+  return {
+    count,
+    page,
+    rows,
   };
 }
-
-type RffFields = FieldArrayRenderProps<any, HTMLElement>['fields'];

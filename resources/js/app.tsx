@@ -10,7 +10,6 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import DolarSync from './src/DolarSync';
 import store from './store';
 // fonts required by mui
 import '@fontsource/roboto/300.css';
@@ -66,7 +65,7 @@ function Piwi({ children }: { children: React.ReactNode }) {
       <ThemeProvider theme={theme}>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <CssBaseline />
-          <DolarSync>{children}</DolarSync>
+          {children}
         </LocalizationProvider>
       </ThemeProvider>
     </Provider>

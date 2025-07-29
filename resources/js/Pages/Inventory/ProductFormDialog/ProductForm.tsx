@@ -1,52 +1,54 @@
+import _ from 'lodash';
 import styled from '@emotion/styled';
 import { css, Theme } from '@emotion/react';
-import _ from 'lodash';
 import { useTranslation } from 'react-i18next';
-import { usePage } from '@inertiajs/react';
-import { Grid, InputAdornment, TextField, Button } from '@mui/material';
+import {
+  Grid,
+  InputAdornment,
+  TextField,
+  Button,
+  Switch,
+  FormControlLabel,
+} from '@mui/material';
 import { Form, Field, FormProps } from 'react-final-form';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import DynamicFeedIcon from '@mui/icons-material/DynamicFeed';
-import PaymentsIcon from '@mui/icons-material/Payments';
+import PercentIcon from '@mui/icons-material/Percent';
 import SaveIcon from '@mui/icons-material/Save';
-import AssuredWorkloadIcon from '@mui/icons-material/AssuredWorkload';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import { useErrors } from '@/hooks';
 import Select from '@/src/lib/piwi/core/Select';
-import Options from '@/src/lib/piwi/core/Options';
 import TextFieldMasked from '@/src/lib/piwi/core/TextFieldMasked';
 import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
-import type { Category } from '../../Categories';
-import type { Brand } from '../../Brands';
-import { Product } from '../Products';
-import ProfitField from './ProfitField';
+import TextFieldCurrency from '@/src/lib/piwi/core/TextFieldCurrency';
+import Spinner from '@/src/lib/piwi/core/Spinner';
+import { useCategories } from '@/Pages/Categories/hooks';
+import { useBrands } from '@/Pages/Brands/hooks';
+import { useProducts } from '../hooks';
+import SalePriceTextfield from './SalePriceTextField';
+import WholesalePriceTextfield from './WholesalePriceTextField';
 
 export default function ProductForm({ id, onSubmit }: ProductFormProps) {
   const { t } = useTranslation();
   const [fuckErrors, onChangeDecorator] = useErrors();
-  const page = usePage();
-  const product = (_.get(page, 'props.products', []) as Product[]).find(
-    (p) => p.id === id,
-  );
-  const categories = _.get(page, 'props.categories', []) as Category[];
-  const brands = _.get(page, 'props.brands', []) as Brand[];
+  const products = useProducts();
+  const product = products.find((p) => p.id === id);
+  const categories = useCategories();
+  const brands = useBrands();
 
   return (
     <Form
       initialValues={
         !product
           ? {}
-          : { ...product, wholesale: product.wholesale ? 'Yes' : 'No' }
+          : _.mapValues(product, (v, k) => (k !== 'wholesale' ? String(v) : v))
       }
       subscription={{ submitting: true, pristine: true }}
       onSubmit={onSubmit}
       render={({ /** pristine, */ handleSubmit, submitting }) => (
         <HtmlForm onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <Field
                 name="barcode"
                 subscription={{ value: true }}
@@ -77,7 +79,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                 )}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={8}>
               <Field
                 name="name"
                 subscription={{ value: true }}
@@ -95,7 +97,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <LocalOfferIcon />
+                          <DriveFileRenameOutlineIcon />
                         </InputAdornment>
                       ),
                     }}
@@ -129,25 +131,28 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                 )}
               />
             </Grid>
-            <Grid item xs={6} md={3}>
+            <Grid item xs={12} md={3}>
               <Field
-                name="sale_price"
+                name="profit"
                 subscription={{ value: true }}
                 render={({ input }) => (
-                  <TextFieldDolarBs
+                  <TextFieldCurrency
                     {...input}
                     variant="standard"
-                    label={t('Sale Price')}
+                    label={t('Profit')}
                     fullWidth
                     color="secondary"
                     disabled={submitting}
+                    thousandSeparator={false}
+                    prefix=""
+                    suffix="%"
                     onChange={onChangeDecorator(input.onChange)}
                     error={Boolean(fuckErrors[input.name])}
                     helperText={fuckErrors[input.name]}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <PointOfSaleIcon />
+                          <PercentIcon />
                         </InputAdornment>
                       ),
                     }}
@@ -155,46 +160,17 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                 )}
               />
             </Grid>
-            <Grid item xs={6} md={2}>
-              <ProfitField />
+            <Grid item xs={12} md={3}>
+              <SalePriceTextfield />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <Field
-                name="tax"
-                subscription={{ value: true }}
-                render={({ input }) => (
-                  <TextFieldDolarBs
-                    {...input}
-                    variant="standard"
-                    label={t('Tax')}
-                    fullWidth
-                    color="secondary"
-                    disabled={submitting}
-                    onChange={onChangeDecorator(input.onChange)}
-                    error={Boolean(fuckErrors[input.name])}
-                    helperText={fuckErrors[input.name]}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <AssuredWorkloadIcon />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid item xs={4} md={2}>
+            <Grid item xs={12} md={3}>
               <Field
                 name="stock"
                 subscription={{ value: true }}
                 render={({ input }) => (
-                  <TextFieldMasked
+                  <Spinner
                     {...input}
-                    mask="##########"
-                    definitions={{
-                      '#': /[0-9]/,
-                    }}
+                    min={0}
                     variant="standard"
                     label={t('Stock')}
                     fullWidth
@@ -203,18 +179,11 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                     onChange={onChangeDecorator(input.onChange)}
                     error={Boolean(fuckErrors[input.name])}
                     helperText={fuckErrors[input.name]}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <InventoryIcon />
-                        </InputAdornment>
-                      ),
-                    }}
                   />
                 )}
               />
             </Grid>
-            <Grid item xs={8} md={5}>
+            <Grid item xs={12} md={5}>
               <Field
                 name="category"
                 subscription={{ value: true }}
@@ -264,94 +233,94 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                 )}
               />
             </Grid>
-            <Grid item xs={12}>
-              <Field
-                name="wholesale"
-                subscription={{ value: true }}
-                render={({ input }) => (
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={4}>
-                      <Options
-                        {...input}
-                        css={radios}
-                        type="radio"
-                        label={t('The product is wholesale selling?')}
-                        color="secondary"
-                        options={['Yes', 'No']}
-                        disabled={submitting}
-                        onChange={onChangeDecorator(input.onChange)}
-                        error={Boolean(fuckErrors[input.name])}
-                        helperText={fuckErrors[input.name]}
-                      />
-                    </Grid>
-                    {input.value === 'Yes' && (
-                      <>
-                        <Grid item xs={12} md={4}>
-                          <Field
-                            name="wholesale_qty"
-                            subscription={{ value: true }}
-                            render={(pollito) => (
-                              <TextFieldMasked
-                                {...pollito.input}
-                                mask="##########"
-                                definitions={{
-                                  '#': /[0-9]/,
-                                }}
-                                variant="standard"
-                                label={t('Wholesale Count')}
-                                fullWidth
-                                color="secondary"
-                                disabled={submitting}
-                                onChange={onChangeDecorator(
-                                  pollito.input.onChange,
-                                )}
-                                error={Boolean(fuckErrors[pollito.input.name])}
-                                helperText={fuckErrors[pollito.input.name]}
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position="start">
-                                      <DynamicFeedIcon />
-                                    </InputAdornment>
-                                  ),
-                                }}
-                              />
-                            )}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <Field
-                            name="wholesale_price"
-                            subscription={{ value: true }}
-                            render={(pollito) => (
-                              <TextFieldDolarBs
-                                {...pollito.input}
-                                variant="standard"
-                                label={t('Wholesale Price')}
-                                fullWidth
-                                color="secondary"
-                                disabled={submitting}
-                                onChange={onChangeDecorator(
-                                  pollito.input.onChange,
-                                )}
-                                error={Boolean(fuckErrors[pollito.input.name])}
-                                helperText={fuckErrors[pollito.input.name]}
-                                InputProps={{
-                                  startAdornment: (
-                                    <InputAdornment position="start">
-                                      <PaymentsIcon />
-                                    </InputAdornment>
-                                  ),
-                                }}
-                              />
-                            )}
-                          />
-                        </Grid>
-                      </>
-                    )}
+            <Field
+              name="wholesale"
+              subscription={{ value: true }}
+              render={({ input }) => (
+                <>
+                  <Grid item xs={12} md={2}>
+                    <FormControlLabel
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column-reverse',
+                        alignItems: 'flex-start',
+                        ml: 1,
+                      }}
+                      control={
+                        <Switch
+                          {...input}
+                          checked={Boolean(input.value)}
+                          color="secondary"
+                          disabled={submitting}
+                          onChange={(ev, checked) => input.onChange(checked)}
+                        />
+                      }
+                      label={t('Wholesale selling?')}
+                    />
                   </Grid>
-                )}
-              />
-            </Grid>
+                  {input.value && (
+                    <>
+                      <Grid item xs={12} md={4}>
+                        <Field
+                          name="wholesale_qty"
+                          subscription={{ value: true }}
+                          render={(pollito) => (
+                            <Spinner
+                              {...pollito.input}
+                              min={0}
+                              variant="standard"
+                              label={t('Wholesale Count')}
+                              fullWidth
+                              color="secondary"
+                              disabled={submitting}
+                              onChange={onChangeDecorator(
+                                pollito.input.onChange,
+                              )}
+                              error={Boolean(fuckErrors[pollito.input.name])}
+                              helperText={fuckErrors[pollito.input.name]}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <Field
+                          name="wholesale_profit"
+                          subscription={{ value: true }}
+                          render={(pollito) => (
+                            <TextFieldCurrency
+                              {...pollito.input}
+                              variant="standard"
+                              label={t('Wholesale Profit')}
+                              fullWidth
+                              color="secondary"
+                              disabled={submitting}
+                              thousandSeparator={false}
+                              prefix=""
+                              suffix="%"
+                              onChange={onChangeDecorator(
+                                pollito.input.onChange,
+                              )}
+                              error={Boolean(fuckErrors[pollito.input.name])}
+                              helperText={fuckErrors[pollito.input.name]}
+                              InputProps={{
+                                startAdornment: (
+                                  <InputAdornment position="start">
+                                    <PercentIcon />
+                                  </InputAdornment>
+                                ),
+                              }}
+                            />
+                          )}
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={4}>
+                        <WholesalePriceTextfield />
+                      </Grid>
+                    </>
+                  )}
+                </>
+              )}
+            />
           </Grid>
           <Button
             sx={{ mt: 2, alignSelf: 'flex-end' }}

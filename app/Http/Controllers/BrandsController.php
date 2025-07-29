@@ -33,7 +33,7 @@ class BrandsController extends Controller {
     public function store(Request $request) {
         $request->validate([
             'brand_label' => 'required|string|max:255',
-            'brand_slug' => 'required|string|max:255',
+            'brand_slug' => 'required|string|unique:brands,brand_slug',
         ]);
 
         $brand = new Brand();
@@ -47,7 +47,7 @@ class BrandsController extends Controller {
     public function update(Request $request, int $id) {
         $request->validate([
             'brand_label' => 'required|string|max:255',
-            'brand_slug' => 'required|string|max:255',
+            'brand_slug' => 'required|string|unique:brands,brand_slug',
         ]);
 
         $table = new BrandsTable;

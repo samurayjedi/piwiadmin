@@ -16,7 +16,7 @@ import {
 export default function Options({ type, ...props }: OptionsProps) {
   const {
     options,
-    label,
+    label = '',
     name = '',
     value = type === 'check' ? [] : '',
     helperText = '',
@@ -83,7 +83,7 @@ export interface OptionsProps
   extends Omit<FormGroupProps, 'children' | 'onChange'> {
   type: 'radio' | 'check';
   options: string[] | readonly string[] | Record<string, string>;
-  label: React.ReactNode;
+  label?: string;
   name?: string;
   value?: string | string[];
   error?: boolean;

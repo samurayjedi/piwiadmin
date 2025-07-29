@@ -3,9 +3,9 @@ import { TableRow, TableCell, IconButton } from '@mui/material';
 import RemoveShoppingCartIcon from '@mui/icons-material/RemoveShoppingCart';
 import Spinner from '@/src/lib/piwi/core/Spinner';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
-import { getPrice } from './hooks';
-import { type Cart } from './SearchProductDialog';
+import { getPrice } from '../hooks';
 import HiddenFields from './HiddenFields';
+import { Cart } from '../types';
 
 export default function CartRow({
   qty,
@@ -14,7 +14,7 @@ export default function CartRow({
   onRemove,
   ...product
 }: CartRowProps) {
-  const { barcode, name, tax, stock } = product;
+  const { barcode, name, stock } = product;
   const price = getPrice({ ...product, qty });
 
   const handleChange = useCallback(
@@ -41,21 +41,18 @@ export default function CartRow({
         <LabelDolarBs value={price} />
       </TableCell>
       <TableCell>
-        <LabelDolarBs value={parseFloat(tax)} />
-      </TableCell>
-      <TableCell>
         <HiddenFields {...product} />
         <Spinner
           name="qty[]"
           variant="standard"
           min={1}
-          max={Math.min(parseInt(stock, 10), parseInt(stock, 10))}
+          max={stock}
           value={qty}
           onChange={handleChange}
         />
       </TableCell>
       <TableCell align="right">
-        <LabelDolarBs value={(price + parseInt(tax, 10)) * qty} />
+        <LabelDolarBs value={price * qty} />
       </TableCell>
     </TableRow>
   );

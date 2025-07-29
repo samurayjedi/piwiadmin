@@ -1,7 +1,6 @@
 import React, { useCallback, useContext } from 'react';
 import _ from 'lodash';
 import { router } from '@inertiajs/react';
-import { Client } from '@/Pages/Clients';
 import { FormApi } from 'final-form';
 import { useAppDispatch } from '@/store/hooks';
 import { setSync } from '@/store/app';

@@ -34,7 +34,7 @@ class CategoriesController extends Controller {
     public function store(Request $request) {
         $request->validate([
             'category_label' => 'required|string|max:255',
-            'category_slug' => 'required|string|max:255',
+            'category_slug' => 'required|string|unique:categories,category_slug',
         ]);
 
         $category = new Category();
@@ -48,7 +48,7 @@ class CategoriesController extends Controller {
     public function update(Request $request, int $id) {
         $request->validate([
             'category_label' => 'required|string|max:255',
-            'category_slug' => 'required|string|max:255',
+            'category_slug' => 'required|string|unique:categories,category_slug',
         ]);
 
         $table = new CategoryTable;

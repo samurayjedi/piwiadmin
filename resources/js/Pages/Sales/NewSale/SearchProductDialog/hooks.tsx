@@ -2,10 +2,10 @@ import _ from 'lodash';
 import { SearchProps } from '@/src/lib/piwi/core/Search';
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Product } from '@/Pages/Inventory/Products';
 import { setSync, SyncState } from '@/store/app';
 import { useAppDispatch } from '@/store/hooks';
-import { SearchProductDialogProps, type Cart } from '.';
+import { SearchProductDialogProps } from '.';
+import { Cart } from '../../types';
 
 export function useRequestFocus(open: boolean, sync: SyncState) {
   const [sref, retrieveRef] = useState<HTMLInputElement | null>(null);
@@ -42,7 +42,8 @@ export function useHandler(
               dispatch(setSync('loading'));
             },
             onSuccess: (data) => {
-              setProducts(_.get(data, 'props.products', []) as Product[]);
+              const newP = _.get(data, 'props.products', []) as Product[];
+              setProducts(newP);
             },
             onFinish: () => {
               dispatch(setSync('ok'));
@@ -63,13 +64,14 @@ export function useHandler(
       const barcode = formData.getAll('barcode[]') as string[];
       const name = formData.getAll('name[]') as string[];
       const price = formData.getAll('price[]') as string[];
-      const sale_price = formData.getAll('sale_price[]') as string[];
+      const profit = formData.getAll('profit[]') as string[];
       const stock = formData.getAll('stock[]') as string[];
       const brand = formData.getAll('brand[]') as string[];
       const category = formData.getAll('category[]') as string[];
-      const tax = formData.getAll('tax[]') as string[];
       const wholesale = formData.getAll('wholesale[]') as string[];
-      const wholesale_price = formData.getAll('wholesale_price[]') as string[];
+      const wholesale_profit = formData.getAll(
+        'wholesale_profit[]',
+      ) as string[];
       const wholesale_qty = formData.getAll('wholesale_qty[]') as string[];
       const qty = formData.getAll('qty[]') as string[];
       /** */
@@ -81,15 +83,14 @@ export function useHandler(
             id: parseInt(id[i], 10),
             barcode: barcode[i],
             name: name[i],
-            price: price[i],
-            sale_price: sale_price[i],
-            stock: stock[i],
+            price: parseFloat(price[i]),
+            profit: parseFloat(profit[i]),
+            stock: parseInt(stock[i], 10),
             brand: brand[i],
             category: category[i],
-            tax: tax[i],
             wholesale: Boolean(parseInt(wholesale[i], 10)),
-            wholesale_price: wholesale_price[i],
-            wholesale_qty: wholesale_qty[i],
+            wholesale_profit: parseFloat(wholesale_profit[i]),
+            wholesale_qty: parseInt(wholesale_qty[i], 10),
             qty: q,
           });
         }

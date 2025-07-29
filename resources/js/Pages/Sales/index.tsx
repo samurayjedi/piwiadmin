@@ -1,6 +1,5 @@
-import { useCallback, useState, useMemo } from 'react';
-import _ from 'lodash';
-import { router, usePage } from '@inertiajs/react';
+import { useCallback, useState } from 'react';
+import { router } from '@inertiajs/react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/src/Layouts/AppLayout';
@@ -16,28 +15,28 @@ import {
   TableFooter,
   TablePagination,
   Button,
-  Popover,
-  Typography,
   IconButton,
 } from '@mui/material';
 import SoapIcon from '@mui/icons-material/Soap';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import { usePaginatorProps } from '@/hooks';
 import { useSales } from './hooks';
-import { Client } from '../Clients';
 import ClientInfoDialog from './ClientInfoDialog';
 import UserInfo from './UserInfo';
-import { Cart } from './NewSale/SearchProductDialog';
 import ItemsDialog from './ItemsDialog';
+import SaleTableRow from './SaleTableRow';
+import PayDialog from './PayDialog';
 
 export default function Sales() {
-  const { page, count, rows } = usePage().props;
   const { t } = useTranslation();
+  const { page, count, rows } = usePaginatorProps();
   const sales = useSales();
   const [client, setClient] = useState<Client | undefined>(undefined);
-  const [items, setItems] = useState<Cart[] | undefined>(undefined);
-  const popoverId = useMemo(() => _.uniqueId('popover-sale-note_'), []);
-  const [noteAnchor, setNoteAnchor] = useState<HTMLElement | null>(null);
+  const [items, setItems] = useState<
+    (typeof sales)[number]['sale_items'] | undefined
+  >(undefined);
+  const [s, setS] = useState<(typeof sales)[number] | undefined>(undefined);
 
   const handleClientDialogClose = useCallback(() => {
     setClient(undefined);
@@ -45,20 +44,6 @@ export default function Sales() {
 
   const handleItemsDialogClose = useCallback(() => {
     setItems(undefined);
-  }, []);
-
-  const handlePopoverOpen = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      const notes = event.currentTarget.getAttribute('data-notes');
-      if (notes !== 'false') {
-        setNoteAnchor(event.currentTarget);
-      }
-    },
-    [],
-  );
-
-  const handlePopoverClose = useCallback(() => {
-    setNoteAnchor(null);
   }, []);
 
   return (
@@ -74,7 +59,6 @@ export default function Sales() {
                   <TableCell>{t('Seller')}</TableCell>
                   <TableCell>{t('Type')}</TableCell>
                   <TableCell align="center">{t('Purchases')}</TableCell>
-                  <TableCell>{t('Tax')}</TableCell>
                   <TableCell>{t('Total')}</TableCell>
                   <TableCell>{t('Payed')}</TableCell>
                   <TableCell>{t('Status')}</TableCell>
@@ -85,13 +69,9 @@ export default function Sales() {
                 {sales.length > 0 ? (
                   <>
                     {sales.map((sale) => (
-                      <TableRow
+                      <SaleTableRow
                         key={`sale-row-${sale.id}`}
                         data-notes={sale.notes ?? false}
-                        aria-owns={noteAnchor !== null ? popoverId : undefined}
-                        aria-haspopup="true"
-                        onMouseEnter={handlePopoverOpen}
-                        onMouseLeave={handlePopoverClose}
                       >
                         <TableCell>{sale.created_at}</TableCell>
                         <TableCell align="center">
@@ -112,14 +92,7 @@ export default function Sales() {
                           <Button
                             size="small"
                             variant="text"
-                            onClick={() =>
-                              setItems(
-                                sale.sale_items.map((item) => ({
-                                  ...item.product,
-                                  qty: item.quantity,
-                                })),
-                              )
-                            }
+                            onClick={() => setItems(sale.sale_items)}
                           >
                             x
                             {(() => {
@@ -131,9 +104,6 @@ export default function Sales() {
                               return purchases;
                             })()}
                           </Button>
-                        </TableCell>
-                        <TableCell>
-                          <LabelDolarBs value={sale.tax_amount} />
                         </TableCell>
                         <TableCell>
                           <LabelDolarBs value={sale.total_amount} />
@@ -161,7 +131,10 @@ export default function Sales() {
                         </TableCell>
                         <TableCell>
                           {sale.payment_type !== 'cash' && (
-                            <IconButton title={t('Pay')}>
+                            <IconButton
+                              title={t('Pay')}
+                              onClick={() => setS(sale)}
+                            >
                               <SoapIcon />
                             </IconButton>
                           )}
@@ -169,12 +142,12 @@ export default function Sales() {
                             <ReceiptIcon />
                           </IconButton>
                         </TableCell>
-                      </TableRow>
+                      </SaleTableRow>
                     ))}
                   </>
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={9} align="center">
                       {t('No records found!')}
                     </TableCell>
                   </TableRow>
@@ -184,10 +157,10 @@ export default function Sales() {
                 <TableRow>
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]} // , { label: t('All'), value: -1 }
-                    colSpan={12}
-                    rowsPerPage={rows as number}
-                    page={page as number}
-                    count={count as number}
+                    colSpan={9}
+                    rowsPerPage={rows}
+                    page={page}
+                    count={count}
                     onRowsPerPageChange={(ev) =>
                       router.get(
                         route('sales', {
@@ -207,27 +180,8 @@ export default function Sales() {
         </Container>
       </AppLayout>
       <ClientInfoDialog client={client} onClose={handleClientDialogClose} />
-      <ItemsDialog onClose={handleItemsDialogClose} items={items} />
-      <Popover
-        id={popoverId}
-        sx={{ pointerEvents: 'none' }}
-        open={noteAnchor !== null}
-        anchorEl={noteAnchor}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        onClose={handlePopoverClose}
-        disableRestoreFocus
-      >
-        <Typography sx={{ p: 1 }} variant="subtitle1">
-          {noteAnchor?.getAttribute('data-notes')}
-        </Typography>
-      </Popover>
+      <ItemsDialog onClose={handleItemsDialogClose} sale_items={items} />
+      <PayDialog sale={s} onClose={() => setS(undefined)} />
     </>
   );
 }

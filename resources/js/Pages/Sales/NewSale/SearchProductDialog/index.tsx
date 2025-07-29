@@ -19,10 +19,10 @@ import { useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import Search from '@/src/lib/piwi/core/Search';
-import { Product } from '@/Pages/Inventory/Products';
 import { useAppSelector } from '@/store/hooks';
 import { useRequestFocus, useHandler } from './hooks';
 import ProductRow from './ProductRow';
+import { Cart } from '../../types';
 
 export default function SearchProductDialog({
   open,
@@ -118,10 +118,6 @@ export default function SearchProductDialog({
     </Dialog>
   );
 }
-
-export type Cart = Product & {
-  qty: number;
-};
 
 export interface SearchProductDialogProps {
   open: boolean;

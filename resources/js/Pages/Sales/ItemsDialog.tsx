@@ -15,10 +15,9 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
-import { Cart } from './NewSale/SearchProductDialog';
 
 export default function ItemsDialog({
-  items,
+  sale_items,
   onClose = () => {},
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
@@ -27,7 +26,7 @@ export default function ItemsDialog({
 
   return (
     <Dialog
-      open={Boolean(items)}
+      open={Boolean(sale_items)}
       fullScreen={isMobile}
       maxWidth="md"
       fullWidth
@@ -44,25 +43,21 @@ export default function ItemsDialog({
                 <TableCell>{t('Name')}</TableCell>
                 <TableCell>{t('Brand')}</TableCell>
                 <TableCell>{t('Category')}</TableCell>
-                <TableCell>{t('Tax')}</TableCell>
                 <TableCell>{t('Sale price')}</TableCell>
                 <TableCell>{t('Qty')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {items?.map((item) => (
+              {sale_items?.map((item) => (
                 <TableRow key={`items-dialog-item-${item.id}`}>
-                  <TableCell>{item.barcode}</TableCell>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>{item.brand}</TableCell>
-                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item.product.barcode}</TableCell>
+                  <TableCell>{item.product.name}</TableCell>
+                  <TableCell>{item.product.brand}</TableCell>
+                  <TableCell>{item.product.category}</TableCell>
                   <TableCell>
-                    <LabelDolarBs value={parseFloat(item.tax)} />
+                    <LabelDolarBs value={item.unit_price} />
                   </TableCell>
-                  <TableCell>
-                    <LabelDolarBs value={parseFloat(item.sale_price)} />
-                  </TableCell>
-                  <TableCell>x{item.qty}</TableCell>
+                  <TableCell>x{item.quantity}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -79,6 +74,16 @@ export default function ItemsDialog({
 }
 
 export interface ConfirmDialogProps {
-  items?: Cart[];
   onClose?: () => void;
+  sale_items?: {
+    id: number;
+    sale_id: number;
+    product_id: number;
+    quantity: number;
+    unit_price: number;
+    discount_id: number;
+    created_at: string;
+    updated_at: string;
+    product: Product;
+  }[];
 }

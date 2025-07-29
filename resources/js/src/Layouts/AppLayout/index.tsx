@@ -1,12 +1,13 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { AppBar as MUIAppBar, Toolbar, Container } from '@mui/material';
+import DolarSync from '@/src/DolarSync';
 import PrimaryAppBar from './PrimaryAppBar';
 import Breadcrumbs from './Breadcrumbs';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
+    <DolarSync>
       <PrimaryAppBar />
       <SecondaryAppBar color="default">
         <Container maxWidth="lg">
@@ -16,7 +17,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </Container>
       </SecondaryAppBar>
       {children}
-    </>
+    </DolarSync>
   );
 }
 

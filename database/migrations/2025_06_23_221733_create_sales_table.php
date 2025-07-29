@@ -17,14 +17,24 @@ return new class extends Migration
             $table->foreignId('client_id')->nullable()->constrained()->comment('Optional customer record');
             // Payment type columns
             $table->enum('payment_type', ['cash', 'credit', 'layaway']);
-            $table->decimal('tax_amount', 10, 2);
             $table->decimal('total_amount', 10, 2);
             $table->decimal('amount_paid', 10, 2)->default(0);
             $table->enum('status', ['pending', 'canceled', 'completed']);
             // Credit/Layaway-specific columns
             $table->date('due_date')->nullable()->comment('For credit/layaway sales');
-            $table->smallInteger('quotas')->nullable()->comment('For credit sales');
-            $table->enum('payment_interval', ['weekly', 'fortnightly', 'monthly', 'bimonthly', 'quarterly', 'biannual', 'yearly'])->nullable()->comment('For credit sales');
+            $table
+                ->enum('notification_interval', [
+                    'daily',
+                    'weekly',
+                    'fortnightly',
+                    'monthly',
+                    'bimonthly',
+                    'quarterly',
+                    'biannual',
+                    'yearly',
+                ])
+                ->nullable()
+                ->comment('For credit/layaway sales');
             // ....
             $table->text('notes')->nullable();
             $table->timestamps();

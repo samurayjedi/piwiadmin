@@ -9,37 +9,52 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { useAppSelector } from '@/store/hooks';
+import { getPrice } from '../Sales/hooks';
 
-export default function ClientInfoDialog({
-  client,
+export default function WholesaleInfoDialog({
+  product,
   onClose = () => {},
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const dolar = useAppSelector((state) => state.currencies.dolar);
+  const wholesalePrice = product
+    ? getPrice({ ...product, qty: Number.MAX_SAFE_INTEGER })
+    : 0;
 
   return (
     <Dialog
-      open={Boolean(client)}
+      open={Boolean(product)}
       fullScreen={isMobile}
       maxWidth="xs"
       fullWidth
       onClose={onClose}
       keepMounted
     >
-      <DialogTitle>{client?.name}</DialogTitle>
+      <DialogTitle>
+        {t('Wholesale details of')}: {product?.name}
+      </DialogTitle>
       <DialogContent>
         <Typography variant="subtitle1">
-          <strong>{t('Identification')}: &nbsp;</strong>
-          {client?.identification}
+          <strong>{t('Profit')}: &nbsp;</strong>
+          {product?.wholesale_profit}%
         </Typography>
         <Typography variant="subtitle1">
-          <strong>{t('Phone')}: &nbsp;</strong>
-          {client?.phone}
+          <strong>{t('Sale Price')}: &nbsp;</strong>
+          {wholesalePrice.toLocaleString('en-US', {
+            style: 'currency',
+            currency: 'USD',
+          })}
+          &nbsp;
+          {`(${(wholesalePrice * dolar).toLocaleString('es-VE', {
+            style: 'currency',
+            currency: 'VES',
+          })})`}
         </Typography>
         <Typography variant="subtitle1">
-          <strong>{t('Address')}: &nbsp;</strong>
-          {client?.address}
+          <strong>{t('Apply from')}: &nbsp;</strong>x{product?.wholesale_qty}
         </Typography>
       </DialogContent>
       <DialogActions>
@@ -52,6 +67,6 @@ export default function ClientInfoDialog({
 }
 
 export interface ConfirmDialogProps {
-  client?: Client;
+  product?: Product;
   onClose?: () => void;
 }

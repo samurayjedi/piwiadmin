@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Http\Controllers\Pagination;
 use App\Models\Products\ProductsTable;
+use App\Models\Sales\SaleItemTable;
 use App\Models\PaymentMethods\PaymentMethodsTable;
 use App\Models\Clients\ClientsTable;
 use App\Models\Sales\Sale;
@@ -63,34 +64,27 @@ class SalesController extends Controller {
             $salesArray[$i]['user']['name'] = $user->name;
             $salesArray[$i]['user']['email'] = $user->email;
             /** items */
-            $salesItemsTable = DB::table('sale_items');
+            $salesItemsTable = new SaleItemTable;
             $saleItems = $salesItemsTable->where('sale_id', '=', $sale->id)->get();
             if (!$saleItems->count()) {
                 throw new \Exception('Sale id '.$sale->id.' has\'nt items!!!!');
             }
-            $saleItemsArray = $saleItems
-                ->map(function ($item) {
-                    return (array) $item;
-                })
-                ->toArray();
+            $saleItemsArray = $saleItems->toArray();
             foreach ($saleItems as $j => $saleItem) {
                 // product query
-                $productsTable = DB::table('products');
+                $productsTable = new ProductsTable;
                 $products = $productsTable->where('id', '=', $saleItem->product_id)->get();
                 if (!$products->count()) {
                     throw new \Exception('Product id '.$saleItem->product_id.' not found!!!');
                 }
-                $saleItemsArray[$j]['product'] = $products
-                    ->map(function ($item) {
-                        return (array) $item;
-                    })
-                    ->toArray()[0];
+                $saleItemsArray[$j]['product'] = $products[0]->toArray();
             }
             $salesArray[$i]['sale_items'] = $saleItemsArray;
         }
 
         return Inertia::render('Sales', [
             'sales' => $salesArray,
+            'payment_methods' => $this->paymentMethods(),
             'page' => $page,
             'count' => $count,
             'rows' => $rows,
@@ -163,8 +157,8 @@ class SalesController extends Controller {
             /** Products to purchase */
             'id' => 'required|array',
             'id.*' => 'required|integer|exists:products,id',
-            'sale_price' => 'required|array',
-            'sale_price.*' => 'required|numeric|min:0',
+            'price' => 'required|array',
+            'price.*' => 'required|numeric|min:0',
             // the amount I'm going to buy
             'qty' => 'required|array',
             'qty.*' => 'required|numeric|min:1',
@@ -172,8 +166,7 @@ class SalesController extends Controller {
             'identification' => 'required|string|min:8|exists:clients,identification',
             /** Payment */
             'payment_type' => 'required|string|in:cash,credit,layaway',
-            'quotas' => 'required_if:payment_type,credit|string|max:10',
-            'payment_interval' => 'required_if:payment_type,credit|string|in:weekly,fortnightly,monthly,bimonthly,quarterly,biannual,yearly',
+            'notification_interval' => 'required_if:payment_type,credit|string|in:daily,weekly,fortnightly,monthly,bimonthly,quarterly,biannual,yearly',
             'due_date' => [
                 'required_if:payment_type,credit',
                 'required_if:payment_type,layaway',
@@ -181,38 +174,58 @@ class SalesController extends Controller {
             ],
             'payment_methods' => 'required|array',
             'payment_methods.*' => 'required|string|exists:payment_methods,payment_slug',
-            /** taxes & total */
-            'taxes' => 'required|numeric|min:0',
-            'total' => 'required|numeric|min:0',
             /** */
             'notes' => 'nullable|string',
         ];
         $paymentMethods = request()->get('payment_methods');
-        if (!is_array($paymentMethods)) {
+        if (!is_array($paymentMethods)) { // above are the validation that ensure this field is array and required, but i dont known, when undefined, that not works :/
             return back()->withErrors(['payment_methods' => 'You must select at least one payment method.']);
         }
         foreach ($paymentMethods as $paymentMethod) {
-            $rules[$paymentMethod] = 'required|numeric|min:0';
+            $rules[$paymentMethod] = 'required|numeric';
         }
         request()->validate($rules);
         $cart = [
             'id' => request()->get('id'),
-            'sale_price' =>  request()->get('sale_price'),
+            'price' =>  request()->get('price'),
+            'profit' => request()->get('profit'),
+            'wholesale' => request()->get('wholesale'),
+            'wholesale_qty' => request()->get('wholesale_qty'),
+            'wholesale_profit' => request()->get('wholesale_profit'),
             'qty' =>  request()->get('qty'),
         ];
         $clientIdentification = request()->get('identification');
         $payment = [
             'payment_type' => request()->get('payment_type'),
-            'quotas' => request()->get('quotas'),
-            'payment_interval' => request()->get('payment_interval'),
+            'notification_interval' => request()->get('notification_interval'),
             'due_date' => request()->get('due_date'),
         ];
-        $ammountPaid = 0; $total = floatval(request()->get('total'));
-        foreach ($paymentMethods as $payMethod) {
-            $paymentAmount = request()->get($payMethod);
-            $payment[$payMethod] = $paymentAmount;
-            $ammountPaid += floatval($paymentAmount);
+        $getPrice = function($price, $profit, $qty, $wholesale, $wholesale_profit, $wholesale_qty) {
+            $salePrice = ($price * $profit) / 100;
+            $wholesaleSalePrice = ($price * $wholesale_profit) / 100;
+            $isWholesaleSale = $wholesale && $qty >= $wholesale_qty;
+
+            return $isWholesaleSale ? $price + $wholesaleSalePrice : $price + $salePrice;
+        };
+        $total = 0; 
+        foreach ($cart['id'] as $i => $id) {
+            $price = floatval($cart['price'][$i]);
+            $profit = floatval($cart['profit'][$i]);
+            $wholesale = (bool)$cart['wholesale'][$i];
+            $wholesale_qty = intval($cart['wholesale_qty'][$i]);
+            $wholesale_profit = floatval($cart['wholesale_profit'][$i]);
+            $qty = intval($cart['qty'][$i]);
+
+            $total += $getPrice($price, $profit, $qty, $wholesale, $wholesale_profit, $wholesale_qty) * $qty;
         }
+        $total = round($total, 2);
+        $ammountPaid = 0;
+        foreach ($paymentMethods as $payMethod) {
+            $paymentAmount = floatval(request()->get($payMethod));
+            $payment[$payMethod] = $paymentAmount;
+            $ammountPaid += $paymentAmount;
+        }
+        $ammountPaid = round($ammountPaid, 2);
         /** validate the ammount payed */
         $fn = function (string $msg) use($paymentMethods) {
             $errors = [];
@@ -224,8 +237,10 @@ class SalesController extends Controller {
         };
         if ($ammountPaid <= 0) {
             return back()->withErrors($fn('The payment cannot be 0!!!'));
-        } else if ($payment['payment_type'] !== 'cash' && $ammountPaid > $total) {
-            return back()->withErrors($fn("In ".$payment['payment_type']." sales, the amount paid cannot be > to the total"));
+        } else if ($payment['payment_type'] !== 'cash' && $ammountPaid >= $total) {
+            return back()->withErrors($fn("In ".$payment['payment_type']." sales, the amount paid cannot be >= to the total"));
+        } else if ($payment['payment_type'] === 'cash' && $ammountPaid < $total) {
+            return back()->withErrors($fn("In cash sales, you must pay the totality."));
         }
         /** Init register */
         try {
@@ -242,24 +257,27 @@ class SalesController extends Controller {
             $sale->user_id = $userId;
             $sale->client_id = $client->id;
             $sale->payment_type = $payment['payment_type'];
-            $sale->tax_amount = request()->get('taxes');
             $sale->total_amount = $total;
             $sale->amount_paid = $ammountPaid;
             $sale->status = $payment['payment_type'] === 'cash' ? 'completed' : 'pending';
             $sale->due_date = $payment['due_date'];
-            $sale->quotas = $payment['quotas'];
-            $sale->payment_interval = $payment['payment_interval'];
+            $sale->notification_interval = $payment['notification_interval'];
             $sale->notes = request()->get('notes');
             $sale->insert();
             // the sale product items
             foreach ($cart['id'] as $i => $productId) {
-                $qty = $cart['qty'][$i];
-                $price = $cart['sale_price'][$i];
                 $saleItem = new SaleItem;
                 $saleItem->sale_id = $sale->id;
                 $saleItem->product_id = $productId;
-                $saleItem->quantity = $qty;
-                $saleItem->unit_price = $price;
+                $saleItem->quantity = $cart['qty'][$i];
+                $saleItem->unit_price = $getPrice(
+                    $cart['price'][$i],
+                    $cart['profit'][$i],
+                    $cart['qty'][$i],
+                    $cart['wholesale'][$i],
+                    $cart['wholesale_profit'][$i],
+                    $cart['wholesale_qty'][$i],
+                );
                 $saleItem->discount_id = null;
                 $saleItem->insert();
             }

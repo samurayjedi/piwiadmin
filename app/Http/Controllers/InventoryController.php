@@ -15,46 +15,58 @@ class InventoryController extends Controller {
         $categories = $categoryTable->get();
         $brandsTable = new BrandsTable;
         $brands = $brandsTable->get();
+        /** products by pagination */
+        $page = intval(request()->get('page', 0));
+        $rows = intval(request()->get('rows', 5));
         $productsTable = new ProductsTable;
-        $products = $productsTable->get();
+        $pager = Pagination::normalize('inventory', $page, $rows, $productsTable->count());
+        if (!is_array($pager)) {
+            // is a redirect
+            return $pager;
+        }
+        [$limit, $offset, $count] = $pager;
+        $products = $productsTable
+            ->limit($limit)
+            ->offset($offset)
+            ->orderBy('id', 'DESC')
+            ->get();
 
         return Inertia::render('Inventory', [
             'categories' => $categories->toArray(),
             'brands' => $brands->toArray(),
             'products' => $products->toArray(),
+            'page' => $page,
+            'count' => $count,
+            'rows' => $rows,
         ]);
     }
 
     public function add_product(Request $request) {
         $request->validate([
-            'barcode' => 'required|numeric',
+            'barcode' => 'required|numeric|unique:products,barcode',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
-            'sale_price' => 'required|numeric',
-            'tax' => 'required|numeric',
+            'profit' => 'required|numeric',
             'stock' => 'required|numeric',
             'category' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
-            'wholesale' => 'required|string|max:3',
-            'wholesale_qty' => 'required_if:wholesale,==,Yes|numeric',
-            'wholesale_price' => 'required_if:wholesale,==,Yes|numeric',
-            'cover' => 'mimes:jpg,bmp,png',
+            'wholesale' => 'boolean',
+            'wholesale_qty' => 'required_if:wholesale,==,true|numeric',
+            'wholesale_profit' => 'required_if:wholesale,==,true|numeric',
         ]);
 
         $product = new Product();
         $product->barcode = $request->get('barcode');
         $product->name = $request->get('name');
         $product->price = $request->get('price');
-        $product->sale_price = $request->get('sale_price');
-        $product->tax = $request->get('tax');
+        $product->profit = $request->get('profit');
         $product->stock = $request->get('stock');
         $product->category = $request->get('category');
         $product->brand = $request->get('brand');
-        $wholesale = $request->get('wholesale') === 'Yes' ? true : false;
-        $product->wholesale = $wholesale;
+        $wholesale = $request->get('wholesale');
+        $product->wholesale = (bool)$wholesale;
         $product->wholesale_qty = $wholesale ? $request->get('wholesale_qty') : null;
-        $product->wholesale_price = $wholesale ? $request->get('wholesale_price') : null;
-        $product->cover_path = "i love amiyaa!!!!";
+        $product->wholesale_profit = $wholesale ? $request->get('wholesale_profit') : null;
         $product->insert();
 
         return back();
@@ -62,18 +74,16 @@ class InventoryController extends Controller {
 
     public function update_product_submit(Request $request, int $id) {
         $request->validate([
-            'barcode' => 'required|numeric',
+            'barcode' => 'required|numeric|unique:products,barcode',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
-            'sale_price' => 'required|numeric',
-            'tax' => 'required|numeric',
+            'profit' => 'required|numeric',
             'stock' => 'required|numeric',
             'category' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
-            'wholesale' => 'required|string|max:3',
-            'wholesale_qty' => 'required_if:wholesale,==,Yes|nullable|numeric',
-            'wholesale_price' => 'required_if:wholesale,==,Yes|nullable|numeric',
-            'cover' => 'mimes:jpg,bmp,png',
+            'wholesale' => 'boolean',
+            'wholesale_qty' => 'required_if:wholesale,==,true|nullable|numeric',
+            'wholesale_profit' => 'required_if:wholesale,==,true|nullable|numeric',
         ]);
 
         $table = new ProductsTable;
@@ -82,16 +92,14 @@ class InventoryController extends Controller {
         $product->barcode = $request->get('barcode');
         $product->name = $request->get('name');
         $product->price = $request->get('price');
-        $product->sale_price = $request->get('sale_price');
-        $product->tax = $request->get('tax');
+        $product->profit = $request->get('profit');
         $product->stock = $request->get('stock');
         $product->category = $request->get('category');
         $product->brand = $request->get('brand');
-        $wholesale = $request->get('wholesale') === 'Yes' ? true : false;
+        $wholesale = (bool)$request->get('wholesale');
         $product->wholesale = $wholesale;
         $product->wholesale_qty = $wholesale ? $request->get('wholesale_qty') : null;
-        $product->wholesale_price = $wholesale ? $request->get('wholesale_price') : null;
-        $product->cover_path = "i love amiyaa!!!!";
+        $product->wholesale_profit = $wholesale ? $request->get('wholesale_profit') : null;
         $product->update();
         
         return back();

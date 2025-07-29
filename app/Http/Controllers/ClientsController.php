@@ -50,7 +50,7 @@ class ClientsController extends Controller {
 
     public function update(Request $request, int $id) {
         $request->validate([
-            'identification' => 'required|string|max:255',
+            'identification' => 'required|string|min:8|unique:clients,identification',
             'name' => 'required|string|max:255',
             'phone' => 'required|string|max:255',
             'address' => 'nullable|string|max:255',

@@ -1,60 +1,42 @@
-import _ from 'lodash';
-import { usePage, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Container } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
+import { usePaginatorProps } from '@/hooks';
+import { usePaymentMethods } from './hooks';
 
-export default function Clients() {
-  const { page, count, rows } = usePage().props;
-  const clients = _.get(usePage(), 'props.clients', []) as Client[];
+export default function Categories() {
+  const { page, count, rows } = usePaginatorProps();
+  const paymentMethods = usePaymentMethods();
 
   return (
     <AppLayout>
       <Container maxWidth="lg">
         <CrudTable
           fields={[
+            ['payment_label', 'Label'],
+            ['payment_slug', 'Slug'],
             [
-              'identification',
-              'Identification',
+              'payment_currency',
+              'Currency',
               {
-                type: 'textfield-masked',
+                type: 'select',
                 props: {
-                  mask: '$##########',
-                  definitions: {
-                    $: /[VEPJCGRvepjcgr]/,
-                    '#': /[0-9]/,
-                  },
+                  items: { Bs: 'Bs.', $: 'Dolar' },
                 },
               },
             ],
-            ['name', 'Name'],
-            [
-              'phone',
-              'Phone',
-              {
-                type: 'textfield-masked',
-                props: {
-                  mask: '&$##-#######',
-                  definitions: {
-                    '&': /[0]/,
-                    $: /[24]/,
-                    '#': /[0-9]/,
-                  },
-                },
-              },
-            ],
-            ['address', 'Address'],
           ]}
-          records={clients}
+          records={paymentMethods}
           onSubmit={(data, action, targetId) => {
             const url = (() => {
               switch (action) {
                 case 'add':
-                  return route('clients.store');
+                  return route('payment_methods.store');
                 case 'update':
-                  return route('clients.update', { id: targetId });
+                  return route('payment_methods.update', { id: targetId });
                 case 'delete':
-                  return route('clients.delete', { id: targetId });
+                  return route('payment_methods.delete', { id: targetId });
               }
 
               return undefined;
@@ -83,27 +65,17 @@ export default function Clients() {
           rows={rows as number}
           onRowsPerPageChange={(ev) =>
             router.get(
-              route('clients', {
+              route('payment_methods', {
                 page,
                 rows: parseInt(ev.target.value, 10),
               }),
             )
           }
           onPageChange={(ev, newPage) =>
-            router.get(route('clients', { page: newPage, rows }))
+            router.get(route('payment_methods', { page: newPage, rows }))
           }
         />
       </Container>
     </AppLayout>
   );
-}
-
-export interface Client {
-  id: number;
-  identification: string;
-  name: string;
-  phone: string;
-  address: string;
-  created_at: string;
-  updated_at: string;
 }

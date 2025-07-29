@@ -15,21 +15,28 @@ import {
   TableBody,
   TableFooter,
   TablePagination,
-  // IconButton,
+  IconButton,
   Button,
 } from '@mui/material';
 // import EditIcon from '@mui/icons-material/Edit';
 // import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ConfirmDialog from '@/src/lib/piwi/core/ConfirmDialog';
+import { usePaginatorProps } from '@/hooks';
+import { useProducts } from './hooks';
 import ProductFormDialog, { ProductFormDialogProps } from './ProductFormDialog';
-import Products from './Products';
+import WholesaleInfoDialog from './WholesaleInfoDialog';
 
 export default function Inventory() {
   const { t } = useTranslation();
+  const products = useProducts();
+  const { count, page, rows } = usePaginatorProps();
   const [open, setOpen] = useState(false);
   const [id, setId] = useState(0);
   const [confirm, setConfirm] = useState(false);
+  const [product, setProduct] = useState<Product | undefined>(undefined);
 
   const handleDialogClose = useCallback<
     NonNullable<ProductFormDialogProps['onClose']>
@@ -55,8 +62,7 @@ export default function Inventory() {
                   <TableCell>{t('Barcode')}</TableCell>
                   <TableCell>{t('Name')}</TableCell>
                   <TableCell>{t('Price')}</TableCell>
-                  <TableCell>{t('Sale Price')}</TableCell>
-                  <TableCell>{t('Tax')}</TableCell>
+                  <TableCell>{t('Profit')}</TableCell>
                   <TableCell>{t('Stock')}</TableCell>
                   <TableCell>{t('Category')}</TableCell>
                   <TableCell>{t('Brand')}</TableCell>
@@ -67,16 +73,52 @@ export default function Inventory() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                <Products
-                  onEdit={(ID) => {
-                    setId(ID);
-                    setOpen(true);
-                  }}
-                  onDelete={(ID) => {
-                    setId(ID);
-                    setConfirm(true);
-                  }}
-                />
+                {!products.length ? (
+                  <TableRow>
+                    <TableCell colSpan={11} align="center">
+                      {t('No records found!')}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  products.map((p) => (
+                    <TableRow key={`row-product-${p.id}`}>
+                      <TableCell>{p.barcode}</TableCell>
+                      <TableCell>{p.name}</TableCell>
+                      <TableCell>${p.price}</TableCell>
+                      <TableCell>{p.profit}%</TableCell>
+                      <TableCell>{p.stock}</TableCell>
+                      <TableCell>{p.category}</TableCell>
+                      <TableCell>{p.brand}</TableCell>
+                      <TableCell>
+                        {!p.wholesale ? (
+                          t('No')
+                        ) : (
+                          <Button variant="text" onClick={() => setProduct(p)}>
+                            {t('Yes')}
+                          </Button>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          onClick={() => {
+                            setId(p.id);
+                            setOpen(true);
+                          }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => {
+                            setId(p.id);
+                            setConfirm(true);
+                          }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
                 <TableRow>
                   <TableCell colSpan={11} align="center">
                     <AddNewButton
@@ -95,11 +137,20 @@ export default function Inventory() {
                   <TablePagination
                     rowsPerPageOptions={[5, 10, 25]} // , { label: t('All'), value: -1 }
                     colSpan={12}
-                    count={0}
-                    rowsPerPage={5}
-                    page={0}
-                    onRowsPerPageChange={() => {}}
-                    onPageChange={() => {}}
+                    page={page}
+                    count={count}
+                    rowsPerPage={rows}
+                    onRowsPerPageChange={(ev) =>
+                      router.get(
+                        route('inventory', {
+                          page,
+                          rows: parseInt(ev.target.value, 10),
+                        }),
+                      )
+                    }
+                    onPageChange={(ev, newPage) =>
+                      router.get(route('inventory', { page: newPage, rows }))
+                    }
                   />
                 </TableRow>
               </TableFooter>
@@ -121,6 +172,10 @@ export default function Inventory() {
           setConfirm(false);
           setId(0);
         }}
+      />
+      <WholesaleInfoDialog
+        product={product}
+        onClose={() => setProduct(undefined)}
       />
     </>
   );

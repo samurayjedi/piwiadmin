@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 import { router } from '@inertiajs/react';
 import {
   Dialog,
@@ -20,6 +21,7 @@ export default function ProductFormDialog({
   id,
   onClose,
 }: ProductFormDialogProps) {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useAppDispatch();
@@ -58,7 +60,7 @@ export default function ProductFormDialog({
       <DialogContent>
         <Wrapper>
           <Header>
-            <Typography variant="h6">Add product</Typography>
+            <Typography variant="h6">{t('Add product')}</Typography>
             <Glue />
             <IconButton onClick={onClose} disabled={sync !== 'ok'}>
               <CloseIcon />

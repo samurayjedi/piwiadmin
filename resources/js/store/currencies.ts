@@ -15,10 +15,7 @@ export const updateDolarPrice = createAsyncThunk(
         .then(async (resp) => {
           const fuckResponse = await resp.json();
           if (resp.ok) {
-            const sdolar = fuckResponse.dolar as string;
-            const dolar = parseFloat(sdolar.replace(',', '.'));
-
-            dispatch(setDolarPrice(dolar));
+            dispatch(setDolarPrice(fuckResponse.dolar));
             resolve();
           }
 

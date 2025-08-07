@@ -8,7 +8,11 @@ import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
 import { usePaymentMethodsItems } from '../hooks';
 import Info from './Info';
 
-export default function PayFields({ firstFieldRef, total }: PayFieldsProps) {
+export default function PayFields({
+  firstFieldRef,
+  total,
+  mustReturnChange,
+}: PayFieldsProps) {
   const { t } = useTranslation();
   const [fuckErrors, onChangeDecorator] = useErrors();
   const paymentMethods = usePaymentMethodsItems();
@@ -58,7 +62,7 @@ export default function PayFields({ firstFieldRef, total }: PayFieldsProps) {
                         render={(pollito) => (
                           <TextFieldDolarBs
                             {...pollito.input}
-                            label={t(paymentMethods[key])}
+                            label={paymentMethods[key]}
                             variant="standard"
                             fullWidth
                             color="secondary"
@@ -76,7 +80,7 @@ export default function PayFields({ firstFieldRef, total }: PayFieldsProps) {
             }}
           />
           <Grid item xs={12} container>
-            <Info total={total} />
+            <Info total={total} mustReturnChange={mustReturnChange} />
           </Grid>
         </Grid>
       )}
@@ -87,4 +91,5 @@ export default function PayFields({ firstFieldRef, total }: PayFieldsProps) {
 export interface PayFieldsProps {
   firstFieldRef?: RefObject<HTMLSelectElement>;
   total: number;
+  mustReturnChange: boolean;
 }

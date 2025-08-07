@@ -22,4 +22,9 @@ export default function Popover(props: PopoverProps) {
   );
 }
 
-const StyledPopover = styled(MuiPopover)({ pointerEvents: 'none' });
+const StyledPopover = styled(MuiPopover)({
+  pointerEvents: 'none',
+  '& .MuiPopover-paper': {
+    zIndex: 99999,
+  },
+});

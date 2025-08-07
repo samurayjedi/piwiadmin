@@ -3,6 +3,7 @@ import { TableRow, TableCell, IconButton } from '@mui/material';
 import RemoveShoppingCartIcon from '@mui/icons-material/RemoveShoppingCart';
 import Spinner from '@/src/lib/piwi/core/Spinner';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import { measurementNumericFormatProps } from '@/Pages/Inventory/hooks';
 import { getPrice } from '../hooks';
 import HiddenFields from './HiddenFields';
 import { Cart } from '../types';
@@ -42,13 +43,17 @@ export default function CartRow({
       </TableCell>
       <TableCell>
         <HiddenFields {...product} />
+        <input type="hidden" name="qty[]" value={qty} />
         <Spinner
-          name="qty[]"
           variant="standard"
-          min={1}
+          min={0.01}
           max={stock}
           value={qty}
           onChange={handleChange}
+          numericFormatProps={measurementNumericFormatProps(
+            product.measurement,
+            qty,
+          )}
         />
       </TableCell>
       <TableCell align="right">

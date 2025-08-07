@@ -7,6 +7,9 @@ import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
 export default function WholesalePriceTextfield() {
   const { t } = useTranslation();
   const {
+    input: { value: wholesale },
+  } = useField('wholesale', { subscription: { value: true } });
+  const {
     input: { value: sPrice },
   } = useField('price', { subscription: { value: true } });
   const {
@@ -18,20 +21,22 @@ export default function WholesalePriceTextfield() {
   const salePrice = price + profit;
 
   return (
-    <TextFieldDolarBs
-      value={salePrice}
-      variant="standard"
-      label={t('Wholesale price')}
-      fullWidth
-      color="secondary"
-      disabled
-      InputProps={{
-        startAdornment: (
-          <InputAdornment position="start">
-            <StyleIcon />
-          </InputAdornment>
-        ),
-      }}
-    />
+    wholesale && (
+      <TextFieldDolarBs
+        value={salePrice}
+        variant="standard"
+        label={t('Wholesale price')}
+        fullWidth
+        color="secondary"
+        disabled
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <StyleIcon />
+            </InputAdornment>
+          ),
+        }}
+      />
+    )
   );
 }

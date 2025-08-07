@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { router } from '@inertiajs/react';
+import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import { Form } from 'react-final-form';
 import {
@@ -11,12 +13,15 @@ import {
 import { useTheme } from '@mui/material/styles';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import { useAppDispatch } from '@/store/hooks';
+import { setSync } from '@/store/app';
 import PayFields from './PayFields';
 
 export default function PayDialog({
   sale,
   onClose = () => {},
 }: ConfirmDialogProps) {
+  const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -47,20 +52,44 @@ export default function PayDialog({
       <DialogContent>
         <Form
           subscription={{ submitting: true, pristine: true }}
-          onSubmit={() => console.log('i love shu!!!!')}
+          onSubmit={(data, form) =>
+            new Promise<void>((resolve) => {
+              router.post(
+                route('sales.pay'),
+                { ...data, sale_id: sale?.id },
+                {
+                  onBefore: () => {
+                    dispatch(setSync('loading'));
+                  },
+                  onFinish: () => {
+                    dispatch(setSync('ok'));
+                    form.reset();
+                    resolve();
+                  },
+                  onSuccess: () => onClose(),
+                },
+              );
+            })
+          }
           render={({ /** pristine, */ handleSubmit, submitting }) => (
             <form onSubmit={handleSubmit}>
-              <PayFields firstFieldRef={firstInputRef} total={total} />
-              <Button
-                sx={{ mt: 2 }}
-                type="submit"
-                variant="contained"
-                color="primary"
-                endIcon={<ReceiptIcon />}
-                disabled={submitting}
-              >
-                {t('Pay')}
-              </Button>
+              <PayFields
+                mustReturnChange
+                firstFieldRef={firstInputRef}
+                total={total}
+              />
+              <Actions>
+                <Button
+                  sx={{ mt: 2 }}
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  endIcon={<ReceiptIcon />}
+                  disabled={submitting}
+                >
+                  {t('Pay')}
+                </Button>
+              </Actions>
             </form>
           )}
         />
@@ -68,6 +97,11 @@ export default function PayDialog({
     </Dialog>
   );
 }
+
+const Actions = styled.div({
+  display: 'flex',
+  justifyContent: 'flex-end',
+});
 
 export interface ConfirmDialogProps {
   sale?: Sale & {
@@ -88,6 +122,9 @@ export interface ConfirmDialogProps {
       updated_at: string;
       product: Product;
     }[];
+    payments: (SalePayment & {
+      payment_method: PaymentMethod;
+    })[];
   };
   onClose?: () => void;
 }

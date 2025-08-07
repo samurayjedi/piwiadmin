@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import { getMeasurementSuffix } from '../Inventory/hooks';
 
 export default function ItemsDialog({
   sale_items,
@@ -52,12 +53,12 @@ export default function ItemsDialog({
                 <TableRow key={`items-dialog-item-${item.id}`}>
                   <TableCell>{item.product.barcode}</TableCell>
                   <TableCell>{item.product.name}</TableCell>
-                  <TableCell>{item.product.brand}</TableCell>
-                  <TableCell>{item.product.category}</TableCell>
+                  <TableCell>{item.product.brand.brand_label}</TableCell>
+                  <TableCell>{item.product.category.category_label}</TableCell>
                   <TableCell>
                     <LabelDolarBs value={item.unit_price} />
                   </TableCell>
-                  <TableCell>x{item.quantity}</TableCell>
+                  <TableCell>{`${item.quantity} ${getMeasurementSuffix(item.product.measurement, item.quantity)}`}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -14,11 +14,10 @@ class CategoryTable extends AbstractSqlTable {
         $data = parent::get();
         $categories = new Collection;
         foreach($data as $rawCategory) {
-            $category = new Category();
+            $category = new Category;
             $category->exchangeArray($rawCategory);
             $categories[] = $category;
         }
-
 
         return $categories;
     }

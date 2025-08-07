@@ -12,9 +12,9 @@ use App\Models\Products\ProductsTable;
 class InventoryController extends Controller {
     public function main() {
         $categoryTable = new CategoryTable;
-        $categories = $categoryTable->get();
+        $categoriesArr = $categoryTable->get()->toArray();
         $brandsTable = new BrandsTable;
-        $brands = $brandsTable->get();
+        $brandsArr = $brandsTable->get()->toArray();
         /** products by pagination */
         $page = intval(request()->get('page', 0));
         $rows = intval(request()->get('rows', 5));
@@ -30,11 +30,28 @@ class InventoryController extends Controller {
             ->offset($offset)
             ->orderBy('id', 'DESC')
             ->get();
+        $arr = $products->toArray();
+        foreach ($products as $i => $p) {
+            /** load categories */
+            $tCategories = new CategoryTable;
+            $categories = $tCategories->where('category_slug', '=', $p->category)->get();
+            if (!$categories->count()) {
+                throw new \Exception('Cannot find category '.$p->category);
+            }
+            $arr[$i]['category'] = $categories[0]->toArray();
+            /** load brands */
+            $tBrands = new BrandsTable;
+            $brands = $tBrands->where('brand_slug', '=', $p->brand)->get();
+            if (!$brands->count()) {
+                throw new \Exception('Cannot find brand '.$p->brand);
+            }
+            $arr[$i]['brand'] = $brands[0]->toArray();
+        }
 
         return Inertia::render('Inventory', [
-            'categories' => $categories->toArray(),
-            'brands' => $brands->toArray(),
-            'products' => $products->toArray(),
+            'categories' => $categoriesArr,
+            'brands' => $brandsArr,
+            'products' => $arr,
             'page' => $page,
             'count' => $count,
             'rows' => $rows,
@@ -47,6 +64,7 @@ class InventoryController extends Controller {
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'profit' => 'required|numeric',
+            'measurement' => 'required|string|in:unit,liter,weight',
             'stock' => 'required|numeric',
             'category' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
@@ -60,6 +78,7 @@ class InventoryController extends Controller {
         $product->name = $request->get('name');
         $product->price = $request->get('price');
         $product->profit = $request->get('profit');
+        $product->measurement = $request->get('measurement');
         $product->stock = $request->get('stock');
         $product->category = $request->get('category');
         $product->brand = $request->get('brand');
@@ -74,10 +93,11 @@ class InventoryController extends Controller {
 
     public function update_product_submit(Request $request, int $id) {
         $request->validate([
-            'barcode' => 'required|numeric|unique:products,barcode',
+            'barcode' => 'required|numeric|exists:products,barcode',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric',
             'profit' => 'required|numeric',
+            'measurement' => 'required|string|in:unit,liter,weight',
             'stock' => 'required|numeric',
             'category' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
@@ -93,6 +113,7 @@ class InventoryController extends Controller {
         $product->name = $request->get('name');
         $product->price = $request->get('price');
         $product->profit = $request->get('profit');
+        $product->measurement = $request->get('measurement');
         $product->stock = $request->get('stock');
         $product->category = $request->get('category');
         $product->brand = $request->get('brand');

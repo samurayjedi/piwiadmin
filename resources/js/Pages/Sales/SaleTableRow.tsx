@@ -10,7 +10,7 @@ export default function SaleTableRow(props: SaleTableRowProps) {
   const handlePopoverOpen = useCallback(
     (event: React.MouseEvent<HTMLElement>) => {
       const notes = event.currentTarget.getAttribute('data-notes');
-      if (notes !== 'false') {
+      if (notes !== 'false' && notes !== 'null') {
         setNoteAnchor(event.currentTarget);
       }
     },

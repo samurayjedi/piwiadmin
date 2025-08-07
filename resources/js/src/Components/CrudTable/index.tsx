@@ -105,6 +105,7 @@ export default function CrudTable({
                         record_id={record.id}
                         fields={fields}
                         onCancel={cancel}
+                        mode="update"
                       />
                     ) : (
                       <TableRow key={`crud-table-record-${record.id}-row`}>
@@ -112,7 +113,7 @@ export default function CrudTable({
                         {fields.map(([key]) => (
                           <TableCell
                             key={`crud-table-record-${record.id}-${key}-cell`}
-                          >{`${record[key]}`}</TableCell>
+                          >{`${record[key] ?? ''}`}</TableCell>
                         ))}
                         <TableCell>
                           <IconButton
@@ -140,7 +141,11 @@ export default function CrudTable({
                   )
                 )}
                 {mode === 'add' && (
-                  <TableRowFields fields={fields} onCancel={cancel} />
+                  <TableRowFields
+                    fields={fields}
+                    onCancel={cancel}
+                    mode="add"
+                  />
                 )}
                 <TableRow>
                   <TableCell colSpan={fields.length + 2} align="center">

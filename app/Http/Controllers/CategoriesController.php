@@ -48,14 +48,12 @@ class CategoriesController extends Controller {
     public function update(Request $request, int $id) {
         $request->validate([
             'category_label' => 'required|string|max:255',
-            'category_slug' => 'required|string|unique:categories,category_slug',
         ]);
 
         $table = new CategoryTable;
         $categories = $table->where('id', '=', $id)->get();
         $category = $categories[0];
         $category->category_label = $request->get('category_label');
-        $category->category_slug = $request->get('category_slug');
         $category->update();
         
         return back();

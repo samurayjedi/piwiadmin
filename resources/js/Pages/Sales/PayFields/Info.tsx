@@ -4,7 +4,7 @@ import { useFormState, useForm } from 'react-final-form';
 import { Typography } from '@mui/material';
 import { useAppSelector } from '@/store/hooks';
 
-export default function Info({ total, methods = ['cash'] }: InfoProps) {
+export default function Info({ total, mustReturnChange }: InfoProps) {
   const { t } = useTranslation();
   const dolar = useAppSelector((state) => state.currencies.dolar);
 
@@ -14,9 +14,8 @@ export default function Info({ total, methods = ['cash'] }: InfoProps) {
       values: true,
     },
   });
-  const paymentType = values.payment_type;
 
-  if (methods.includes(paymentType)) {
+  if (mustReturnChange) {
     if (values.payment_methods) {
       const selectedPayments = values.payment_methods as string[];
       let payed = 0;
@@ -81,5 +80,5 @@ const InfoContainer = styled.div({
 
 interface InfoProps {
   total: number;
-  methods?: SellType[];
+  mustReturnChange: boolean;
 }

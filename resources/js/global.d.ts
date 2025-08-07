@@ -4,6 +4,7 @@ import {
   sell_notification_intervals,
   sell_types,
   sell_statuses,
+  measurements,
 } from './consts';
 
 // merge @mui theme type with @emotion theme type
@@ -23,6 +24,10 @@ declare global {
       user: User;
     };
     props: {
+      notifications: {
+        id: string;
+        data: Record<string, any>;
+      }[];
       brands?: Brand[];
       categories?: Category[];
       products?: Product[];
@@ -54,9 +59,10 @@ declare global {
     name: string;
     price: number;
     profit: number;
+    measurement: (typeof measurements)[number];
     stock: number;
-    category: string;
-    brand: string;
+    category: Category;
+    brand: Brand;
     wholesale: boolean;
     wholesale_qty: number;
     wholesale_profit: number;
@@ -101,8 +107,17 @@ declare global {
     email: string;
     email_verified_at: string;
   }
+  interface SalePayment {
+    id: number;
+    sale_id: number;
+    amount: number;
+    payment_date: string;
+    payment_method_id: number;
+    notes?: string;
+    created_at: string;
+    updated_at: string;
+  }
 }
-
 /** unique in sales (main) page */
 interface SalesPageProps extends Sale {
   client: Client;
@@ -122,4 +137,7 @@ interface SalesPageProps extends Sale {
     updated_at: string;
     product: Product;
   }[];
+  payments: (SalePayment & {
+    payment_method: PaymentMethod;
+  })[];
 }

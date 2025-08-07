@@ -18,7 +18,7 @@ class SaleItem extends AbstractModel
             ...parent::toArray(),
             'sale_id' => (int)$this->sale_id,
             'product_id' => (int)$this->product_id,
-            'quantity' => (int)$this->quantity,
+            'quantity' => (float)$this->quantity,
             'unit_price' => (float)$this->unit_price,
             'discount_id' => $this->discount_id ? (int)$this->discount_id : null,
         ];

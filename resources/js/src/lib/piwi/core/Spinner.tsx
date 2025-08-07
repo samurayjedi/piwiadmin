@@ -2,7 +2,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useMemo,
   ChangeEvent,
   useRef,
 } from 'react';
@@ -10,8 +9,18 @@ import styled from '@emotion/styled';
 import { IconButton, TextFieldProps } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import TextFieldMasked from './TextFieldMasked';
+import TextFieldNumericFormat, {
+  TextFieldNumericFormatProps,
+} from './TextFieldNumericFormat';
 
+const parseValue = (v: any, min: number, max: number) => {
+  const newV = parseFloat(v);
+  if (isNaN(newV)) {
+    return '' as unknown as number;
+  }
+
+  return Math.max(min, Math.min(max, newV));
+};
 export default function Spinner({
   value = 0,
   step = 1,
@@ -26,10 +35,10 @@ export default function Spinner({
   const iRef = (inputRef ?? ref) as React.MutableRefObject<
     HTMLInputElement | undefined
   >;
-  const [v, setV] = useState<number>(Math.max(min, Math.min(max, value)));
+  const [v, setV] = useState<number>(parseValue(value, min, max));
 
   useEffect(() => {
-    setV(Math.max(min, Math.min(max, value)));
+    setV(parseValue(value, min, max));
   }, [value, min, max]);
 
   const increment = useCallback(() => {
@@ -48,14 +57,7 @@ export default function Spinner({
 
   const handleChange = useCallback(
     (ev: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-      setV((prev) => {
-        const newV = parseInt(ev.target.value, 10);
-        if (isNaN(newV)) {
-          return prev;
-        }
-
-        return Math.max(min, Math.min(max, newV));
-      });
+      setV(parseValue(ev.target.value, min, max));
       if (onChange) {
         onChange(ev);
       }
@@ -85,17 +87,10 @@ export default function Spinner({
       <IconButton size="small" onClick={decrement} sx={{ mr: 1 }}>
         <RemoveCircleOutlineIcon />
       </IconButton>
-      <TextFieldMasked
+      <TextFieldNumericFormat
         {...props}
         onKeyDown={handleKeyDown}
         inputRef={iRef}
-        mask="####"
-        definitions={useMemo(
-          () => ({
-            '#': /[-0-9]/,
-          }),
-          [],
-        )}
         value={v.toString()}
         onChange={handleChange}
       />
@@ -111,6 +106,7 @@ export type QuantityProps = Omit<TextFieldProps, 'value'> & {
   value?: number;
   min?: number;
   max?: number;
+  numericFormatProps?: TextFieldNumericFormatProps['numericFormatProps'];
 };
 
 const Container = styled.div({

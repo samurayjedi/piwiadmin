@@ -14,7 +14,7 @@ class BrandsTable extends AbstractSqlTable {
         $data = parent::get();
         $brands = new Collection;
         foreach($data as $rawBrand) {
-            $brand = new Brand();
+            $brand = new Brand;
             $brand->exchangeArray($rawBrand);
             $brands[] = $brand;
         }

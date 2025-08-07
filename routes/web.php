@@ -12,6 +12,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\PaymentMethodsController;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\NotificationsController;
+use App\DolarScrapper;
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -27,44 +29,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+    Route::controller(NotificationsController::class)->group(function() {
+        Route::get('/notifications', 'markAllAsRead')->name('notifications');
+        Route::get('/notifications/notification/{notificationId}', 'markAsRead')->name('notifications.notification.markAsRead');
+    });
     /** Currencies */
     Route::get('/update-dolar-price', function () {
-        /** init dolar price scrapping */
-        $url = 'https://www.bcv.org.ve';
-        $context = stream_context_create([
-            'ssl' => [
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-            ]
-        ]);
-        $html = file_get_contents($url, false, $context);
-        if ($html === false) {
-            throw new \Exception('Failed to load BCV URL');
-        }
-        $dom = new \DOMDocument();
-        libxml_use_internal_errors(true); // Suppress warnings for malformed HTML
-        $dom->loadHTML($html);
-        libxml_clear_errors();
-        /** find the div with the dolar price */
-        $dolarDiv = $dom->getElementById('dolar');
-
-        if ($dolarDiv) {
-            $strongTags = $dolarDiv->getElementsByTagName('strong');
-            if ($strongTags->length > 0) {
-                $price = $strongTags->item(0)->nodeValue;
-                $price = trim($price); // Remove any whitespace
-                
-                return response()->json(['dolar' => $price]);
-            } else {
-                throw new \Exception('Could not find the price element');
-            }
-        }
-
-        throw new \Exception('Could not find the dolar div');
+        return response()->json(['dolar' => DolarScrapper::getBsPrice()]);
     })->name('update-dolar-price');
     /** Sale */
     Route::controller(SalesController::class)->group(function() {
         Route::get('/dashboard/sales', 'main')->name('sales');
+        Route::post('/dashboard/sales', 'pay')->name('sales.pay');
+        Route::get('/dashboard/sales/sale/{id}/print_invoice', 'print_invoice')->name('sales.sale.print_invoice');
         Route::get('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale');
         Route::post('/dashboard/sales/new_sale', 'blackhole')->name('sales.new_sale.blackhole');
         Route::post('/dashboard/sales/new_sale/save', 'register_new_sale')->name('sales.new_sale.save');
@@ -85,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
     /** Inventory */
     Route::controller(InventoryController::class)->group(function() {
-        Route::get('/dashboard/inventory/{page?}/{rows?}', 'main')->name('inventory');
+        Route::get('/dashboard/inventory', 'main')->name('inventory');
         Route::post('/dashboard/inventory/product/add', 'add_product')->name('inventory.product.add');
         Route::post('/dashboard/inventory/product/update/id/{id}', 'update_product_submit')->name('inventory.product.update.submit');
         Route::post('/dashboard/inventory/product/delete/id/{id}', 'delete_product')->name('inventory.product.delete');

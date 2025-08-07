@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { useAppPage } from '@/hooks';
 import { usePaymentMethods } from '@/Pages/PaymentMethods/hooks';
 import { Cart } from './types';
@@ -23,12 +22,11 @@ export function getPrice(item: Cart) {
 }
 
 export function usePaymentMethodsItems() {
-  const { t } = useTranslation();
   const payment_methods = usePaymentMethods();
   const items: Record<string, string> = {};
 
   payment_methods.forEach(({ payment_slug, payment_label }) => {
-    items[payment_slug] = t(payment_label);
+    items[payment_slug] = payment_label;
   });
 
   return items;

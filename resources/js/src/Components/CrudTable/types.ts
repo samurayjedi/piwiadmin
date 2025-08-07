@@ -17,7 +17,7 @@ export interface CrudTableProps {
   onPageChange: TablePaginationProps['onPageChange'];
 }
 
-interface Field {
+type Field = {
   type: 'textfield' | 'textfield-masked' | 'select';
-  props: Record<string, any>;
-}
+  props: Record<string, any> | ((mode: Mode) => Record<string, any>);
+};

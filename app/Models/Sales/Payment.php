@@ -17,7 +17,7 @@ class Payment extends AbstractModel
         return [
             ...parent::toArray(),
             'sale_id' => $this->sale_id,
-            'amount' => $this->amount,
+            'amount' => (float)$this->amount,
             'payment_date' => $this->payment_date,
             'payment_method_id' => $this->payment_method_id,
             'notes' => $this->notes,

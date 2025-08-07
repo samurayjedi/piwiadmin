@@ -65,6 +65,7 @@ export function useHandler(
       const name = formData.getAll('name[]') as string[];
       const price = formData.getAll('price[]') as string[];
       const profit = formData.getAll('profit[]') as string[];
+      const measurement = formData.getAll('measurement[]') as string[];
       const stock = formData.getAll('stock[]') as string[];
       const brand = formData.getAll('brand[]') as string[];
       const category = formData.getAll('category[]') as string[];
@@ -74,10 +75,11 @@ export function useHandler(
       ) as string[];
       const wholesale_qty = formData.getAll('wholesale_qty[]') as string[];
       const qty = formData.getAll('qty[]') as string[];
+
       /** */
       const cart = [] as Cart[];
       id.forEach((v, i) => {
-        const q = parseInt(qty[i], 10);
+        const q = parseFloat(qty[i]);
         if (q > 0) {
           cart.push({
             id: parseInt(id[i], 10),
@@ -85,12 +87,13 @@ export function useHandler(
             name: name[i],
             price: parseFloat(price[i]),
             profit: parseFloat(profit[i]),
-            stock: parseInt(stock[i], 10),
+            measurement: measurement[i] as Product['measurement'],
+            stock: parseFloat(stock[i]),
             brand: brand[i],
             category: category[i],
             wholesale: Boolean(parseInt(wholesale[i], 10)),
             wholesale_profit: parseFloat(wholesale_profit[i]),
-            wholesale_qty: parseInt(wholesale_qty[i], 10),
+            wholesale_qty: parseFloat(wholesale_qty[i]),
             qty: q,
           });
         }

@@ -2,7 +2,7 @@
 namespace App\Models\Sales;
 
 use App\Models\AbstractSqlTable;
-use App\Models\Sales\PaymentItem;
+use App\Models\Sales\Payment;
 use App\Models\Collection;
 
 class PaymentsTable extends AbstractSqlTable {
@@ -14,7 +14,7 @@ class PaymentsTable extends AbstractSqlTable {
         $data = parent::get();
         $payments = new Collection;
         foreach($data as $rawPayment) {
-            $payment = new PaymentItem();
+            $payment = new Payment;
             $payment->exchangeArray($rawPayment);
             $payments[] = $payment;
         }

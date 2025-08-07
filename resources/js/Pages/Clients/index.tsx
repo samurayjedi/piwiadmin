@@ -1,5 +1,4 @@
 import { router } from '@inertiajs/react';
-import { Container } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
 import { usePaginatorProps } from '@/hooks';
@@ -11,90 +10,88 @@ export default function Clients() {
 
   return (
     <AppLayout>
-      <Container maxWidth="lg">
-        <CrudTable
-          fields={[
-            [
-              'identification',
-              'Identification',
-              {
-                type: 'textfield-masked',
-                props: {
-                  mask: '$##########',
-                  definitions: {
-                    $: /[VEPJCGRvepjcgr]/,
-                    '#': /[0-9]/,
-                  },
+      <CrudTable
+        fields={[
+          [
+            'identification',
+            'Identification',
+            {
+              type: 'textfield-masked',
+              props: {
+                mask: '$##########',
+                definitions: {
+                  $: /[VEPJCGRvepjcgr]/,
+                  '#': /[0-9]/,
                 },
               },
-            ],
-            ['name', 'Name'],
-            [
-              'phone',
-              'Phone',
-              {
-                type: 'textfield-masked',
-                props: {
-                  mask: '&$##-#######',
-                  definitions: {
-                    '&': /[0]/,
-                    $: /[24]/,
-                    '#': /[0-9]/,
-                  },
+            },
+          ],
+          ['name', 'Name'],
+          [
+            'phone',
+            'Phone',
+            {
+              type: 'textfield-masked',
+              props: {
+                mask: '&$##-#######',
+                definitions: {
+                  '&': /[0]/,
+                  $: /[24]/,
+                  '#': /[0-9]/,
                 },
               },
-            ],
-            ['address', 'Address'],
-          ]}
-          records={clients}
-          onSubmit={(data, action, targetId) => {
-            const url = (() => {
-              switch (action) {
-                case 'add':
-                  return route('clients.store');
-                case 'update':
-                  return route('clients.update', { id: targetId });
-                case 'delete':
-                  return route('clients.delete', { id: targetId });
-              }
+            },
+          ],
+          ['address', 'Address'],
+        ]}
+        records={clients}
+        onSubmit={(data, action, targetId) => {
+          const url = (() => {
+            switch (action) {
+              case 'add':
+                return route('clients.store');
+              case 'update':
+                return route('clients.update', { id: targetId });
+              case 'delete':
+                return route('clients.delete', { id: targetId });
+            }
 
-              return undefined;
-            })();
+            return undefined;
+          })();
 
-            return new Promise<void>((resolve, reject) => {
-              if (!url) {
+          return new Promise<void>((resolve, reject) => {
+            if (!url) {
+              reject();
+
+              return;
+            }
+
+            router.post(url, data, {
+              preserveScroll: true,
+              onError: () => {
                 reject();
-
-                return;
-              }
-
-              router.post(url, data, {
-                preserveScroll: true,
-                onError: () => {
-                  reject();
-                },
-                onSuccess: () => {
-                  resolve();
-                },
-              });
+              },
+              onSuccess: () => {
+                resolve();
+              },
             });
-          }}
-          page={page as number}
-          count={count as number}
-          rows={rows as number}
-          onRowsPerPageChange={(ev) =>
-            router.get(
-              route('clients', {
-                page,
-                rows: parseInt(ev.target.value, 10),
-              }),
-            )
-          }
-          onPageChange={(ev, newPage) =>
-            router.get(route('clients', { page: newPage, rows }))
-          }
-        />
-      </Container>
+          });
+        }}
+        page={page as number}
+        count={count as number}
+        rows={rows as number}
+        onRowsPerPageChange={(ev) =>
+          router.get(
+            route('clients', {
+              page,
+              rows: parseInt(ev.target.value, 10),
+            }),
+          )
+        }
+        onPageChange={(ev, newPage) =>
+          router.get(route('clients', { page: newPage, rows }))
+        }
+      />
     </AppLayout>
   );
 }

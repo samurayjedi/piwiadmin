@@ -29,12 +29,19 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $notifications = [];
+        $user = auth()->user();
+        if ($user) {
+            $notifications = $user->unreadNotifications->toArray();
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
             ],
             'language' => session('language', app()->getLocale()),
+            'notifications' => $notifications,
         ];
     }
 }

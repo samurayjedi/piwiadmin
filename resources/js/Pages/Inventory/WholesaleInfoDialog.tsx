@@ -11,6 +11,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useAppSelector } from '@/store/hooks';
 import { getPrice } from '../Sales/hooks';
+import { getMeasurementSuffix } from './hooks';
 
 export default function WholesaleInfoDialog({
   product,
@@ -55,6 +56,11 @@ export default function WholesaleInfoDialog({
         </Typography>
         <Typography variant="subtitle1">
           <strong>{t('Apply from')}: &nbsp;</strong>x{product?.wholesale_qty}
+          &nbsp;
+          {getMeasurementSuffix(
+            product?.measurement ?? '',
+            product?.stock ?? 0,
+          )}
         </Typography>
       </DialogContent>
       <DialogActions>
@@ -67,6 +73,9 @@ export default function WholesaleInfoDialog({
 }
 
 export interface ConfirmDialogProps {
-  product?: Product;
+  product?: Product & {
+    category: Category;
+    brand: Brand;
+  };
   onClose?: () => void;
 }

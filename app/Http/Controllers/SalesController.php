@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Dompdf\Dompdf;
 use App\Http\Controllers\Pagination;
 use App\Models\Products\ProductsTable;
 use App\Models\Sales\SaleItemTable;
@@ -15,6 +16,10 @@ use App\Models\Sales\Sale;
 use App\Models\Sales\SalesTable;
 use App\Models\Sales\SaleItem;
 use App\Models\Sales\Payment;
+use App\Models\Sales\PaymentsTable;
+use App\DolarScrapper;
+use App\Models\Brands\BrandsTable;
+use App\Models\Categories\CategoryTable;
 
 class SalesController extends Controller {
     private function paymentMethods() {
@@ -77,9 +82,36 @@ class SalesController extends Controller {
                 if (!$products->count()) {
                     throw new \Exception('Product id '.$saleItem->product_id.' not found!!!');
                 }
-                $saleItemsArray[$j]['product'] = $products[0]->toArray();
+                $product = $products[0];
+                $saleItemsArray[$j]['product'] = $product->toArray();
+                // product category query
+                $tCategory = new CategoryTable;
+                $categories = $tCategory->where('category_slug', '=', $product->category)->get();
+                if (!$categories->count()) {
+                    throw new \Exception('Cannot find category '.$product->category);
+                }
+                $saleItemsArray[$j]['product']['category'] = $categories[0]->toArray();
+                // product brand query
+                $tBrands = new BrandsTable;
+                $brands = $tBrands->where('brand_slug', '=', $product->brand)->get();
+                if (!$brands->count()) {
+                    throw new \Exception('Cannot find brand '.$product->brand);
+                }
+                $saleItemsArray[$j]['product']['brand'] = $brands[0]->toArray();
             }
             $salesArray[$i]['sale_items'] = $saleItemsArray;
+            /** payments made */
+            $paymentsTable = new PaymentsTable;
+            $payments = $paymentsTable->where('sale_id', '=', $sale->id)->get();
+            $salesArray[$i]['payments'] = array_map(function($pay) {
+                $payMethodsTable = new PaymentMethodsTable;
+                $payMethod = $payMethodsTable->where('id', '=', $pay['payment_method_id'])->get()[0];
+
+                return [
+                    ...$pay,
+                    'payment_method' => $payMethod->toArray(),
+                ];
+            }, $payments->toArray());
         }
 
         return Inertia::render('Sales', [
@@ -121,9 +153,26 @@ class SalesController extends Controller {
                         $field => 'No products found!!',
                     ]);
                 }
+                $arr = $products->toArray();
+                foreach ($products as $i => $product) {
+                    // product category query
+                    $tCategory = new CategoryTable;
+                    $categories = $tCategory->where('category_slug', '=', $product->category)->get();
+                    if (!$categories->count()) {
+                        throw new \Exception('Cannot find category '.$product->category);
+                    }
+                    $arr[$i]['category'] = $categories[0]->toArray();
+                    // product brand query
+                    $tBrands = new BrandsTable;
+                    $brands = $tBrands->where('brand_slug', '=', $product->brand)->get();
+                    if (!$brands->count()) {
+                        throw new \Exception('Cannot find brand '.$product->brand);
+                    }
+                    $arr[$i]['brand'] = $brands[0]->toArray();
+                }
                     
                 return Inertia::render('Sales/NewSale', [
-                    'products' => $products->toArray(),
+                    'products' => $arr,
                     'payment_methods' => $this->paymentMethods(),
                 ]);
             case 'search_client':
@@ -161,28 +210,44 @@ class SalesController extends Controller {
             'price.*' => 'required|numeric|min:0',
             // the amount I'm going to buy
             'qty' => 'required|array',
-            'qty.*' => 'required|numeric|min:1',
+            'qty.*' => 'required|numeric|min:0.01',
             /** client data */
             'identification' => 'required|string|min:8|exists:clients,identification',
             /** Payment */
             'payment_type' => 'required|string|in:cash,credit,layaway',
-            'notification_interval' => 'required_if:payment_type,credit|string|in:daily,weekly,fortnightly,monthly,bimonthly,quarterly,biannual,yearly',
+            'notification_interval' => [
+                'required_if:payment_type,credit',
+                'required_if:payment_type,layaway',
+                'string',
+                'in:daily,weekly,fortnightly,monthly,bimonthly,quarterly,biannual,yearly',
+            ],
             'due_date' => [
                 'required_if:payment_type,credit',
                 'required_if:payment_type,layaway',
                 'date',
             ],
-            'payment_methods' => 'required|array',
+            'payment_methods' => [
+                'required_if:payment_type,cash',
+                'required_if:payment_type,layaway',
+                'array',
+                'min:1',
+            ],
             'payment_methods.*' => 'required|string|exists:payment_methods,payment_slug',
             /** */
             'notes' => 'nullable|string',
         ];
-        $paymentMethods = request()->get('payment_methods');
-        if (!is_array($paymentMethods)) { // above are the validation that ensure this field is array and required, but i dont known, when undefined, that not works :/
-            return back()->withErrors(['payment_methods' => 'You must select at least one payment method.']);
-        }
+        $paymentMethods = request()->get('payment_methods', []); // default [] because in credit sales can be null
         foreach ($paymentMethods as $paymentMethod) {
-            $rules[$paymentMethod] = 'required|numeric';
+            if (request()->get('payment_type') === 'credit') {
+                $rules[$paymentMethod] = 'numeric|min:0';
+            } else {
+                $rules[$paymentMethod] = [
+                    'required_if:payment_type,cash',
+                    'required_if:payment_type,layaway',
+                    'numeric',
+                    'min:0.01',
+                ];
+            }
         }
         request()->validate($rules);
         $cart = [
@@ -212,20 +277,25 @@ class SalesController extends Controller {
             $price = floatval($cart['price'][$i]);
             $profit = floatval($cart['profit'][$i]);
             $wholesale = (bool)$cart['wholesale'][$i];
-            $wholesale_qty = intval($cart['wholesale_qty'][$i]);
+            $wholesale_qty = floatval($cart['wholesale_qty'][$i]);
             $wholesale_profit = floatval($cart['wholesale_profit'][$i]);
-            $qty = intval($cart['qty'][$i]);
+            $qty = floatval($cart['qty'][$i]);
 
             $total += $getPrice($price, $profit, $qty, $wholesale, $wholesale_profit, $wholesale_qty) * $qty;
         }
         $total = round($total, 2);
         $ammountPaid = 0;
         foreach ($paymentMethods as $payMethod) {
-            $paymentAmount = floatval(request()->get($payMethod));
+            $paymentAmount = floatval(request()->get($payMethod, 0)); // default 0, because in credit sales, payment_method can be undefined
             $payment[$payMethod] = $paymentAmount;
             $ammountPaid += $paymentAmount;
         }
         $ammountPaid = round($ammountPaid, 2);
+        // if the user add payment methods in credit sales, but all of them are $0.... as its no necesary pay any amount in that type of sale....
+        // if the case occurs, remove all items from payment_methods for no register any payment in the database
+        if ($payment['payment_type'] === 'credit' && $ammountPaid == 0) {
+            $paymentMethods = [];
+        }
         /** validate the ammount payed */
         $fn = function (string $msg) use($paymentMethods) {
             $errors = [];
@@ -235,9 +305,7 @@ class SalesController extends Controller {
 
             return $errors;
         };
-        if ($ammountPaid <= 0) {
-            return back()->withErrors($fn('The payment cannot be 0!!!'));
-        } else if ($payment['payment_type'] !== 'cash' && $ammountPaid >= $total) {
+        if ($payment['payment_type'] !== 'cash' && $ammountPaid >= $total) {
             return back()->withErrors($fn("In ".$payment['payment_type']." sales, the amount paid cannot be >= to the total"));
         } else if ($payment['payment_type'] === 'cash' && $ammountPaid < $total) {
             return back()->withErrors($fn("In cash sales, you must pay the totality."));
@@ -309,5 +377,110 @@ class SalesController extends Controller {
         }
 
         return redirect()->route('sales');
+    }
+
+    public function pay() {
+        $rules = [
+            'sale_id' => 'required|exists:sales,id',
+            'payment_methods' => 'required|array',
+            'payment_methods.*' => 'required|string|exists:payment_methods,payment_slug',
+            /** */
+            'notes' => 'nullable|string',
+        ];
+        $paymentMethods = request()->get('payment_methods');
+        if (!is_array($paymentMethods)) { // above are the validation that ensure this field is array and required, but i dont known, when undefined, that not works :/
+            return back()->withErrors(['payment_methods' => 'You must select at least one payment method.']);
+        }
+        foreach ($paymentMethods as $paymentMethod) {
+            $rules[$paymentMethod] = 'required|numeric|min:0.01';
+        }
+        request()->validate($rules);
+        $saleId = request()->get('sale_id');
+        $ammountPaid = 0;
+        foreach ($paymentMethods as $payMethod) {
+            $paymentMethodTable = new PaymentMethodsTable;
+            $paymentMethodRecord = $paymentMethodTable
+                ->where('payment_slug', '=', $payMethod)
+                ->get();
+            $paymentMethodRecord = $paymentMethodRecord[0];
+            if (!$paymentMethodRecord) {
+                throw new \RuntimeException("$payMethod not registered!!");
+            }
+            $paymentAmount = floatval(request()->get($payMethod));
+            $pay = new Payment;
+            $pay->sale_id = $saleId;
+            $pay->amount = $paymentAmount;
+            $pay->payment_date = date('Y-m-d');
+            $pay->payment_method_id = $paymentMethodRecord->id;
+            $pay->notes = request()->get('notes', null);
+            $pay->insert();
+            $ammountPaid += $paymentAmount;
+        }
+        $saleTable = new SalesTable;
+        $sales = $saleTable->where('id', '=', $saleId)->get();
+        $sale = $sales[0];
+        $sale->amount_paid = min($sale->total_amount, $sale->amount_paid + $ammountPaid);
+        if ($sale->amount_paid == $sale->total_amount) {
+            $sale->status = 'completed';
+        }
+        $sale->update();
+        
+        return back();
+    }
+
+    public function print_invoice(int $id) {
+        /** get sale */
+        $salesTable = new SalesTable;
+        $sales = $salesTable->where('id', '=', $id)->get();
+        if (!$sales->count()) {
+            throw new \Exception("Sale #$id not found!!");
+        }
+        $sale = $sales[0];
+        /** get sale items */
+        $saleItemsTable = new SaleItemTable;
+        $saleItems = $saleItemsTable->where('sale_id', '=', $id)->get();
+        if (!$saleItems->count()) {
+            throw new \Exception("Sale items for sale #$id not found!!!");
+        }
+        $saleItems = $saleItems->toArray();
+        foreach ($saleItems as $i => $item) {
+            $productsTable = new ProductsTable;
+            $products = $productsTable->where('id', '=', $item['product_id'])->get();
+            if (!$products->count()) {
+                throw new \Exception("Cannot find product #$id!!!");
+            }
+            $product = $products[0];
+            $saleItems[$i]['product'] = $product->toArray();
+        }
+        /** get user */
+        $usersTable = DB::table('users');
+        $users = $usersTable->where('id', '=', $sale->user_id)->get();
+        if (!$users->count()) {
+            throw new \Exception("User for sale #$id not found!!!");
+        }
+        $user = $users[0];
+        /** get client */
+        $clientsTable = new ClientsTable;
+        $clients = $clientsTable->where('id', '=', $sale->client_id)->get();
+        if (!$clients->count()) {
+            throw new \Exception("Cannot find the client for sale #$id");
+        }
+        $client = $clients[0];
+        /** print to a file */
+        $pdfUniqName = substr(md5(uniqid(rand())),0,8).'.pdf';
+        $pdf = new Dompdf;
+        $pdf->setPaper([0, 0, 226.77, 800], 'portrait'); 
+        $pdf->load_html(view('sales.invoice', [
+            'sale' => $sale->toArray(),
+            'saleItems' => $saleItems,
+            'client' => $client->name,
+            'user' => $user->name,
+            'dolar' => DolarScrapper::getBsPrice(),
+        ])->render());
+        $pdf->render();
+        $pdfPath = public_path('/storage/tmp')."/$pdfUniqName";
+        file_put_contents($pdfPath, $pdf->output());
+
+        return redirect(asset("storage/tmp/$pdfUniqName"));
     }
 }

@@ -47,14 +47,12 @@ class BrandsController extends Controller {
     public function update(Request $request, int $id) {
         $request->validate([
             'brand_label' => 'required|string|max:255',
-            'brand_slug' => 'required|string|unique:brands,brand_slug',
         ]);
 
         $table = new BrandsTable;
         $brands = $table->where('id', '=', $id)->get();
         $brand = $brands[0];
         $brand->brand_label = $request->get('brand_label');
-        $brand->brand_slug = $request->get('brand_slug');
         $brand->update();
 
         return back();

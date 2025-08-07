@@ -17,13 +17,17 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('price', 10, 2);
             $table->decimal('profit', 10, 2);
-            $table->integer('stock');
+            $table
+                ->enum('measurement', ['unit', 'liter', 'weight'])
+                ->default('unit')
+                ->nullable(false);
+            $table->decimal('stock');
             $table->string('category');
             $table->foreign('category')->references('category_slug')->on('categories');
             $table->string('brand');
             $table->foreign('brand')->references('brand_slug')->on('brands');
             $table->boolean('wholesale');
-            $table->integer('wholesale_qty')->nullable();
+            $table->decimal('wholesale_qty')->nullable();
             $table->decimal('wholesale_profit', 10, 2)->nullable();
             $table->timestamps();
         });

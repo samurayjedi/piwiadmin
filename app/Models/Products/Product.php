@@ -7,7 +7,7 @@ use App\Models\AbstractModel;
 class Product extends AbstractModel
 {
     public $barcode, $name, $price, $profit, $stock;
-    public $category, $brand, $wholesale;
+    public $measurement, $category, $brand, $wholesale;
     public $wholesale_qty, $wholesale_profit;
 
     public function __construct() {
@@ -21,11 +21,12 @@ class Product extends AbstractModel
             'name' => $this->name,
             'price' => (float)$this->price,
             'profit' => (float)$this->profit,
-            'stock' => (int)$this->stock,
+            'measurement' => $this->measurement,
+            'stock' => (float)$this->stock,
             'category' => $this->category,
             'brand' => $this->brand,
             'wholesale' => $this->wholesale,
-            'wholesale_qty' => (int)$this->wholesale_qty,
+            'wholesale_qty' => (float)$this->wholesale_qty,
             'wholesale_profit' => (float)$this->wholesale_profit,
         ];
     }
@@ -36,6 +37,7 @@ class Product extends AbstractModel
         $this->name = is_array($piwi) ? $piwi['name'] : $piwi->name;
         $this->price = is_array($piwi) ? $piwi['price'] : $piwi->price;
         $this->profit = is_array($piwi) ? $piwi['profit'] : $piwi->profit;
+        $this->measurement = is_array($piwi) ? $piwi['measurement'] : $piwi->measurement;
         $this->stock = is_array($piwi) ? $piwi['stock'] : $piwi->stock;
         $this->category = is_array($piwi) ? $piwi['category'] : $piwi->category;
         $this->brand = is_array($piwi) ? $piwi['brand'] : $piwi->brand;

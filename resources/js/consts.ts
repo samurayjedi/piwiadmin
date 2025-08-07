@@ -10,3 +10,4 @@ export const sell_notification_intervals = [
   'yearly',
 ] as const;
 export const sell_statuses = ['pending', 'canceled', 'completed'] as const;
+export const measurements = ['unit', 'liter', 'weight'] as const;

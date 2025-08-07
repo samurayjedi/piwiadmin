@@ -49,7 +49,6 @@ class PaymentMethodsController extends Controller {
     public function update(Request $request, int $id) {
         $request->validate([
             'payment_label' => 'required|string|max:255',
-            'payment_slug' => 'required|string|unique:payment_methods,payment_slug',
             'payment_currency' => 'required|string|max:255',
         ]);
 
@@ -57,7 +56,6 @@ class PaymentMethodsController extends Controller {
         $paymentMethods = $table->where('id', '=', $id)->get();
         $paymentMethod = $paymentMethods[0];
         $paymentMethod->payment_label = $request->get('payment_label');
-        $paymentMethod->payment_slug = $request->get('payment_slug');
         $paymentMethod->payment_currency = $request->get('payment_currency');
         $paymentMethod->update();
         

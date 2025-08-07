@@ -13,13 +13,14 @@ import { Field, FormSpy } from 'react-final-form';
 import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import { useErrors } from '@/hooks';
-import { CrudTableProps } from './types';
+import { CrudTableProps, Mode } from './types';
 
 const firstItemId = 'table-row-edit-first-item';
 export default function TableRowFields({
   record_id,
   fields,
   onCancel,
+  mode,
   ...props
 }: NewCategoryProps) {
   const { t } = useTranslation();
@@ -47,7 +48,17 @@ export default function TableRowFields({
                 subscription={{ value: true }}
                 render={(pollito) => {
                   const type = f?.type ?? 'textfield';
-                  const fieldProps = f?.props ?? {};
+                  const fieldProps = (() => {
+                    if (f) {
+                      if (typeof f.props === 'function') {
+                        return f.props(mode);
+                      }
+
+                      return f.props;
+                    }
+
+                    return {};
+                  })();
 
                   const MyField = (() => {
                     switch (type) {
@@ -69,7 +80,7 @@ export default function TableRowFields({
                       label={t(label)}
                       fullWidth
                       color="primary"
-                      disabled={submitting}
+                      disabled={fieldProps.disabled || submitting}
                       onChange={onChangeDecorator(pollito.input.onChange)}
                       error={Boolean(fuckErrors[pollito.input.name])}
                       helperText={fuckErrors[pollito.input.name]}
@@ -97,4 +108,5 @@ export interface NewCategoryProps extends TableRowProps {
   record_id?: number;
   fields: CrudTableProps['fields'];
   onCancel: () => void;
+  mode: Mode;
 }

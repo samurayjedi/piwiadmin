@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
-import { FormSpy, Field } from 'react-final-form';
+import { FormSpy, Field, useField } from 'react-final-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@mui/material';
 import ReceiptIcon from '@mui/icons-material/Receipt';
@@ -99,7 +99,7 @@ export default function StepPayment() {
               </>
             )}
           />
-          <PayFields total={amount} />
+          <PaymentFields total={amount} />
           <Actions>
             <Glue />
             <Button
@@ -125,6 +125,14 @@ export default function StepPayment() {
       )}
     />
   );
+}
+
+function PaymentFields({ total }: { total: number }) {
+  const {
+    input: { value: payment_type },
+  } = useField('payment_type', { subscription: { value: true } });
+
+  return <PayFields mustReturnChange={payment_type === 'cash'} total={total} />;
 }
 
 const Container = styled.div({

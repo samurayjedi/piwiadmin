@@ -2,7 +2,6 @@ import { useCallback, useState, useMemo, ChangeEvent, useRef } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import {
-  Container,
   Paper as MUIPaper,
   TableContainer,
   Table,
@@ -88,7 +87,7 @@ export default function NewSale() {
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, index: number) => {
       const v = e.target.value;
       const newCart = [...cart];
-      newCart[index].qty = parseInt(v, 10);
+      newCart[index].qty = parseFloat(v);
 
       setCart(newCart);
     },
@@ -105,82 +104,78 @@ export default function NewSale() {
   return (
     <CartContext.Provider value={formRef}>
       <AppLayout>
-        <Container maxWidth="lg">
-          <form ref={formRef} onSubmit={(e) => e.preventDefault()}>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ minWidth: 50 }} />
-                    <TableCell sx={{ minWidth: 100 }}>{t('Barcode')}</TableCell>
-                    <TableCell width="100%">{t('Name')}</TableCell>
-                    <TableCell sx={{ minWidth: 150 }}>{t('Price')}</TableCell>
-                    <TableCell sx={{ minWidth: 150 }}>
-                      {t('Quantity')}
-                    </TableCell>
-                    <TableCell align="right" sx={{ minWidth: 100 }}>
-                      {t('Subtotal')}
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {cart.length > 0 ? (
-                    <>
-                      {cart.map((c, index) => {
-                        return (
-                          <CartRow
-                            {...c}
-                            key={`cart-row-${c.id}`}
-                            index={index}
-                            onChange={handleSpinnerChange}
-                            onRemove={handleRemove}
-                          />
-                        );
-                      })}
-                      <TableRow>
-                        <TableCell colSpan={3} />
-                        <TableCell colSpan={2}>
-                          <Typography variant="h6" fontWeight="bold">
-                            {t('Total')}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <LabelDolarBs value={total} />
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  ) : (
+        <form ref={formRef} onSubmit={(e) => e.preventDefault()}>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ minWidth: 50 }} />
+                  <TableCell sx={{ minWidth: 100 }}>{t('Barcode')}</TableCell>
+                  <TableCell width="100%">{t('Name')}</TableCell>
+                  <TableCell sx={{ minWidth: 150 }}>{t('Price')}</TableCell>
+                  <TableCell sx={{ minWidth: 220 }}>{t('Quantity')}</TableCell>
+                  <TableCell align="right" sx={{ minWidth: 100 }}>
+                    {t('Subtotal')}
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {cart.length > 0 ? (
+                  <>
+                    {cart.map((c, index) => {
+                      return (
+                        <CartRow
+                          {...c}
+                          key={`cart-row-${c.id}`}
+                          index={index}
+                          onChange={handleSpinnerChange}
+                          onRemove={handleRemove}
+                        />
+                      );
+                    })}
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        {t("You haven't added any products")}
+                      <TableCell colSpan={3} />
+                      <TableCell colSpan={2}>
+                        <Typography variant="h6" fontWeight="bold">
+                          {t('Total')}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <LabelDolarBs value={total} />
                       </TableCell>
                     </TableRow>
-                  )}
+                  </>
+                ) : (
                   <TableRow>
-                    <TableCell colSpan={6}>
-                      <BtnsContainer>
-                        <IconButton onClick={() => setSearchProductOpen(true)}>
-                          <AddShoppingCartIcon />
-                        </IconButton>
-                        <FormGap />
-                        <FormButton
-                          ref={buttonRef}
-                          startIcon={<DoneAllIcon />}
-                          variant="contained"
-                          color="primary"
-                          onClick={() => setOnCashOpen(true)}
-                          disabled={!cart.length}
-                        >
-                          {t('Proceed')}
-                        </FormButton>
-                      </BtnsContainer>
+                    <TableCell colSpan={6} align="center">
+                      {t("You haven't added any products")}
                     </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </form>
-        </Container>
+                )}
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <BtnsContainer>
+                      <IconButton onClick={() => setSearchProductOpen(true)}>
+                        <AddShoppingCartIcon />
+                      </IconButton>
+                      <FormGap />
+                      <FormButton
+                        ref={buttonRef}
+                        startIcon={<DoneAllIcon />}
+                        variant="contained"
+                        color="primary"
+                        onClick={() => setOnCashOpen(true)}
+                        disabled={!cart.length}
+                      >
+                        {t('Proceed')}
+                      </FormButton>
+                    </BtnsContainer>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </form>
       </AppLayout>
       <SearchProductDialog
         open={searchProductOpen}

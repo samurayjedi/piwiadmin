@@ -9,6 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { TableCell, TableRow } from '@mui/material';
 import Spinner from '@/src/lib/piwi/core/Spinner';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import {
+  measurementNumericFormatProps,
+  getMeasurementSuffix,
+} from '@/Pages/Inventory/hooks';
 import HiddenFields from '../HiddenFields';
 import { getPrice } from '../../hooks';
 
@@ -32,7 +36,7 @@ export default function ProductRow({
 
   const handleSpinnerChange = useCallback(
     (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const v = parseInt(e.target.value, 10);
+      const v = parseFloat(e.target.value);
       setQty(Math.max(0, Math.min(stock, v)));
     },
     [stock],
@@ -45,12 +49,16 @@ export default function ProductRow({
       <TableCell>
         <LabelDolarBs value={getPrice({ ...p, qty })} />
       </TableCell>
-      <TableCell>{stock}</TableCell>
+      <TableCell>
+        {stock}
+        &nbsp;
+        {getMeasurementSuffix(p.measurement, p.stock)}
+      </TableCell>
       <TableCell>
         <HiddenFields {...p} />
+        <input type="hidden" name="qty[]" value={qty} />
         <Spinner
           inputRef={ref}
-          name="qty[]"
           label={t('Quantity')}
           variant="standard"
           min={0}
@@ -58,6 +66,7 @@ export default function ProductRow({
           value={qty}
           onKeyDown={onKeyDown}
           onChange={handleSpinnerChange}
+          numericFormatProps={measurementNumericFormatProps(p.measurement, qty)}
         />
       </TableCell>
     </TableRow>

@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { SearchProps } from '@/src/lib/piwi/core/Search';
+import { SearchProps } from '@/src/lib/piwi/laboratory/Search';
 import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { setSync, SyncState } from '@/store/app';
@@ -28,7 +28,30 @@ export function useHandler(
   const dispatch = useAppDispatch();
   const [products, setProducts] = useState<Product[]>([]);
 
-  const handleSubmit = useCallback<NonNullable<SearchProps['onSubmit']>>(
+  const mockSearch = useCallback(
+    (s: string) =>
+      new Promise<string[]>((resolve) => {
+        const url = route('sales.new_sale.blackhole', {
+          action: 'search_product',
+        });
+
+        router.post(
+          url,
+          { field: 'name', name: s },
+          {
+            onSuccess: (data) => {
+              const ps = _.get(data, 'props.products', []) as Product[];
+              const results = _.map(ps, (p) => p.name);
+
+              resolve(results);
+            },
+          },
+        );
+      }),
+    [],
+  );
+
+  const searchSubmit = useCallback<NonNullable<SearchProps['onSubmit']>>(
     (field, value) =>
       new Promise<void>((resolve) => {
         const url = route('sales.new_sale.blackhole', {
@@ -107,5 +130,5 @@ export function useHandler(
     }
   }, [addAction, onClose]);
 
-  return { products, formRef, handleSubmit, handleAddProducts };
+  return { products, formRef, mockSearch, searchSubmit, handleAddProducts };
 }

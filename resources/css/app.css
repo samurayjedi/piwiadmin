@@ -1,3 +1,7 @@
 .spacing {
   padding: 16px;
 }
+
+.MuiSpeedDialAction-staticTooltipLabel {
+  cursor: pointer;
+}

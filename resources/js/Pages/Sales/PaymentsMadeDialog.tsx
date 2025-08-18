@@ -46,6 +46,14 @@ export default function PaymentsMadeDialog({
                 currency: 'VES',
               })})`}
               &nbsp;{t('Via')}&nbsp;{p.payment_method.payment_label}
+              {p.notes && (
+                <>
+                  ,&nbsp;
+                  <strong>{t('Note')}:</strong>
+                  &nbsp;
+                  {p.notes}
+                </>
+              )}
             </Typography>
           ))
         ) : (

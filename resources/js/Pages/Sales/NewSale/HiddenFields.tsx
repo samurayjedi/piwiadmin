@@ -21,8 +21,8 @@ export default function HiddenFields({
       <input type="hidden" name="profit[]" value={profit} />
       <input type="hidden" name="measurement[]" value={measurement} />
       <input type="hidden" name="stock[]" value={stock} />
-      <input type="hidden" name="brand[]" value={brand} />
-      <input type="hidden" name="category[]" value={category} />
+      <input type="hidden" name="brand[]" value={brand.brand_slug} />
+      <input type="hidden" name="category[]" value={category.category_slug} />
       <input type="hidden" name="wholesale[]" value={wholesale ? 1 : 0} />
       <input
         type="hidden"

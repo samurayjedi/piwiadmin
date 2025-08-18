@@ -55,13 +55,14 @@ export default function StepPayment() {
                 />
                 {(input.value === 'layaway' || input.value === 'credit') && (
                   <>
+                    <Gap />
                     <Field
                       name="notification_interval"
                       subscription={{ value: true }}
                       render={(pollito) => (
                         <Select
                           {...pollito.input}
-                          label={t('Send notification')}
+                          label={t('Notification interval')}
                           items={arrayToRecord(
                             sell_notification_intervals,
                             (item) => t(item),
@@ -149,3 +150,7 @@ const Glue = styled.div({
   display: 'block',
   flex: 1,
 });
+
+const Gap = styled.div(({ theme }) => ({
+  paddingTop: theme.spacing(1),
+}));

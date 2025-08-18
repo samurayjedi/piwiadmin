@@ -20,23 +20,21 @@ export default function WholesalePriceTextfield() {
   const profit = (price * profitPercent) / 100;
   const salePrice = price + profit;
 
-  return (
-    wholesale && (
-      <TextFieldDolarBs
-        value={salePrice}
-        variant="standard"
-        label={t('Wholesale price')}
-        fullWidth
-        color="secondary"
-        disabled
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <StyleIcon />
-            </InputAdornment>
-          ),
-        }}
-      />
-    )
+  return !wholesale ? null : (
+    <TextFieldDolarBs
+      value={salePrice}
+      variant="standard"
+      label={t('Wholesale price')}
+      fullWidth
+      color="secondary"
+      disabled
+      InputProps={{
+        startAdornment: (
+          <InputAdornment position="start">
+            <StyleIcon />
+          </InputAdornment>
+        ),
+      }}
+    />
   );
 }

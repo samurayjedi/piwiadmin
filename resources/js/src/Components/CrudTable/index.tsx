@@ -10,18 +10,19 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  IconButton,
-  Button,
+  Fab,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ConfirmDialog from '@/src/lib/piwi/core/ConfirmDialog';
 import { useAppDispatch } from '@/store/hooks';
 import { setSync } from '@/store/app';
+import IconButtonDropdown from '@/src/lib/piwi/core/IconButtonDropdown';
+import HtmlForm from '../HtmlForm';
 import TableRowFields from './TableRowFields';
 import TableFooterPager from './TableFooterPager';
 import { Mode, CrudTableProps } from './types';
+import Actions from '../Actions';
 
 export default function CrudTable({
   fields,
@@ -69,7 +70,7 @@ export default function CrudTable({
       subscription={{ submitting: true, pristine: true }}
       onSubmit={formOnSubmit}
       render={({ /** pristine, */ handleSubmit, form }) => (
-        <form onSubmit={handleSubmit}>
+        <HtmlForm onSubmit={handleSubmit}>
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
@@ -83,9 +84,7 @@ export default function CrudTable({
                       {t(label)}
                     </TableCell>
                   ))}
-                  <TableCell style={{ minWidth: '120px' }}>
-                    {t('Actions')}
-                  </TableCell>
+                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -104,8 +103,8 @@ export default function CrudTable({
                         key={`crud-table-edit-record-${record.id}-row`}
                         record_id={record.id}
                         fields={fields}
-                        onCancel={cancel}
                         mode="update"
+                        onCancel={cancel}
                       />
                     ) : (
                       <TableRow key={`crud-table-record-${record.id}-row`}>
@@ -116,25 +115,24 @@ export default function CrudTable({
                           >{`${record[key] ?? ''}`}</TableCell>
                         ))}
                         <TableCell>
-                          <IconButton
-                            onClick={() => {
-                              fields.forEach(([key]) => {
-                                form.change(key, record[key]);
-                              });
-                              setTargetId(parseInt(`${record.id}`, 10));
-                              setMode('update');
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => {
-                              setTargetId(parseInt(`${record.id}`, 10));
-                              setMode('delete');
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          <IconButtonDropdown icon={<MoreVertIcon />}>
+                            <Actions
+                              onEdit={() => {
+                                form.reset();
+                                form.batch(() => {
+                                  fields.forEach(([key]) => {
+                                    form.change(key, record[key]);
+                                  });
+                                });
+                                setTargetId(parseInt(`${record.id}`, 10));
+                                setMode('update');
+                              }}
+                              onDelete={() => {
+                                setTargetId(parseInt(`${record.id}`, 10));
+                                setMode('delete');
+                              }}
+                            />
+                          </IconButtonDropdown>
                         </TableCell>
                       </TableRow>
                     ),
@@ -143,25 +141,10 @@ export default function CrudTable({
                 {mode === 'add' && (
                   <TableRowFields
                     fields={fields}
-                    onCancel={cancel}
                     mode="add"
+                    onCancel={cancel}
                   />
                 )}
-                <TableRow>
-                  <TableCell colSpan={fields.length + 2} align="center">
-                    <AddNewButton
-                      variant="text"
-                      color="primary"
-                      startIcon={<AddIcon />}
-                      onClick={() => {
-                        setMode('add');
-                        form.reset();
-                      }}
-                    >
-                      {t('Add new')}
-                    </AddNewButton>
-                  </TableCell>
-                </TableRow>
               </TableBody>
               <TableFooterPager
                 page={page}
@@ -179,7 +162,24 @@ export default function CrudTable({
             onCancel={cancel}
             onConfirm={() => form.submit()}
           />
-        </form>
+          <Fab
+            sx={{
+              position: 'fixed',
+              bottom: 16,
+              right: 16,
+              display: mode === 'none' ? 'flex' : 'none',
+            }}
+            variant="extended"
+            color="success"
+            onClick={() => {
+              form.reset();
+              setMode('add');
+            }}
+          >
+            <AddCircleOutlineIcon />
+            {t('New')}
+          </Fab>
+        </HtmlForm>
       )}
     />
   );
@@ -190,8 +190,3 @@ const Paper = styled(MUIPaper)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
 }));
-
-const AddNewButton = styled(Button)({
-  display: 'flex',
-  width: '100%',
-});

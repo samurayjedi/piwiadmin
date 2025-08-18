@@ -1,5 +1,20 @@
 {
   "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Si tiene problemas al hacer clic en el botón \":actionText\", copie y pegue la siguiente URL en su navegador web:",
   "All rights reserved.": "Reservados todos los derechos.",
-  "Verify Email Address": "Verificar dirección de correo electrónico"
+  "Verify Email Address": "Verificar dirección de correo electrónico",
+  "No products found.": "No se encontraron productos.",
+  "Client not found, register it.": "Cliente no encontrado, regístrelo ahora.",
+  "To pay": "Por pagar",
+  "Thank you for your purchase!": "¡Gracias por su compra!",
+  "Products": "Producto(s)",
+  "Price": "Precio",
+  "Quantity": "Cantidad",
+  "Subtotal": "Subtotal",
+  "Sale Invoice": "Factura de venta",
+  "Date": "Fecha",
+  "Phone": "Teléfono",
+  "Client": "Cliente",
+  "Attends": "Atiende",
+  "With the sale type selected, the amount paid cannot be >= to the total": "No se puede pagar un monto mayor o igual al total en el tipo de venta seleccionado",
+  "In cash sales, you must pay the totality": "En ventas \"Al Contado\", se debe abonar la totalidad del importe"
 }

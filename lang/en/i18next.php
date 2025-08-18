@@ -1,4 +1,4 @@
 <?php
 return [
-    'waifu' => 'Nan Yin',
+    'Note of' => 'Note of "{{field}}"',
 ];

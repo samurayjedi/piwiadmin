@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
 import { css, Theme } from '@emotion/react';
@@ -24,6 +25,7 @@ import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
 import TextFieldNumericFormat from '@/src/lib/piwi/core/TextFieldNumericFormat';
 import { useCategories } from '@/Pages/Categories/hooks';
 import { useBrands } from '@/Pages/Brands/hooks';
+import HtmlForm from '@/src/Components/HtmlForm';
 import { useProducts } from '../hooks';
 import SalePriceTextfield from './SalePriceTextField';
 import WholesalePriceTextfield from './WholesalePriceTextField';
@@ -38,29 +40,34 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
   const product = products.find((p) => p.id === id);
   const categories = useCategories();
   const brands = useBrands();
+  const firstField = useRef<HTMLInputElement>(null);
+  let initialValues = !product
+    ? {}
+    : _.mapValues(product, (v: any, k) => {
+        switch (k) {
+          case 'category':
+            return v.category_slug;
+          case 'brand':
+            return v.brand_slug;
+          default:
+            return v;
+        }
+      });
+  initialValues = _.pickBy(initialValues, (v) => v !== null);
+
+  useEffect(() => {
+    if (firstField.current) {
+      firstField.current.focus();
+    }
+  }, []);
 
   return (
     <Form
-      initialValues={
-        !product
-          ? {}
-          : _.mapValues(product, (v: any, k) => {
-              switch (k) {
-                case 'wholesale':
-                  return v;
-                case 'category':
-                  return v.category_slug;
-                case 'brand':
-                  return v.brand_slug;
-                default:
-                  return String(v);
-              }
-            })
-      }
+      initialValues={initialValues}
       subscription={{ submitting: true, pristine: true }}
       onSubmit={onSubmit}
       render={({ /** pristine, */ handleSubmit, submitting }) => (
-        <HtmlForm onSubmit={handleSubmit}>
+        <StyledHtmlForm onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
               <Field
@@ -70,6 +77,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
                   <TextFieldMasked
                     {...input}
                     sx={{ pb: 1 }}
+                    inputRef={firstField}
                     variant="standard"
                     mask="##########"
                     definitions={{
@@ -299,7 +307,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
           >
             {t('Save')}
           </Button>
-        </HtmlForm>
+        </StyledHtmlForm>
       )}
     />
   );
@@ -310,7 +318,7 @@ export interface ProductFormProps {
   onSubmit: FormProps['onSubmit'];
 }
 
-const HtmlForm = styled.form({
+const StyledHtmlForm = styled(HtmlForm)({
   display: 'flex',
   flexDirection: 'column',
 });

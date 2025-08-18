@@ -1,7 +1,7 @@
 import { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Field, FormSpy } from 'react-final-form';
-import { Grid } from '@mui/material';
+import { Grid, TextField } from '@mui/material';
 import { useErrors } from '@/hooks';
 import Select from '@/src/lib/piwi/core/Select';
 import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
@@ -55,6 +55,7 @@ export default function PayFields({
                       item
                       xs={12}
                       md={6}
+                      container
                     >
                       <Field
                         name={key}
@@ -64,6 +65,23 @@ export default function PayFields({
                             {...pollito.input}
                             label={paymentMethods[key]}
                             variant="standard"
+                            fullWidth
+                            color="secondary"
+                            disabled={submitting}
+                            onChange={onChangeDecorator(pollito.input.onChange)}
+                            error={Boolean(fuckErrors[pollito.input.name])}
+                            helperText={fuckErrors[pollito.input.name]}
+                          />
+                        )}
+                      />
+                      <Field
+                        name={`${key}_note`}
+                        subscription={{ value: true }}
+                        render={(pollito) => (
+                          <TextField
+                            {...pollito.input}
+                            variant="standard"
+                            label={t('Note of', { field: paymentMethods[key] })}
                             fullWidth
                             color="secondary"
                             disabled={submitting}

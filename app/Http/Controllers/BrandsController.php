@@ -3,23 +3,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Brands\Brand;
-use App\Models\Brands\BrandsTable;
+use App\Models\Brand;
 use App\Http\Controllers\Pagination;
 
 class BrandsController extends Controller {
     public function main(int $page = 0, int $rows = 5) {
-        $table = new BrandsTable;
-        $pager = Pagination::normalize('brands', $page, $rows, $table->count());
+        $pager = Pagination::normalize('brands', $page, $rows, Brand::count());
         if (!is_array($pager)) {
             // is a redirect
             return $pager;
         }
         [$limit, $offset, $count] = $pager;
-        $brands = $table
-          ->limit($limit)
-          ->offset($offset)
-          ->get();
+        $brands = Brand::orderBy('id', 'DESC')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
           
 
         return Inertia::render('Brands', [
@@ -36,10 +34,10 @@ class BrandsController extends Controller {
             'brand_slug' => 'required|string|unique:brands,brand_slug',
         ]);
 
-        $brand = new Brand();
+        $brand = new Brand;
         $brand->brand_label = $request->get('brand_label');
         $brand->brand_slug = $request->get('brand_slug');
-        $brand->insert();
+        $brand->save();
         
         return back();
     }
@@ -49,20 +47,16 @@ class BrandsController extends Controller {
             'brand_label' => 'required|string|max:255',
         ]);
 
-        $table = new BrandsTable;
-        $brands = $table->where('id', '=', $id)->get();
-        $brand = $brands[0];
+        $brand = Brand::findOrFail($id);
         $brand->brand_label = $request->get('brand_label');
-        $brand->update();
+        $brand->save();
 
         return back();
     }
 
     
     public function delete(int $id) {
-        $table = new BrandsTable;
-        $brands = $table->where('id', '=', $id)->get();
-        $brand = $brands[0];
+        $brand = Brand::findOrFail($id);
         $brand->delete();
 
         return back();

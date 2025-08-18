@@ -1,8 +1,91 @@
 import styled from '@emotion/styled';
-import { Paper as MuiPaper } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import {
+  Paper as MuiPaper,
+  List as MuiList,
+  ListSubheader as MuiListSubheader,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import TodayIcon from '@mui/icons-material/Today';
+import DateRangeIcon from '@mui/icons-material/DateRange';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import PendingIcon from '@mui/icons-material/Pending';
+import { useAppSelector } from '@/store/hooks';
+import { useMetrics } from './hooks';
 
 export default function Sidebar() {
-  return <Paper>i love shu!!!!</Paper>;
+  const { t } = useTranslation();
+  const dolar = useAppSelector((state) => state.currencies.dolar);
+  const { dayIncome, monthIncome, yearIncome, pendingIncome } = useMetrics();
+
+  return (
+    <Paper>
+      <List subheader={<ListSubheader>{t('Metrics')}</ListSubheader>}>
+        <ListItemButton>
+          <ListItemIcon>
+            <TodayIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={t('Today income')}
+            secondary={`${dayIncome.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })} (${(dayIncome * dolar).toLocaleString('es-VE', {
+              style: 'currency',
+              currency: 'VES',
+            })})`}
+          />
+        </ListItemButton>
+        <ListItemButton>
+          <ListItemIcon>
+            <DateRangeIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={t('Week income')}
+            secondary={`${monthIncome.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })} (${(monthIncome * dolar).toLocaleString('es-VE', {
+              style: 'currency',
+              currency: 'VES',
+            })})`}
+          />
+        </ListItemButton>
+        <ListItemButton>
+          <ListItemIcon>
+            <CalendarMonthIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={t('Year income')}
+            secondary={`${yearIncome.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })} (${(yearIncome * dolar).toLocaleString('es-VE', {
+              style: 'currency',
+              currency: 'VES',
+            })})`}
+          />
+        </ListItemButton>
+        <ListItemButton>
+          <ListItemIcon>
+            <PendingIcon />
+          </ListItemIcon>
+          <ListItemText
+            primary={t('Pending income')}
+            secondary={`${pendingIncome.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })} (${(pendingIncome * dolar).toLocaleString('es-VE', {
+              style: 'currency',
+              currency: 'VES',
+            })})`}
+          />
+        </ListItemButton>
+      </List>
+    </Paper>
+  );
 }
 
 const Paper = styled(MuiPaper)(({ theme }) => ({
@@ -12,4 +95,18 @@ const Paper = styled(MuiPaper)(({ theme }) => ({
   borderWidth: 1,
   borderStyle: 'solid',
   borderRadius: 0,
+}));
+
+const List = styled(MuiList)(({ theme }) => ({
+  [`${theme.breakpoints.between('sm', 'md')}`]: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+  },
+}));
+
+const ListSubheader = styled(MuiListSubheader)(({ theme }) => ({
+  [`${theme.breakpoints.between('sm', 'md')}`]: {
+    gridColumnStart: 1,
+    gridColumnEnd: 3,
+  },
 }));

@@ -3,23 +3,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\PaymentMethods\PaymentMethod;
-use App\Models\PaymentMethods\PaymentMethodsTable;
+use App\Models\PaymentMethod;
 use App\Http\Controllers\Pagination;
 
 class PaymentMethodsController extends Controller {
     public function main(int $page = 0, int $rows = 5) {
-        $table = new PaymentMethodsTable;
-        $pager = Pagination::normalize('payment_methods', $page, $rows, $table->count());
+        $pager = Pagination::normalize('payment_methods', $page, $rows, PaymentMethod::count());
         if (!is_array($pager)) {
             // is a redirect
             return $pager;
         }
         [$limit, $offset, $count] = $pager;
-        $paymentMethods = $table
-          ->limit($limit)
-          ->offset($offset)
-          ->get();
+        $paymentMethods = PaymentMethod::orderBy('id', 'DESC')
+            ->skip($offset)
+            ->take($limit)
+            ->get();
           
 
         return Inertia::render('PaymentMethods', [
@@ -37,11 +35,11 @@ class PaymentMethodsController extends Controller {
             'payment_currency' => 'required|string|max:255',
         ]);
 
-        $paymentMethod = new PaymentMethod();
+        $paymentMethod = new PaymentMethod;
         $paymentMethod->payment_label = $request->get('payment_label');
         $paymentMethod->payment_slug = $request->get('payment_slug');
         $paymentMethod->payment_currency = $request->get('payment_currency');
-        $paymentMethod->insert();
+        $paymentMethod->save();
         
         return back();
     }
@@ -52,21 +50,17 @@ class PaymentMethodsController extends Controller {
             'payment_currency' => 'required|string|max:255',
         ]);
 
-        $table = new PaymentMethodsTable;
-        $paymentMethods = $table->where('id', '=', $id)->get();
-        $paymentMethod = $paymentMethods[0];
+        $paymentMethod = PaymentMethod::findOrFail($id);
         $paymentMethod->payment_label = $request->get('payment_label');
         $paymentMethod->payment_currency = $request->get('payment_currency');
-        $paymentMethod->update();
+        $paymentMethod->save();
         
         return back();
     }
 
     
     public function delete(int $id) {
-        $table = new PaymentMethodsTable;
-        $paymentMethods = $table->where('id', '=', $id)->get();
-        $paymentMethod = $paymentMethods[0];
+        $paymentMethod = PaymentMethod::findOrFail($id);
         $paymentMethod->delete();
 
         return back();

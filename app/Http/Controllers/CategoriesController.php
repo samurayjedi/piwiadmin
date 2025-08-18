@@ -4,23 +4,21 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Categories\Category;
-use App\Models\Categories\CategoryTable;
+use App\Models\Category;
 use App\Http\Controllers\Pagination;
 
 class CategoriesController extends Controller {
     public function main(int $page = 0, int $rows = 5) {
-        $table = new CategoryTable;
-        $pager = Pagination::normalize('categories', $page, $rows, $table->count());
+        $pager = Pagination::normalize('categories', $page, $rows, Category::count());
         if (!is_array($pager)) {
             // is a redirect
             return $pager;
         }
         [$limit, $offset, $count] = $pager;
         /** ... */
-        $categories = $table
-          ->limit($limit)
-          ->offset($offset)
+        $categories = Category::orderBy('id', 'DESC')
+          ->skip($offset)
+          ->take($limit)
           ->get();
 
         return Inertia::render('Categories', [
@@ -37,10 +35,10 @@ class CategoriesController extends Controller {
             'category_slug' => 'required|string|unique:categories,category_slug',
         ]);
 
-        $category = new Category();
+        $category = new Category;
         $category->category_label = $request->get('category_label');
         $category->category_slug = $request->get('category_slug');
-        $category->insert();
+        $category->save();
         
         return back();
     }
@@ -50,20 +48,16 @@ class CategoriesController extends Controller {
             'category_label' => 'required|string|max:255',
         ]);
 
-        $table = new CategoryTable;
-        $categories = $table->where('id', '=', $id)->get();
-        $category = $categories[0];
+        $category = Category::findOrFail($id);
         $category->category_label = $request->get('category_label');
-        $category->update();
+        $category->save();
         
         return back();
     }
 
     
   public function delete(int $id) {
-    $table = new CategoryTable;
-    $categories = $table->where('id', '=', $id)->get();
-    $category = $categories[0];
+    $category = Category::findOrFail($id);
     $category->delete();
 
     return back();

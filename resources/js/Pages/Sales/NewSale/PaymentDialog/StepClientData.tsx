@@ -138,6 +138,7 @@ export default function StepClientData() {
                   sx={{ mt: 2 }}
                   ref={buttonRef}
                   type={!clientFound ? 'submit' : 'button'}
+                  data-htmlform-skip-this
                   variant="contained"
                   color={!clientFound ? 'primary' : 'success'}
                   endIcon={!clientFound ? <SaveIcon /> : <CheckIcon />}

@@ -12,41 +12,39 @@ export default function WholesaleProfitField() {
     input: { value: wholesale },
   } = useField('wholesale', { subscription: { value: true } });
 
-  return (
-    wholesale && (
-      <FormSpy
-        subscription={{ submitting: true }}
-        render={({ submitting }) => (
-          <Field
-            name="wholesale_profit"
-            subscription={{ value: true }}
-            render={(pollito) => (
-              <TextFieldNumericFormat
-                {...pollito.input}
-                variant="standard"
-                label={t('Wholesale Profit')}
-                fullWidth
-                color="secondary"
-                disabled={submitting}
-                onChange={onChangeDecorator(pollito.input.onChange)}
-                error={Boolean(fuckErrors[pollito.input.name])}
-                helperText={fuckErrors[pollito.input.name]}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PercentIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                numericFormatProps={{
-                  thousandSeparator: false,
-                  suffix: '%',
-                }}
-              />
-            )}
-          />
-        )}
-      />
-    )
+  return !wholesale ? null : (
+    <FormSpy
+      subscription={{ submitting: true }}
+      render={({ submitting }) => (
+        <Field
+          name="wholesale_profit"
+          subscription={{ value: true }}
+          render={(pollito) => (
+            <TextFieldNumericFormat
+              {...pollito.input}
+              variant="standard"
+              label={t('Wholesale Profit')}
+              fullWidth
+              color="secondary"
+              disabled={submitting}
+              onChange={onChangeDecorator(pollito.input.onChange)}
+              error={Boolean(fuckErrors[pollito.input.name])}
+              helperText={fuckErrors[pollito.input.name]}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PercentIcon />
+                  </InputAdornment>
+                ),
+              }}
+              numericFormatProps={{
+                thousandSeparator: false,
+                suffix: '%',
+              }}
+            />
+          )}
+        />
+      )}
+    />
   );
 }

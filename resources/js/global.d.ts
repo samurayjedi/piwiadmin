@@ -28,6 +28,12 @@ declare global {
         id: string;
         data: Record<string, any>;
       }[];
+      metrics?: {
+        dayIncome: number;
+        monthIncome: number;
+        yearIncome: number;
+        pendingIncome: number;
+      };
       brands?: Brand[];
       categories?: Category[];
       products?: Product[];

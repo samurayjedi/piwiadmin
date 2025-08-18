@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Form } from 'react-final-form';
 import { Stepper, Step, StepLabel, StepContent } from '@mui/material';
+import HtmlForm from '@/src/Components/HtmlForm';
 import { useHandlers, useStepperContext } from './hooks';
 import StepClientData from './StepClientData';
 import StepSearchClient from './StepSearchClient';
@@ -30,7 +31,7 @@ export default function PaymentStepper() {
       subscription={{ submitting: true, pristine: true }}
       onSubmit={onSubmit}
       render={({ /** pristine, */ handleSubmit }) => (
-        <form method="POST" onSubmit={handleSubmit}>
+        <HtmlForm method="POST" onSubmit={handleSubmit}>
           <Stepper activeStep={activeStep} orientation="vertical">
             <Step>
               <StepLabel>{t('Search client')}</StepLabel>
@@ -48,7 +49,7 @@ export default function PaymentStepper() {
               </StepContent>
             </Step>
           </Stepper>
-        </form>
+        </HtmlForm>
       )}
     />
   );

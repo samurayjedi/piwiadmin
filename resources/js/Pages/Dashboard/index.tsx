@@ -174,8 +174,12 @@ const Skeleton = styled(MUISkeleton)(({ theme }) => ({
 
 const PiwiContainer = styled.div(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: `0.8fr ${theme.spacing(1)} 3fr`,
-  gridTemplateRows: 'min-content',
+  gridTemplateColumns: '1fr',
+  gridTemplateRows: `min-content ${theme.spacing(1)} 1fr`,
+  [`${theme.breakpoints.up('md')}`]: {
+    gridTemplateColumns: `0.9fr ${theme.spacing(1)} 3fr`,
+    gridTemplateRows: 'min-content',
+  },
 }));
 
 const SidebarContainer = styled.div({
@@ -183,9 +187,15 @@ const SidebarContainer = styled.div({
   flexDirection: 'column',
 });
 
-const Content = styled.div({
+const Content = styled.div(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  gridColumnStart: 3,
-  gridColumnEnd: 4,
-});
+  gridRowStart: 3,
+  gridRowEnd: 4,
+  [`${theme.breakpoints.up('md')}`]: {
+    gridRowStart: 'initial',
+    gridRowEnd: 'initial',
+    gridColumnStart: 3,
+    gridColumnEnd: 4,
+  },
+}));

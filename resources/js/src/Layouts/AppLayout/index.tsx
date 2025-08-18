@@ -9,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <DolarSync>
       <PrimaryAppBar />
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ paddingBottom: '90px' }}>
         <BreadcrumbsContainer>
           <Breadcrumbs />
         </BreadcrumbsContainer>

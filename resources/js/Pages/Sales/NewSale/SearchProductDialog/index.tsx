@@ -18,7 +18,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import Search from '@/src/lib/piwi/core/Search';
+import Search from '@/src/lib/piwi/laboratory/Search';
 import { useAppSelector } from '@/store/hooks';
 import { useRequestFocus, useHandler } from './hooks';
 import ProductRow from './ProductRow';
@@ -35,10 +35,8 @@ export default function SearchProductDialog({
   const sync = useAppSelector((state) => state.app.sync);
 
   const retrieveRef = useRequestFocus(open, sync);
-  const { products, formRef, handleSubmit, handleAddProducts } = useHandler(
-    addAction,
-    onClose,
-  );
+  const { products, formRef, mockSearch, searchSubmit, handleAddProducts } =
+    useHandler(addAction, onClose);
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -69,7 +67,8 @@ export default function SearchProductDialog({
               () => ({ name: t('Name'), barcode: t('Barcode') }),
               [t],
             )}
-            onSubmit={handleSubmit}
+            onSubmit={searchSubmit}
+            mockSearch={mockSearch}
             disabled={sync !== 'ok'}
           />
           <form ref={formRef}>

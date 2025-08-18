@@ -86,6 +86,7 @@ export default function PrimaryAppBar() {
 const AppBar = styled(MUIAppBar)(({ theme }) => ({
   position: 'relative',
   boxShadow: 'none',
+  zIndex: 1050,
   borderBottom: `2px solid ${theme.palette.divider}`,
   '& .MuiToolbar-root.first-toolbar': {
     position: 'relative',

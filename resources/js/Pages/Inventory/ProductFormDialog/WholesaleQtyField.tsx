@@ -14,35 +14,33 @@ export default function WholesaleQtyField() {
     input: { value: measurement },
   } = useField('measurement', { subscription: { value: true } });
 
-  return (
-    wholesale && (
-      <FormSpy
-        subscription={{ submitting: true }}
-        render={({ submitting }) => (
-          <Field
-            name="wholesale_qty"
-            subscription={{ value: true }}
-            render={({ input }) => (
-              <Spinner
-                {...input}
-                min={0}
-                variant="standard"
-                label={t('Wholesale count')}
-                fullWidth
-                color="secondary"
-                disabled={submitting}
-                onChange={onChangeDecorator(input.onChange)}
-                error={Boolean(fuckErrors[input.name])}
-                helperText={fuckErrors[input.name]}
-                numericFormatProps={measurementNumericFormatProps(
-                  measurement,
-                  parseFloat(input.value),
-                )}
-              />
-            )}
-          />
-        )}
-      />
-    )
+  return !wholesale ? null : (
+    <FormSpy
+      subscription={{ submitting: true }}
+      render={({ submitting }) => (
+        <Field
+          name="wholesale_qty"
+          subscription={{ value: true }}
+          render={({ input }) => (
+            <Spinner
+              {...input}
+              min={0}
+              variant="standard"
+              label={t('Wholesale count')}
+              fullWidth
+              color="secondary"
+              disabled={submitting}
+              onChange={onChangeDecorator(input.onChange)}
+              error={Boolean(fuckErrors[input.name])}
+              helperText={fuckErrors[input.name]}
+              numericFormatProps={measurementNumericFormatProps(
+                measurement,
+                parseFloat(input.value),
+              )}
+            />
+          )}
+        />
+      )}
+    />
   );
 }

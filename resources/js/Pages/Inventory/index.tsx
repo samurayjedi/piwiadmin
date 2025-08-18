@@ -14,17 +14,18 @@ import {
   TableBody,
   TableFooter,
   TablePagination,
-  IconButton,
   Button,
+  Fab,
 } from '@mui/material';
 // import EditIcon from '@mui/icons-material/Edit';
 // import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ConfirmDialog from '@/src/lib/piwi/core/ConfirmDialog';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import { usePaginatorProps } from '@/hooks';
+import IconButtonDropdown from '@/src/lib/piwi/core/IconButtonDropdown';
+import Actions from '@/src/Components/Actions';
 import { getMeasurementSuffix, useProducts } from './hooks';
 import ProductFormDialog, { ProductFormDialogProps } from './ProductFormDialog';
 import WholesaleInfoDialog from './WholesaleInfoDialog';
@@ -103,38 +104,22 @@ export default function Inventory() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <IconButton
-                        onClick={() => {
-                          setId(p.id);
-                          setOpen(true);
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => {
-                          setId(p.id);
-                          setConfirm(true);
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                      <IconButtonDropdown icon={<MoreVertIcon />}>
+                        <Actions
+                          onEdit={() => {
+                            setId(p.id);
+                            setOpen(true);
+                          }}
+                          onDelete={() => {
+                            setId(p.id);
+                            setConfirm(true);
+                          }}
+                        />
+                      </IconButtonDropdown>
                     </TableCell>
                   </TableRow>
                 ))
               )}
-              <TableRow>
-                <TableCell colSpan={11} align="center">
-                  <AddNewButton
-                    variant="text"
-                    color="primary"
-                    startIcon={<AddIcon />}
-                    onClick={() => setOpen(true)}
-                  >
-                    {t('Add new')}
-                  </AddNewButton>
-                </TableCell>
-              </TableRow>
             </TableBody>
             <TableFooter>
               <TableRow>
@@ -161,6 +146,20 @@ export default function Inventory() {
           </Table>
         </TableContainer>
       </AppLayout>
+      <Fab
+        sx={{
+          position: 'fixed',
+          bottom: 16,
+          right: 16,
+          display: !open && !confirm ? 'flex' : 'none',
+        }}
+        variant="extended"
+        color="success"
+        onClick={() => setOpen(true)}
+      >
+        <AddIcon />
+        {t('New product')}
+      </Fab>
       <ProductFormDialog open={open} id={id} onClose={handleDialogClose} />
       <ConfirmDialog
         open={confirm}
@@ -189,8 +188,3 @@ const Paper = styled(MUIPaper)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
 }));
-
-const AddNewButton = styled(Button)({
-  display: 'flex',
-  width: '100%',
-});

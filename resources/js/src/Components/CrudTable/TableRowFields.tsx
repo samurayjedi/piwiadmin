@@ -10,8 +10,8 @@ import {
 import TextFieldMasked from '@/src/lib/piwi/core/TextFieldMasked';
 import Select from '@/src/lib/piwi/core/Select';
 import { Field, FormSpy } from 'react-final-form';
-import CheckIcon from '@mui/icons-material/Check';
-import ClearIcon from '@mui/icons-material/Clear';
+import SaveIcon from '@mui/icons-material/Save';
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
 import { useErrors } from '@/hooks';
 import { CrudTableProps, Mode } from './types';
 
@@ -19,8 +19,8 @@ const firstItemId = 'table-row-edit-first-item';
 export default function TableRowFields({
   record_id,
   fields,
-  onCancel,
   mode,
+  onCancel,
   ...props
 }: NewCategoryProps) {
   const { t } = useTranslation();
@@ -35,8 +35,8 @@ export default function TableRowFields({
 
   return (
     <FormSpy
-      subscription={{ submitting: true }}
-      render={({ submitting }) => (
+      subscription={{ submitting: true, pristine: true, modified: true }}
+      render={({ submitting, pristine }) => (
         <TableRow {...props}>
           <TableCell>{record_id ?? '#'}</TableCell>
           {fields.map(([key, label, f], index) => (
@@ -84,6 +84,14 @@ export default function TableRowFields({
                       onChange={onChangeDecorator(pollito.input.onChange)}
                       error={Boolean(fuckErrors[pollito.input.name])}
                       helperText={fuckErrors[pollito.input.name]}
+                      onKeyDown={(e: any) => {
+                        if (e.key === 'Escape') {
+                          onCancel();
+                          if (fieldProps.onKeyDown) {
+                            fieldProps.onKeyDown(e);
+                          }
+                        }
+                      }}
                     />
                   );
                 }}
@@ -91,11 +99,13 @@ export default function TableRowFields({
             </TableCell>
           ))}
           <TableCell>
-            <IconButton type="submit" disabled={submitting}>
-              <CheckIcon />
-            </IconButton>
-            <IconButton disabled={submitting} onClick={onCancel}>
-              <ClearIcon />
+            <IconButton
+              type={pristine ? 'button' : 'submit'}
+              disabled={submitting}
+              data-htmlform-skip-this
+              onClick={pristine ? onCancel : undefined}
+            >
+              {pristine ? <NotInterestedIcon /> : <SaveIcon />}
             </IconButton>
           </TableCell>
         </TableRow>
@@ -107,6 +117,6 @@ export default function TableRowFields({
 export interface NewCategoryProps extends TableRowProps {
   record_id?: number;
   fields: CrudTableProps['fields'];
-  onCancel: () => void;
   mode: Mode;
+  onCancel: () => void;
 }

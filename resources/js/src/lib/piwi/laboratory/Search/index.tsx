@@ -1,15 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import styled from '@emotion/styled';
 import { Form, Field, FormProps } from 'react-final-form';
-import {
-  Grid,
-  IconButton,
-  TextField as MUITextField,
-  InputAdornment,
-} from '@mui/material';
+import { Grid, IconButton, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import Select, { SelectProps } from '@/src/lib/piwi/core/Select';
 import { useErrors } from '@/hooks';
+import TextField from './TextField';
 
 const subscription = { submitting: true, pristine: true };
 export default React.forwardRef<HTMLInputElement, SearchProps>(
@@ -22,6 +17,7 @@ export default React.forwardRef<HTMLInputElement, SearchProps>(
       label,
       name = 'field',
       disabled = false,
+      mockSearch,
     },
     ref,
   ) => {
@@ -34,20 +30,15 @@ export default React.forwardRef<HTMLInputElement, SearchProps>(
     );
     const handleSubmitVaca = useCallback<FormProps['onSubmit']>(
       (data) => {
-        return new Promise<void>((resolve, reject) => {
-          if (onSubmit) {
-            const namae = data[name];
-            const value = data[namae];
-            onSubmit(namae, value)
-              .then(() => {
-                resolve();
-              })
-              .catch((error) => {
-                reject(error);
-              });
-          } else {
-            resolve();
-          }
+        if (onSubmit) {
+          const namae = data[name];
+          const value = data[namae];
+
+          return onSubmit(namae, value);
+        }
+
+        return new Promise<void>((resolve) => {
+          resolve();
         });
       },
       [name, onSubmit],
@@ -58,7 +49,7 @@ export default React.forwardRef<HTMLInputElement, SearchProps>(
         initialValues={initialValues}
         subscription={subscription}
         onSubmit={handleSubmitVaca}
-        render={({ /** pristine, */ handleSubmit, submitting }) => (
+        render={({ /** pristine, */ handleSubmit, submitting, form }) => (
           <form method="POST" onSubmit={handleSubmit}>
             <Grid container>
               <Field
@@ -120,6 +111,9 @@ export default React.forwardRef<HTMLInputElement, SearchProps>(
                             error={Boolean(fuckErrors[pollito.input.name])}
                             helperText={fuckErrors[pollito.input.name] ?? '_'}
                             InputProps={{
+                              inputProps: {
+                                autocomplete: 'off',
+                              },
                               endAdornment: (
                                 <InputAdornment position="end">
                                   <IconButton
@@ -130,6 +124,12 @@ export default React.forwardRef<HTMLInputElement, SearchProps>(
                                   </IconButton>
                                 </InputAdornment>
                               ),
+                            }}
+                            mockSearch={mockSearch}
+                            mockSearchDisabled={input.value !== 'name'}
+                            onClickSuggestion={(item) => {
+                              form.change('name', item);
+                              form.submit();
                             }}
                           />
                         )}
@@ -154,27 +154,5 @@ export interface SearchProps {
   items: SelectProps['items'];
   onSubmit?: (field: string, value: string) => Promise<any>;
   disabled?: boolean;
+  mockSearch: (s: string) => Promise<string[]>;
 }
-
-const TextField = styled(MUITextField)({
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': {
-      borderTopLeftRadius: 0,
-      borderBottomLeftRadius: 0,
-      borderLeftWidth: 0,
-    },
-    '&:hover fieldset': {
-      borderLeftWidth: 0, // Ensure left border stays hidden on hover
-    },
-    '&.Mui-focused fieldset': {
-      borderLeftWidth: 0, // Ensure left border stays hidden when focused
-    },
-  },
-  '& .MuiFilledInput-root': {
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
-    '&:before, &:after': {
-      borderLeft: 'none', // Remove left border completely
-    },
-  },
-});

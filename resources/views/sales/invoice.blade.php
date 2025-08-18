@@ -36,9 +36,9 @@
     <strong>{{ __('Date') }}:</strong>
     {{ date('d/m/Y H:i:s') }}
     <br />
-    <strong>{{ __('ID') }}</strong>
+    <strong>{{ __('ID') }}:</strong>
     #{{ $sale['id'] }}
-    <h2 class="title">{{ __('SALE INVOICE') }}</h2>
+    <h2 class="title">{{ __('Sale Invoice') }}</h2>
     <p class="shop-name">Mi tiendita</p>
     <strong>{{ __('Phone') }}:</strong>
     0414-0000000
@@ -47,10 +47,10 @@
     <img class="logo" src="data:{{$mimeType}};base64,{{$base64Image}}">
     <br />
     <strong>{{ __('Attends') }}:</strong>
-    {{ $user }}
+    {{ $sale['user']['name'] }}
     <br />
     <strong>{{ __('Client') }}:</strong>
-    {{ $client }}
+    {{ $sale['client']['name'] }}
     <table>
         <tr>
             <td><strong>{{ __('Products') }}</strong></td>
@@ -58,7 +58,7 @@
             <td><strong>{{ __('Quantity') }}</strong></td>
             <td><strong>{{ __('Subtotal' ) }}</strong></td>
         </tr>
-        @foreach($saleItems as $item)
+        @foreach($sale['sale_items'] as $item)
         <tr>
             <td>{{ $item['product']['name'] }}</td>
             <td>
@@ -81,7 +81,7 @@
     @endif
     <strong>----------------------------------------------------------------</strong>
     <br />
-    <strong>{{ __('Thank you for your purchase') }}</strong>
+    <strong>{{ __('Thank you for your purchase!') }}</strong>
     <br />
     <strong>----------------------------------------------------------------</strong>
 </div>

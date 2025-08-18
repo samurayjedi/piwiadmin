@@ -2,11 +2,11 @@ import { useRef } from 'react';
 import styled from '@emotion/styled';
 import { Popper as MuiPopper, PopperProps, Paper } from '@mui/material';
 
-export default function LoginDropdown({ children, ...props }: PopperProps) {
+export default function Popper({ children, ...props }: PopperProps) {
   const arrowRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <Popper {...props}>
+    <StyledPopper {...props}>
       {(popperProps) => (
         <>
           <div ref={arrowRef} className="arrow" />
@@ -15,11 +15,11 @@ export default function LoginDropdown({ children, ...props }: PopperProps) {
           </Paper>
         </>
       )}
-    </Popper>
+    </StyledPopper>
   );
 }
 
-const Popper = styled(MuiPopper)(({ theme }) => {
+const StyledPopper = styled(MuiPopper)(({ theme }) => {
   const arrowSize = '0.45rem';
   const arrowOffset = '0.5rem';
 

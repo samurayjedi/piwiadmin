@@ -9,13 +9,16 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Button,
-  IconButton,
   Typography,
+  SpeedDial,
+  SpeedDialIcon,
+  SpeedDialAction,
+  Backdrop,
 } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import DoneAllIcon from '@mui/icons-material/DoneAll';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PaymentIcon from '@mui/icons-material/Payment';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import CartRow from './CartRow';
 import SearchProductDialog from './SearchProductDialog';
@@ -28,6 +31,7 @@ export default function NewSale() {
   const { t } = useTranslation();
   const formRef = useRef<HTMLFormElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const [dialOpen, setDialOpen] = useState(false);
   const [searchProductOpen, setSearchProductOpen] = useState(true);
   const [onCashOpen, setOnCashOpen] = useState(false);
   const [cart, setCart] = useState<Cart[]>([]);
@@ -40,12 +44,17 @@ export default function NewSale() {
     return Math.round(t2 * 100) / 100;
   }, [cart]);
 
+  const handleDialOpen = () => setDialOpen(true);
+  const handleDialClose = () => setDialOpen(false);
+
   const handleSearchProductClose = useCallback(() => {
     setSearchProductOpen(false);
+    handleDialOpen();
   }, []);
 
   const handleOnCashClose = useCallback(() => {
     setOnCashOpen(false);
+    handleDialOpen();
   }, []);
 
   const handleDialogAddAction = useCallback((newCart: Cart[]) => {
@@ -78,7 +87,9 @@ export default function NewSale() {
 
     setTimeout(() => {
       if (buttonRef.current) {
-        buttonRef.current.focus();
+        const btn = buttonRef.current.getElementsByTagName('button');
+
+        btn[0].focus();
       }
     }, 100);
   }, []);
@@ -152,31 +163,45 @@ export default function NewSale() {
                     </TableCell>
                   </TableRow>
                 )}
-                <TableRow>
-                  <TableCell colSpan={6}>
-                    <BtnsContainer>
-                      <IconButton onClick={() => setSearchProductOpen(true)}>
-                        <AddShoppingCartIcon />
-                      </IconButton>
-                      <FormGap />
-                      <FormButton
-                        ref={buttonRef}
-                        startIcon={<DoneAllIcon />}
-                        variant="contained"
-                        color="primary"
-                        onClick={() => setOnCashOpen(true)}
-                        disabled={!cart.length}
-                      >
-                        {t('Proceed')}
-                      </FormButton>
-                    </BtnsContainer>
-                  </TableCell>
-                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>
         </form>
       </AppLayout>
+      <SpeedDial
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        open={dialOpen}
+        ariaLabel={t('Sale actions')}
+        icon={<SpeedDialIcon icon={<ShoppingCartIcon />} />}
+        hidden={searchProductOpen || onCashOpen}
+        FabProps={{
+          onClick: () => setDialOpen((prev) => !prev),
+        }}
+      >
+        <Backdrop open={dialOpen} onClick={handleDialClose} />
+        <SpeedDialAction
+          icon={<AddShoppingCartIcon />}
+          tooltipOpen
+          tooltipTitle={t('Add')}
+          onClick={() => {
+            setSearchProductOpen(true);
+            handleDialClose();
+          }}
+        />
+        <SpeedDialAction
+          ref={buttonRef}
+          icon={<PaymentIcon />}
+          tooltipOpen={Boolean(cart.length)}
+          tooltipTitle={t('Payment')}
+          onClick={() => {
+            setOnCashOpen(true);
+            handleDialClose();
+          }}
+          FabProps={{
+            disabled: !cart.length,
+          }}
+        />
+      </SpeedDial>
       <SearchProductDialog
         open={searchProductOpen}
         onClose={handleSearchProductClose}
@@ -196,28 +221,3 @@ const Paper = styled(MUIPaper)({
   flexDirection: 'column',
   // padding: theme.spacing(1),
 });
-
-const BtnsContainer = styled.div(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'center',
-  [theme.breakpoints.up('md')]: {
-    justifyContent: 'flex-end',
-  },
-  flexWrap: 'wrap',
-}));
-
-const FormButton = styled(Button)(({ theme }) => ({
-  marginRight: theme.spacing(1),
-  '&:last-child': {
-    marginRight: 0,
-  },
-  marginTop: theme.spacing(1),
-}));
-
-const FormGap = styled.span(({ theme }) => ({
-  display: 'none',
-  [theme.breakpoints.up('md')]: {
-    display: 'block',
-    flex: 1,
-  },
-}));

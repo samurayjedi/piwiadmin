@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/src/Layouts/AppLayout';
@@ -15,9 +15,11 @@ import {
   TablePagination,
   Button,
   IconButton,
+  Fab,
 } from '@mui/material';
 import SoapIcon from '@mui/icons-material/Soap';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import { usePaginatorProps } from '@/hooks';
 import { useSales } from './hooks';
@@ -181,6 +183,16 @@ export default function Sales() {
           </Table>
         </TableContainer>
       </AppLayout>
+      <Fab
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        variant="extended"
+        color="success"
+        LinkComponent={Link}
+        href={route('sales.new_sale')}
+      >
+        <ShoppingCartCheckoutIcon />
+        {t('New sale')}
+      </Fab>
       <ClientInfoDialog client={client} onClose={handleClientDialogClose} />
       <ItemsDialog onClose={handleItemsDialogClose} sale_items={items} />
       <PayDialog sale={s} onClose={() => setS(undefined)} />

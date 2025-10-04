@@ -9,7 +9,7 @@ export default function TrailBorder({ anchorId }: { anchorId: string }) {
     const el = document.getElementById(anchorId);
 
     if (el) {
-      setXW([el.getBoundingClientRect().x, el.offsetWidth]);
+      setXW([el.offsetLeft, el.offsetWidth]);
     }
   }, [anchorId]);
 

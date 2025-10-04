@@ -13,22 +13,20 @@ import {
   TableBody,
   TableFooter,
   TablePagination,
-  Button,
-  IconButton,
   Fab,
+  IconButton,
 } from '@mui/material';
-import SoapIcon from '@mui/icons-material/Soap';
-import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
-import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import CloseIcon from '@mui/icons-material/Close';
 import { usePaginatorProps } from '@/hooks';
 import { useSales } from './hooks';
 import ClientInfoDialog from './ClientInfoDialog';
-import UserInfo from './UserInfo';
 import ItemsDialog from './ItemsDialog';
 import SaleTableRow from './SaleTableRow';
 import PayDialog from './PayDialog';
 import PaymentsMadeDialog from './PaymentsMadeDialog';
+import Filters from './Filters';
 
 export default function Sales() {
   const { t } = useTranslation();
@@ -40,6 +38,7 @@ export default function Sales() {
   >(undefined);
   const [s, setS] = useState<(typeof sales)[number] | undefined>(undefined);
   const [s2, setS2] = useState<(typeof sales)[number] | undefined>(undefined);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const handleClientDialogClose = useCallback(() => {
     setClient(undefined);
@@ -57,102 +56,27 @@ export default function Sales() {
             <TableHead>
               <TableRow>
                 <TableCell>#</TableCell>
-                <TableCell>{t('Date')}</TableCell>
-                <TableCell align="center">{t('Client')}</TableCell>
+                <TableCell sx={{ width: 200 }}>{t('Date')}</TableCell>
+                <TableCell>{t('Client')}</TableCell>
                 <TableCell>{t('Seller')}</TableCell>
                 <TableCell>{t('Type')}</TableCell>
-                <TableCell align="center">{t('Purchases')}</TableCell>
                 <TableCell>{t('Total')}</TableCell>
                 <TableCell>{t('To pay')}</TableCell>
                 <TableCell>{t('Status')}</TableCell>
-                <TableCell>{t('Actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {sales.length > 0 ? (
-                <>
-                  {sales.map((sale) => (
-                    <SaleTableRow
-                      key={`sale-row-${sale.id}`}
-                      data-notes={sale.notes ?? false}
-                    >
-                      <TableCell>{sale.id}</TableCell>
-                      <TableCell>{sale.created_at}</TableCell>
-                      <TableCell align="center">
-                        <Button
-                          variant="text"
-                          size="small"
-                          color="primary"
-                          onClick={() => setClient(sale.client)}
-                        >
-                          {sale.client.name}
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <UserInfo user={sale.user} />
-                      </TableCell>
-                      <TableCell>{t(sale.payment_type)}</TableCell>
-                      <TableCell align="center">
-                        <Button
-                          size="small"
-                          variant="text"
-                          onClick={() => setItems(sale.sale_items)}
-                        >
-                          {`x${sale.sale_items.length} ${t('items')}`}
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <LabelDolarBs value={sale.total_amount} />
-                      </TableCell>
-                      <TableCell>
-                        <LabelDolarBs
-                          value={Math.max(
-                            0,
-                            sale.total_amount - sale.amount_paid,
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          color={(() => {
-                            switch (sale.status) {
-                              case 'canceled':
-                                return 'error';
-                              case 'completed':
-                                return 'success';
-                            }
-
-                            return 'warning';
-                          })()}
-                        >
-                          {sale.status}
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        {sale.payment_type !== 'cash' &&
-                          sale.status === 'pending' && (
-                            <IconButton
-                              title={t('Pay')}
-                              onClick={() => setS(sale)}
-                            >
-                              <SoapIcon />
-                            </IconButton>
-                          )}
-                        <IconButton
-                          title={t('Payments made')}
-                          onClick={() => setS2(sale)}
-                        >
-                          <ReceiptIcon />
-                        </IconButton>
-                      </TableCell>
-                    </SaleTableRow>
-                  ))}
-                </>
+                sales.map((sale) => (
+                  <SaleTableRow
+                    {...sale}
+                    onPay={() => setS(sale)}
+                    onClientClick={() => setClient(sale.client)}
+                  />
+                ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={8} align="center">
                     {t('No records found!')}
                   </TableCell>
                 </TableRow>
@@ -160,9 +84,23 @@ export default function Sales() {
             </TableBody>
             <TableFooter>
               <TableRow>
+                <TableCell colSpan={6}>
+                  <FiltersContainer>
+                    <IconButton
+                      size="small"
+                      onClick={() => setFiltersOpen((prev) => !prev)}
+                    >
+                      {filtersOpen ? <CloseIcon /> : <FilterAltIcon />}
+                    </IconButton>
+                    <Filters
+                      open={filtersOpen}
+                      onClose={() => setFiltersOpen(false)}
+                    />
+                  </FiltersContainer>
+                </TableCell>
                 <TablePagination
                   rowsPerPageOptions={[5, 10, 25]} // , { label: t('All'), value: -1 }
-                  colSpan={9}
+                  colSpan={2}
                   rowsPerPage={rows}
                   page={page}
                   count={count}
@@ -206,3 +144,10 @@ const Paper = styled(MUIPaper)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
 }));
+
+const FiltersContainer = styled.div({
+  display: 'flex',
+  flexFlow: 'row',
+  alignItems: 'center',
+  overflow: 'hidden',
+});

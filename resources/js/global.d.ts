@@ -19,6 +19,30 @@ declare global {
   }
   /** this app only */
   type Language = 'es-ES' | 'en-US';
+  /** unique in sales (main) page */
+  interface SalesPageProps extends Sale {
+    client: Client;
+    user: {
+      id: number;
+      name: string;
+      email: string;
+    };
+    sale_items: {
+      id: number;
+      sale_id: number;
+      product_id: number;
+      quantity: number;
+      unit_price: number;
+      discount_id: number;
+      created_at: string;
+      updated_at: string;
+      product: Product;
+    }[];
+    payments: (SalePayment & {
+      payment_method: PaymentMethod;
+    })[];
+  }
+  /** */
   interface AppPageProps {
     auth: {
       user: User;
@@ -43,6 +67,31 @@ declare global {
       page?: number;
       count?: number;
       rows?: number;
+      sale_type?: string;
+      date_init?: string;
+      date_end?: string;
+      /** Charts page props */
+      sales_dataset?:
+        | 'sales_by_type'
+        | 'sales_by_category'
+        | 'sales_by_brand'
+        | 'sales_by_client'
+        | 'sales_by_user';
+      sales_timeframe?: 'sales_by_month' | 'sales_by_day';
+      sales_date?: string;
+      sales_layout?: 'vertical' | 'horizontal';
+      sales_chart_type?: 'bar' | 'line' | 'scatter' | 'pie';
+      dataset?: Record<string, string | number>[];
+      dataset_labels?: Record<string, string>;
+      bestSelling?: {
+        id: number;
+        name: string;
+        measurement: (typeof measurements)[number];
+        stock: number;
+        total_units_sold: number;
+        total_revenue: number;
+        sold_percentage: number;
+      }[];
     };
   }
   interface Category {
@@ -123,27 +172,4 @@ declare global {
     created_at: string;
     updated_at: string;
   }
-}
-/** unique in sales (main) page */
-interface SalesPageProps extends Sale {
-  client: Client;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  sale_items: {
-    id: number;
-    sale_id: number;
-    product_id: number;
-    quantity: number;
-    unit_price: number;
-    discount_id: number;
-    created_at: string;
-    updated_at: string;
-    product: Product;
-  }[];
-  payments: (SalePayment & {
-    payment_method: PaymentMethod;
-  })[];
 }

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch } from '@/store/hooks';
 import { updateDolarPrice } from '@/store/currencies';
+import UpdateDolarPriceDialog from './UpdateDolarPriceDialog';
 
 export default function DolarSync({ children }: DolarSyncProps) {
   const dispatch = useAppDispatch();
@@ -9,7 +10,12 @@ export default function DolarSync({ children }: DolarSyncProps) {
     dispatch(updateDolarPrice());
   }, []);
 
-  return children;
+  return (
+    <>
+      {children}
+      <UpdateDolarPriceDialog />
+    </>
+  );
 }
 
 export interface DolarSyncProps {

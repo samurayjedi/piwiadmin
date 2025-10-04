@@ -19,7 +19,13 @@ use App\Models\SaleBuilder;
 use App\DolarScrapper;
 
 class SalesController extends Controller {
-    public function main() {
+    public function main(string $sale_type = 'all') {
+        request()->validate([
+            'date_init' => 'nullable|date',
+            'date_end' => 'nullable|date|after:date_init',
+        ]);
+        $date_init = request()->get('date_init', 'none');
+        $date_end = request()->get('date_end', 'none');
         $page = intval(request()->get('page', 0));
         $rows = intval(request()->get('rows', 5));
         $pager = Pagination::normalize('sales', $page, $rows, Sale::count());
@@ -31,9 +37,7 @@ class SalesController extends Controller {
         /** payment methods */
         $paymentMethods = PaymentMethod::all();
         /** sales */
-        $sales = Sale::orderBy('id', 'DESC')
-            ->skip($offset)
-            ->take($limit)
+        $salesQuery = Sale::orderBy('id', 'DESC')
             ->with([
                 'client',
                 'user',
@@ -43,8 +47,17 @@ class SalesController extends Controller {
                 'sale_items.product.category',
                 'payments',
                 'payments.payment_method'
-            ])
-            ->get();
+            ]);
+        if ($sale_type !== 'all') {
+            $salesQuery->where('payment_type', $sale_type);
+        }
+        if ($date_init !== 'none') {
+            $salesQuery->whereDate('created_at', '>=', $date_init);
+        }
+        if ($date_end !== 'none') {
+            $salesQuery->whereDate('created_at', '<=', $date_end);
+        }
+        $sales = $salesQuery->skip($offset)->take($limit)->get();
 
         return Inertia::render('Sales', [
             'sales' => $sales->toArray(),
@@ -52,6 +65,9 @@ class SalesController extends Controller {
             'page' => $page,
             'count' => $count,
             'rows' => $rows,
+            'sale_type' => $sale_type,
+            'date_init' => $date_init,
+            'date_end' => $date_end,
         ]);
     }
 
@@ -152,7 +168,7 @@ class SalesController extends Controller {
             Log::error('Sale creation failed: '.$e->getMessage());
 
             return back()->withErrors([
-                'kernel_panic' => __('Error while creating the sale.'),
+                'kernel_panic' => $e->getMessage(),
             ]);
         }
 
@@ -183,7 +199,7 @@ class SalesController extends Controller {
             $pay->amount = $paymentAmount;
             $pay->payment_date = date('Y-m-d');
             $pay->payment_method_id = $paymentMethodRecord->id;
-            $pay->notes = request()->get('notes', null);
+            $pay->notes = request()->get($payMethod.'_note', null);
             $pay->save();
             $ammountPaid += $paymentAmount;
         }
@@ -191,6 +207,10 @@ class SalesController extends Controller {
         $sale->amount_paid = min($sale->total_amount, $sale->amount_paid + $ammountPaid);
         if ($sale->amount_paid == $sale->total_amount) {
             $sale->status = 'completed';
+        }
+        $notes = request()->get('notes', null);
+        if ($notes !== null) {
+            $sale->notes = $notes;
         }
         $sale->save();
         

@@ -14,7 +14,8 @@ use App\Http\Controllers\ClientsController;
 use App\Http\Controllers\PaymentMethodsController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\NotificationsController;
-use App\DolarScrapper;
+use App\Http\Controllers\ChartsController;
+use App\Http\Controllers\CurrenciesController;
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -28,19 +29,18 @@ Route::middleware(['auth', 'password.confirm'])->group(function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'main'])->name('dashboard');
+    Route::get('/dashboard/charts', [ChartsController::class, 'main'])->name('charts');
     Route::controller(NotificationsController::class)->group(function() {
         Route::get('/notifications', 'markAllAsRead')->name('notifications');
         Route::get('/notifications/notification/{notificationId}', 'markAsRead')->name('notifications.notification.markAsRead');
     });
-    /** Currencies */
-    Route::get('/update-dolar-price', function () {
-        return response()->json(['dolar' => DolarScrapper::getBsPrice()]);
-    })->name('update-dolar-price');
     /** Sale */
     Route::controller(SalesController::class)->group(function() {
         Route::get('/dashboard/sales', 'main')->name('sales');
         Route::post('/dashboard/sales', 'pay')->name('sales.pay');
         Route::get('/dashboard/sales/sale/{id}/print_invoice', 'print_invoice')->name('sales.sale.print_invoice');
+        Route::get('/dashboard/sales/sale_type/{sale_type}', 'main')->name('sale_type');
+        /** New sale */
         Route::get('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale');
         Route::post('/dashboard/sales/new_sale', 'blackhole')->name('sales.new_sale.blackhole');
         Route::post('/dashboard/sales/new_sale/save', 'register_new_sale')->name('sales.new_sale.save');
@@ -80,9 +80,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/dashboard/payment_methods/update/id/{id}', 'update')->name('payment_methods.update');
         Route::post('/dashboard/payment_methods/delete/id/{id}', 'delete')->name('payment_methods.delete');
     });
+    /** Misc */
+    Route::post('/search_product/name/{name}', [InventoryController::class, 'search_product_by_name'])->name('search_product.name');
+    Route::post('/search_product/barcode/{barcode}', [InventoryController::class, 'search_product_by_barcode'])->name('search_product.barcode');
+    /** Currencies */
+    Route::controller(CurrenciesController::class)->group(function() {
+        Route::get('/update-dolar-price', 'get_dolar_price')->name('update-dolar-price');
+        Route::post('/update-dolar-price', 'set_dolar_price_manually')->name('update-dolar-price.manually');
+    });
 });
 
 Route::get('/locales/{language}/translation.json', [LocaleController::class, 'handle']);
 Route::get('/locales/change/{language}', [LocaleController::class, 'changeLanguage'])->name('locale.change');
+Route::post('/redirect/{route}', function (string $route) {
+    $redirect = redirect()->route($route);
+    if ($errors = request()->get('errors', null)) {
+        $redirect->withErrors($errors);
+    }
+
+    return $redirect;
+})->name('redirect');
 
 require __DIR__.'/auth.php';

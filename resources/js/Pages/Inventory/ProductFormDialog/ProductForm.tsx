@@ -26,6 +26,7 @@ import TextFieldNumericFormat from '@/src/lib/piwi/core/TextFieldNumericFormat';
 import { useCategories } from '@/Pages/Categories/hooks';
 import { useBrands } from '@/Pages/Brands/hooks';
 import HtmlForm from '@/src/Components/HtmlForm';
+import { useAppSelector } from '@/store/hooks';
 import { useProducts } from '../hooks';
 import SalePriceTextfield from './SalePriceTextField';
 import WholesalePriceTextfield from './WholesalePriceTextField';
@@ -35,6 +36,7 @@ import WholesaleProfitField from './WholesaleProfitField';
 
 export default function ProductForm({ id, onSubmit }: ProductFormProps) {
   const { t } = useTranslation();
+  const sync = useAppSelector((state) => state.app.sync);
   const [fuckErrors, onChangeDecorator] = useErrors();
   const products = useProducts();
   const product = products.find((p) => p.id === id);
@@ -303,7 +305,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
             variant="contained"
             color="secondary"
             startIcon={<SaveIcon />}
-            disabled={submitting}
+            disabled={sync !== 'ok' || submitting}
           >
             {t('Save')}
           </Button>

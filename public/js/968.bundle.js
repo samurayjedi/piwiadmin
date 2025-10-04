@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[968],{60968:(r,s,e)=>{e.r(s),e.d(s,{useBrands:()=>a}),e(16280);var n=e(65300);function a(){const{brands:r}=(0,n.S8)().props;if(!r)throw new Error("For some reason, the brands props are no available in this page.");return r}}}]);

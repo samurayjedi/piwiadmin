@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import _ from 'lodash';
+import { Interpolation, Theme } from '@emotion/react';
 import {
   Select as MUISelect,
   SelectProps as MUISelectProps,
@@ -16,12 +17,18 @@ export default function Select({
   helperText,
   sx,
   multiple,
+  css,
   ...props
 }: SelectProps) {
   const labelId = useMemo(() => _.uniqueId('select_label_'), []);
 
   return (
-    <FormControl error={props.error} fullWidth={props.fullWidth} sx={sx}>
+    <FormControl
+      css={css}
+      error={props.error}
+      fullWidth={props.fullWidth}
+      sx={sx}
+    >
       {label && (
         <InputLabel id={labelId} sx={{ left: -14 }}>
           {label}
@@ -60,4 +67,5 @@ export type SelectProps = Omit<MUISelectProps, 'labelId'> & {
   items: string[] | Record<string, string> | Readonly<string[]>;
   label?: string;
   helperText?: string;
+  css?: Interpolation<Theme>;
 };

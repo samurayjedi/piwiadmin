@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[70],{70:(e,r,s)=>{s.r(r),s.d(r,{useMetrics:()=>n}),s(16280);var t=s(65300);function n(){const{props:{metrics:e}}=(0,t.S8)();if(!e)throw new Error("Metrics aren't not available in this page.");return e}}}]);

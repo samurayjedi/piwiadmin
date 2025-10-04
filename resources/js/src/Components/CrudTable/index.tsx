@@ -12,7 +12,7 @@ import {
   TableBody,
   Fab,
 } from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ConfirmDialog from '@/src/lib/piwi/core/ConfirmDialog';
 import { useAppDispatch } from '@/store/hooks';
@@ -169,15 +169,14 @@ export default function CrudTable({
               right: 16,
               display: mode === 'none' ? 'flex' : 'none',
             }}
-            variant="extended"
             color="success"
             onClick={() => {
               form.reset();
               setMode('add');
             }}
+            title={t('New')}
           >
-            <AddCircleOutlineIcon />
-            {t('New')}
+            <AddIcon />
           </Fab>
         </HtmlForm>
       )}

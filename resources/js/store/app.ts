@@ -14,12 +14,12 @@ export const slice = createSlice({
     builder.addCase(updateDolarPrice.pending, (state) => {
       state.sync = 'loading';
     });
-    builder.addCase(updateDolarPrice.rejected, (state, action) => {
-      state.sync = 'error';
-      console.error(action.error.message);
-    });
-    builder.addCase(updateDolarPrice.fulfilled, (state) => {
-      state.sync = 'ok';
+    builder.addCase(updateDolarPrice.fulfilled, (state, action) => {
+      if (action.payload !== 0) {
+        state.sync = 'error';
+      } else {
+        state.sync = 'ok';
+      }
     });
   },
 });

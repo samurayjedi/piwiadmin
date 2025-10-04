@@ -13,6 +13,7 @@ import DateRangeIcon from '@mui/icons-material/DateRange';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PendingIcon from '@mui/icons-material/Pending';
 import { useAppSelector } from '@/store/hooks';
+import Skeleton from '@/src/Components/Skeleton';
 import { useMetrics } from './hooks';
 
 export default function Sidebar() {
@@ -27,61 +28,69 @@ export default function Sidebar() {
           <ListItemIcon>
             <TodayIcon />
           </ListItemIcon>
-          <ListItemText
-            primary={t('Today income')}
-            secondary={`${dayIncome.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            })} (${(dayIncome * dolar).toLocaleString('es-VE', {
-              style: 'currency',
-              currency: 'VES',
-            })})`}
-          />
+          <MetricsSkeleton>
+            <ListItemText
+              primary={t('Today income')}
+              secondary={`${dayIncome.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              })} (${(dayIncome * dolar).toLocaleString('es-VE', {
+                style: 'currency',
+                currency: 'VES',
+              })})`}
+            />
+          </MetricsSkeleton>
         </ListItemButton>
         <ListItemButton>
           <ListItemIcon>
             <DateRangeIcon />
           </ListItemIcon>
-          <ListItemText
-            primary={t('Week income')}
-            secondary={`${monthIncome.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            })} (${(monthIncome * dolar).toLocaleString('es-VE', {
-              style: 'currency',
-              currency: 'VES',
-            })})`}
-          />
+          <MetricsSkeleton>
+            <ListItemText
+              primary={t('Week income')}
+              secondary={`${monthIncome.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              })} (${(monthIncome * dolar).toLocaleString('es-VE', {
+                style: 'currency',
+                currency: 'VES',
+              })})`}
+            />
+          </MetricsSkeleton>
         </ListItemButton>
         <ListItemButton>
           <ListItemIcon>
             <CalendarMonthIcon />
           </ListItemIcon>
-          <ListItemText
-            primary={t('Year income')}
-            secondary={`${yearIncome.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            })} (${(yearIncome * dolar).toLocaleString('es-VE', {
-              style: 'currency',
-              currency: 'VES',
-            })})`}
-          />
+          <MetricsSkeleton>
+            <ListItemText
+              primary={t('Year income')}
+              secondary={`${yearIncome.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              })} (${(yearIncome * dolar).toLocaleString('es-VE', {
+                style: 'currency',
+                currency: 'VES',
+              })})`}
+            />
+          </MetricsSkeleton>
         </ListItemButton>
         <ListItemButton>
           <ListItemIcon>
             <PendingIcon />
           </ListItemIcon>
-          <ListItemText
-            primary={t('Pending income')}
-            secondary={`${pendingIncome.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            })} (${(pendingIncome * dolar).toLocaleString('es-VE', {
-              style: 'currency',
-              currency: 'VES',
-            })})`}
-          />
+          <MetricsSkeleton>
+            <ListItemText
+              primary={t('Pending income')}
+              secondary={`${pendingIncome.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              })} (${(pendingIncome * dolar).toLocaleString('es-VE', {
+                style: 'currency',
+                currency: 'VES',
+              })})`}
+            />
+          </MetricsSkeleton>
         </ListItemButton>
       </List>
     </Paper>
@@ -110,3 +119,9 @@ const ListSubheader = styled(MuiListSubheader)(({ theme }) => ({
     gridColumnEnd: 3,
   },
 }));
+
+const MetricsSkeleton = styled(Skeleton)({
+  maxWidth: '100%',
+  flex: '1 1 auto',
+  display: 'flex',
+});

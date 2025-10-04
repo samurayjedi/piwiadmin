@@ -1,42 +1,25 @@
-import React, { useState, useCallback } from 'react';
-import _ from 'lodash';
 import styled from '@emotion/styled';
-import clsx from 'clsx';
-import { usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import {
   AppBar as MUIAppBar,
   Toolbar,
   Container,
-  Button,
   Box,
   useMediaQuery,
-  Skeleton,
-  ButtonProps,
 } from '@mui/material';
-
 import { useTheme } from '@mui/material/styles';
 import Logo from '@/src/Logo';
-import TrailBorder from '@/src/lib/piwi/animated/TrailBorder';
+import NavMenu from '@/src/lib/piwi/core/NavMenu';
 import { useAppSelector } from '@/store/hooks';
 import LoginDropdown from './LoginDropdown';
 import Notifications from './Notifications';
+import DolarPrice from './DolarPrice';
 
 export default function PrimaryAppBar() {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const { component } = usePage();
-  const activeLink = `link-${component}`;
-  const [hoverLink, setHoverLink] = useState<string | null>(null);
-
-  const onMouseOver = useCallback(
-    (ev: React.MouseEvent<HTMLButtonElement, MouseEvent>) =>
-      setHoverLink(_.get(ev, 'target.id', '')),
-    [],
-  );
-
-  const onMouseLeave = useCallback(() => setHoverLink(null), []);
+  const sync = useAppSelector((state) => state.app.sync);
 
   return (
     <AppBar color="default">
@@ -46,39 +29,97 @@ export default function PrimaryAppBar() {
           {!isMobile && (
             <>
               <div className="spacing" />
-              <LinkButton
-                id="link-Dashboard"
-                className={clsx({ active: component === 'Dashboard' })}
-                variant="text"
-                onMouseOver={onMouseOver}
-                onMouseLeave={onMouseLeave}
-              >
-                {t('Dashboard')}
-              </LinkButton>
-              <LinkButton
-                id="link-test"
-                variant="text"
-                onMouseOver={onMouseOver}
-                onMouseLeave={onMouseLeave}
-              >
-                {t('Sales')}
-              </LinkButton>
-              <LinkButton
-                id="link-test2"
-                variant="text"
-                onMouseOver={onMouseOver}
-                onMouseLeave={onMouseLeave}
-              >
-                {t('Products')}
-              </LinkButton>
+              <NavMenu
+                loading={sync !== 'ok'}
+                items={[
+                  {
+                    key: 'dashboard',
+                    label: t('Dashboard'),
+                    link: route('dashboard'),
+                  },
+                  {
+                    key: 'sales',
+                    label: t('Sales'),
+                    subItems: [
+                      {
+                        key: 'new-sale',
+                        label: t('New sale'),
+                        link: route('sales.new_sale'),
+                      },
+                      {
+                        key: 'sales-listing',
+                        label: t('Listing'),
+                        link: route('sales'),
+                      },
+                      {
+                        key: 'sale-listing-cash',
+                        label: t('Cash'),
+                        link: route('sale_type', { sale_type: 'cash' }),
+                      },
+                      {
+                        key: 'sale-listing-credit',
+                        label: t('Credit'),
+                        link: route('sale_type', { sale_type: 'credit' }),
+                      },
+                      {
+                        key: 'sale-listing-layaway',
+                        label: t('Layaway'),
+                        link: route('sale_type', { sale_type: 'layaway' }),
+                      },
+                    ],
+                  },
+                  {
+                    key: 'products',
+                    label: t('Products'),
+                    subItems: [
+                      {
+                        key: 'inventory',
+                        label: t('Inventory'),
+                        link: route('inventory'),
+                      },
+                      {
+                        key: 'categories',
+                        label: t('Categories'),
+                        link: route('categories'),
+                      },
+                      {
+                        key: 'brands',
+                        label: t('Brands'),
+                        link: route('brands'),
+                      },
+                    ],
+                  },
+                  {
+                    key: 'clients_payments',
+                    label: t('Clients'),
+                    subItems: [
+                      {
+                        key: 'clients',
+                        label: t('Clients'),
+                        link: route('clients'),
+                      },
+                      {
+                        key: 'payment_methods',
+                        label: t('Payment Methods'),
+                        link: route('payment_methods'),
+                      },
+                    ],
+                  },
+                  {
+                    key: 'charts',
+                    label: t('Charts'),
+                    link: route('charts'),
+                  },
+                ]}
+              />
             </>
           )}
           <Box sx={{ flex: 1 }} />
-          <Notifications />
+          <DolarPrice />
           <LoginDropdown />
+          <Notifications />
         </Toolbar>
       </Container>
-      <TrailBorder anchorId={hoverLink ?? activeLink} />
     </AppBar>
   );
 }
@@ -93,33 +134,3 @@ const AppBar = styled(MUIAppBar)(({ theme }) => ({
     top: 2,
   },
 }));
-
-const StyledLinkButton = styled(Button)(({ theme }) => ({
-  fontSize: '0.9',
-  color: theme.palette.grey[600],
-  '&:first-child': {},
-  '&:hover, &.active': {
-    color: theme.palette.common.black,
-  },
-  paddingBottom: 12,
-  paddingTop: 12,
-  borderRadius: 0,
-}));
-
-const StyledSkeleton = styled(Skeleton)(({ theme }) => ({
-  fontSize: '0.9',
-  marginRight: theme.spacing(1),
-  paddingBottom: '12px',
-  paddingTop: '12px',
-  width: '100px',
-}));
-
-function LinkButton(props: ButtonProps) {
-  const sync = useAppSelector((state) => state.app.sync);
-
-  if (sync === 'ok') {
-    return <StyledLinkButton {...props} />;
-  }
-
-  return <StyledSkeleton id="link-Dashboard" variant="rectangular" />;
-}

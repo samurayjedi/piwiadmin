@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import i18nTranslator from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
 import BrowserLanguageDetector from 'i18next-browser-languagedetector';
 import LocalesResourcesBackend from 'i18next-http-backend';
 import { Provider } from 'react-redux';
@@ -18,6 +18,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 // continue with internal dependencies....
 import { usePiwiTheme } from './hooks';
+import { locales } from './src/lib/piwi/dateFnsFacade';
 import '../css/app.css';
 
 i18nTranslator
@@ -59,11 +60,18 @@ createInertiaApp({
 
 function Piwi({ children }: { children: React.ReactNode }) {
   const theme = usePiwiTheme();
+  const {
+    i18n: { language },
+  } = useTranslation();
+  const locale = locales[language as keyof typeof locales];
 
   return (
     <Provider store={store}>
       <ThemeProvider theme={theme}>
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <LocalizationProvider
+          dateAdapter={AdapterDateFns}
+          adapterLocale={locale}
+        >
           <CssBaseline />
           {children}
         </LocalizationProvider>

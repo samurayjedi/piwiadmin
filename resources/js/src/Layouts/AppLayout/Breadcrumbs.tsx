@@ -35,9 +35,27 @@ export default function Breadcrumbs() {
               );
             default:
               return index < paths.length - 1 ? (
-                <Link href={route(path)}>
-                  <Typography>{t(_.startCase(path))}</Typography>
-                </Link>
+                (() => {
+                  let url = '';
+                  try {
+                    url = route(path);
+                  } catch (error) {
+                    if (error instanceof Error) {
+                      const regex =
+                        /Ziggy error: '(.+)' parameter is required for route '.+'\./;
+                      const match = error.message.match(regex);
+                      if (match && match[1]) {
+                        const param = match[1];
+                        url = route(path, { [param]: paths[paths.length - 1] });
+                      }
+                    }
+                  }
+                  return (
+                    <Link href={url}>
+                      <Typography>{t(_.startCase(path))}</Typography>
+                    </Link>
+                  );
+                })()
               ) : (
                 <LastItem>
                   <Typography>{t(_.startCase(path))}</Typography>

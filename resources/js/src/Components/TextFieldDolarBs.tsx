@@ -1,7 +1,6 @@
 /* eslint-disable no-unneeded-ternary */
 import { useCallback, useState, useEffect } from 'react';
 import { useAppSelector } from '@/store/hooks';
-import { Skeleton } from '@mui/material';
 import TextFieldDualCurrency, {
   type TextFieldDualCurrencyProps,
 } from '../lib/piwi/core/TextFieldDualCurrency';
@@ -13,6 +12,7 @@ export default function TextFieldDolarBs({
   ...props
 }: TextFieldDolarBsProps) {
   const dolar = useAppSelector((state) => state.currencies.dolar);
+  const sync = useAppSelector((state) => state.app.sync);
   const [mode, setMode] = useState<'$' | 'Bs.'>('$');
   const [val, setVal] = useState(parseFloat(value as string) || 0);
   useEffect(() => {
@@ -29,9 +29,8 @@ export default function TextFieldDolarBs({
   }, []);
 
   return (
-    <Txt
+    <TextFieldDualCurrency
       {...props}
-      loading={dolar === 0}
       value={mode === '$' ? val : dolar * val}
       prefix="$"
       secSuffix="Bs."
@@ -48,19 +47,24 @@ export default function TextFieldDolarBs({
           onChange(newInput.toString());
         }
       }}
-      helperText={
-        helperText
-          ? helperText
-          : mode === 'Bs.'
-            ? `${val.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD',
-              })}`
-            : `${(dolar * val).toLocaleString('es-VE', {
-                style: 'currency',
-                currency: 'VES',
-              })}`
-      }
+      helperText={(() => {
+        if (sync !== 'ok') {
+          return '-';
+        }
+        if (helperText) {
+          return helperText;
+        }
+
+        return mode === 'Bs.'
+          ? `${val.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            })}`
+          : `${(dolar * val).toLocaleString('es-VE', {
+              style: 'currency',
+              currency: 'VES',
+            })}`;
+      })()}
     />
   );
 }
@@ -71,18 +75,3 @@ export type TextFieldDolarBsProps = Omit<
 > & {
   onChange?: (newValue: string) => void;
 };
-
-function Txt({
-  loading,
-  ...props
-}: TextFieldDualCurrencyProps & { loading: boolean }) {
-  if (loading) {
-    return (
-      <Skeleton variant="rounded">
-        <TextFieldDualCurrency {...props} />
-      </Skeleton>
-    );
-  }
-
-  return <TextFieldDualCurrency {...props} />;
-}

@@ -10,6 +10,8 @@ export default function DatePicker({
   disableFuture = false,
   disablePast = false,
   minDate,
+  onAccept,
+  views,
   ...props
 }: DatePickerProps) {
   return (
@@ -20,6 +22,7 @@ export default function DatePicker({
       disableFuture={disableFuture}
       disablePast={disablePast}
       minDate={minDate}
+      onAccept={onAccept}
       onChange={(newDate) => {
         if (newDate && isValid(newDate)) {
           if (onChange) {
@@ -32,12 +35,15 @@ export default function DatePicker({
           }
         }
       }}
+      views={views}
       slotProps={{
         textField: { ...props, name },
       }}
     />
   );
 }
+
+type MUIDatePickerProps = React.ComponentProps<typeof MuiDatePicker>;
 
 export type DatePickerProps = Omit<TextFieldProps, 'value' | 'onChange'> & {
   value?: string;
@@ -50,4 +56,7 @@ export type DatePickerProps = Omit<TextFieldProps, 'value' | 'onChange'> & {
   disableFuture?: boolean;
   disablePast?: boolean;
   minDate?: Date | undefined;
+  clearable?: boolean;
+  onAccept?: MUIDatePickerProps['onAccept'];
+  views?: MUIDatePickerProps['views'];
 };

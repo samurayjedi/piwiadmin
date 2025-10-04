@@ -13,7 +13,6 @@ import {
   SpeedDial,
   SpeedDialIcon,
   SpeedDialAction,
-  Backdrop,
 } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
@@ -89,7 +88,8 @@ export default function NewSale() {
       if (buttonRef.current) {
         const btn = buttonRef.current.getElementsByTagName('button');
 
-        btn[0].focus();
+        // avoid access to undefined
+        btn[0]?.focus();
       }
     }, 100);
   }, []);
@@ -178,7 +178,6 @@ export default function NewSale() {
           onClick: () => setDialOpen((prev) => !prev),
         }}
       >
-        <Backdrop open={dialOpen} onClick={handleDialClose} />
         <SpeedDialAction
           icon={<AddShoppingCartIcon />}
           tooltipOpen

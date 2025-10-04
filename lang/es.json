@@ -16,5 +16,20 @@
   "Client": "Cliente",
   "Attends": "Atiende",
   "With the sale type selected, the amount paid cannot be >= to the total": "No se puede pagar un monto mayor o igual al total en el tipo de venta seleccionado",
-  "In cash sales, you must pay the totality": "En ventas \"Al Contado\", se debe abonar la totalidad del importe"
+  "In cash sales, you must pay the totality": "En ventas \"Al Contado\", se debe abonar la totalidad del importe",
+  "Jan": "Ene",
+  "Feb": "Feb",
+  "Mar": "Mar",
+  "Apr": "Abr",
+  "May": "Mayo",
+  "June": "Jun",
+  "July": "Jul",
+  "Aug": "Ago",
+  "Sept": "Sep",
+  "Oct": "Oct",
+  "Nov": "Nov",
+  "Dec": "Dic",
+  "Cash": "Contado",
+  "Credit": "Crédito",
+  "Layaway": "Apartado"
 }

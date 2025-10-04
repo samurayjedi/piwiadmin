@@ -1,9 +1,9 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import _ from 'lodash';
+import { useTranslation } from 'react-i18next';
 import { SearchProps } from '@/src/lib/piwi/laboratory/Search';
 import { router } from '@inertiajs/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { setSync, SyncState } from '@/store/app';
-import { useAppDispatch } from '@/store/hooks';
+import { SyncState } from '@/store/app';
 import { SearchProductDialogProps } from '.';
 import { Cart } from '../../types';
 
@@ -18,64 +18,139 @@ export function useRequestFocus(open: boolean, sync: SyncState) {
     }
   }, [open, sref, sync]);
 
-  return retrieveRef;
+  return [sref, retrieveRef] as const;
+}
+
+function useSearchFetch(inputRef: HTMLInputElement | null) {
+  const { t } = useTranslation();
+  const controller = useRef<AbortController | null>(null);
+
+  return useCallback(
+    (field: string, value: string) => {
+      /** onBefore */
+      if (controller.current !== null) {
+        controller.current.abort();
+      }
+      controller.current = new AbortController();
+      /** when error ocurred */
+      const throwError = () => {
+        return new Promise<void>((resolve) => {
+          router.post(
+            route('redirect', { route: 'sales.new_sale' }),
+            {
+              errors: { [field]: t('Error conecting/receiving, try again.') },
+            },
+            {
+              preserveState: true,
+              onFinish: () => {
+                inputRef?.focus();
+                controller.current = null;
+                resolve();
+              },
+            },
+          );
+        });
+      };
+
+      return fetch(route(`search_product.${field}`, { [field]: value }), {
+        signal: controller.current.signal,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN':
+            _.get(
+              document.querySelector('meta[name="csrf-token"]'),
+              'content',
+            ) || '',
+        },
+      })
+        .then(async (resp) => {
+          if (!resp.ok) {
+            await throwError();
+
+            return null;
+          }
+
+          return resp.json();
+        })
+        .then(async (json: Record<string, any>) => {
+          controller.current = null;
+          if (json.status === 0) {
+            const promise = new Promise<void>((resolve) => {
+              router.post(
+                route('redirect', { route: 'sales.new_sale' }),
+                {
+                  errors: json.errors,
+                },
+                {
+                  preserveState: true,
+                  onFinish: () => {
+                    setTimeout(() => {
+                      inputRef?.focus();
+                    }, 300);
+                    resolve();
+                  },
+                },
+              );
+            });
+            await promise;
+
+            return null;
+          }
+
+          return json;
+        })
+        .catch(async (err) => {
+          if (err.name !== 'AbortError') {
+            await throwError();
+          }
+
+          return null;
+        });
+    },
+    [inputRef, t],
+  );
 }
 
 export function useHandler(
+  inputRef: HTMLInputElement | null,
   addAction: SearchProductDialogProps['addAction'],
   onClose: SearchProductDialogProps['onClose'],
 ) {
-  const dispatch = useAppDispatch();
   const [products, setProducts] = useState<Product[]>([]);
+  const fetchSearch = useSearchFetch(inputRef);
 
   const mockSearch = useCallback(
-    (s: string) =>
-      new Promise<string[]>((resolve) => {
-        const url = route('sales.new_sale.blackhole', {
-          action: 'search_product',
+    (s: string) => {
+      return new Promise<string[]>((resolve) => {
+        fetchSearch('name', s).then((r) => {
+          if (r) {
+            const ps = r.products as Product[];
+            const results = _.map(ps, (p) => p.name);
+
+            resolve(results);
+          } else {
+            resolve([]);
+          }
         });
-
-        router.post(
-          url,
-          { field: 'name', name: s },
-          {
-            onSuccess: (data) => {
-              const ps = _.get(data, 'props.products', []) as Product[];
-              const results = _.map(ps, (p) => p.name);
-
-              resolve(results);
-            },
-          },
-        );
-      }),
-    [],
+      });
+    },
+    [fetchSearch],
   );
 
   const searchSubmit = useCallback<NonNullable<SearchProps['onSubmit']>>(
     (field, value) =>
       new Promise<void>((resolve) => {
-        const url = route('sales.new_sale.blackhole', {
-          action: 'search_product',
+        fetchSearch(field, value).then((r) => {
+          if (r) {
+            setProducts(r.products);
+          }
+
+          resolve();
         });
-        router.post(
-          url,
-          { field, [field]: value },
-          {
-            onBefore: () => {
-              dispatch(setSync('loading'));
-            },
-            onSuccess: (data) => {
-              const newP = _.get(data, 'props.products', []) as Product[];
-              setProducts(newP);
-            },
-            onFinish: () => {
-              dispatch(setSync('ok'));
-              resolve();
-            },
-          },
-        );
       }),
-    [dispatch],
+    [fetchSearch],
   );
 
   const formRef = useRef<HTMLFormElement>(null);

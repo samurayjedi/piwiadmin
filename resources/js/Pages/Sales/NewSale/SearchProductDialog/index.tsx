@@ -33,10 +33,9 @@ export default function SearchProductDialog({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const sync = useAppSelector((state) => state.app.sync);
-
-  const retrieveRef = useRequestFocus(open, sync);
+  const [inputRef, retrieveRef] = useRequestFocus(open, sync);
   const { products, formRef, mockSearch, searchSubmit, handleAddProducts } =
-    useHandler(addAction, onClose);
+    useHandler(inputRef, addAction, onClose);
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -59,7 +58,7 @@ export default function SearchProductDialog({
             </IconButton>
           </Header>
           <Search
-            ref={retrieveRef}
+            inputRef={retrieveRef}
             name="field"
             label={t('Search')}
             variant="filled"

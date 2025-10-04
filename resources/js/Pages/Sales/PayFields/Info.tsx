@@ -1,4 +1,5 @@
 import styled from '@emotion/styled';
+import Decimal from 'decimal.js';
 import { useTranslation } from 'react-i18next';
 import { useFormState, useForm } from 'react-final-form';
 import { Typography } from '@mui/material';
@@ -20,9 +21,15 @@ export default function Info({ total, mustReturnChange }: InfoProps) {
       const selectedPayments = values.payment_methods as string[];
       let payed = 0;
       selectedPayments.forEach((method) => {
-        payed += parseFloat(values[method]) ?? 0;
+        const pay = values[method];
+        if (pay) {
+          payed = new Decimal(payed).plus(new Decimal(pay)).toNumber();
+        }
       });
-      const change = payed - total;
+      const change = new Decimal(payed)
+        .minus(new Decimal(total))
+        .toDecimalPlaces(10)
+        .toNumber();
 
       if (!isNaN(change) && change > 0) {
         form.change(

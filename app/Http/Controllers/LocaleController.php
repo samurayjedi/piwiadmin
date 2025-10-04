@@ -4,7 +4,12 @@ namespace App\Http\Controllers;
 
 class LocaleController extends Controller {
   public function handle(string $language) {
-    $locale = config('locale');
+    $locale = session()->get('locale', null);
+    if ($locale === null) {
+      $locale = config('app.locale', 'es');
+      session()->put('locale', $locale);
+      session()->put('faker_locale', config('app.faker_locale', 'es_ES'));
+    }
 
     return require_once lang_path("/$locale/i18next.php");
   }

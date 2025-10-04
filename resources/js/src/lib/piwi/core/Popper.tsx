@@ -1,12 +1,29 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import styled from '@emotion/styled';
 import { Popper as MuiPopper, PopperProps, Paper } from '@mui/material';
 
 export default function Popper({ children, ...props }: PopperProps) {
   const arrowRef = useRef<HTMLDivElement | null>(null);
+  const modifiers = useMemo(
+    () => [
+      ...(arrowRef.current !== null
+        ? [
+            {
+              name: 'arrow',
+              enabled: true,
+              options: {
+                element: arrowRef,
+              },
+            },
+          ]
+        : []),
+      ...(props.modifiers ? props.modifiers : []),
+    ],
+    [props.modifiers],
+  );
 
   return (
-    <StyledPopper {...props}>
+    <StyledPopper {...props} modifiers={modifiers}>
       {(popperProps) => (
         <>
           <div ref={arrowRef} className="arrow" />

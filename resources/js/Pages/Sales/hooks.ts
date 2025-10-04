@@ -31,3 +31,15 @@ export function usePaymentMethodsItems() {
 
   return items;
 }
+
+export function useSaleFilters() {
+  const {
+    props: { sale_type, date_init, date_end },
+  } = useAppPage();
+
+  if (!sale_type || !date_init || !date_end) {
+    throw new Error('For some reason, filters parameters aren\t available.');
+  }
+
+  return { sale_type, date_init, date_end } as const;
+}

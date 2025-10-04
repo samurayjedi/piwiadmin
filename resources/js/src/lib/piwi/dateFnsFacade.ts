@@ -1,3 +1,4 @@
+import i18next from 'i18next';
 import {
   format as datefnsFormat,
   parse as datefnsParse,
@@ -8,8 +9,6 @@ import {
 } from 'date-fns';
 import enUSLocale from 'date-fns/locale/en-US';
 import esESLocale from 'date-fns/locale/es';
-
-export const language = 'en-US';
 
 export const locales = {
   'en-US': enUSLocale,
@@ -26,19 +25,28 @@ export const dateTimeFormats = {
   'es-ES': 'dd-MM-yyyy hh:mm aaaa',
 };
 
-export function format(date: Date, sf: string = dateFormats[language]) {
-  return datefnsFormat(date, sf, {
-    locale: locales[language],
+function language() {
+  const l = i18next.language;
+  if (l !== 'en-US' && l !== 'es-ES') {
+    throw new Error(`Invalid language ${l}.`);
+  }
+
+  return l;
+}
+
+export function format(date: Date, sf?: string) {
+  const f = sf ?? dateFormats[language()];
+
+  return datefnsFormat(date, f, {
+    locale: locales[language()],
   } as any);
 }
 
-export function parse(
-  date: string,
-  sf: string = dateFormats[language],
-  ref: Date = new Date(),
-) {
-  return datefnsParse(date, sf, ref, {
-    locale: locales[language],
+export function parse(date: string, sf?: string, ref: Date = new Date()) {
+  const f = sf ?? dateFormats[language()];
+
+  return datefnsParse(date, f, ref, {
+    locale: locales[language()],
   } as any);
 }
 

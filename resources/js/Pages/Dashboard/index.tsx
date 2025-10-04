@@ -2,12 +2,7 @@ import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import { route } from 'ziggy-js';
 import { Link } from '@inertiajs/react';
-import {
-  Paper as MUIPaper,
-  Button,
-  ButtonProps,
-  Skeleton as MUISkeleton,
-} from '@mui/material';
+import { Paper as MUIPaper, Button } from '@mui/material';
 import {
   Inventory as InventoryIcon,
   Category as CategoryIcon,
@@ -20,7 +15,11 @@ import GroupIcon from '@mui/icons-material/Group';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import ChecklistIcon from '@mui/icons-material/Checklist';
-import { useAppSelector } from '@/store/hooks';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import PiwiSkeleton from '@/src/Components/Skeleton';
 import Sidebar from './Sidebar';
 
 export default function Dashboard() {
@@ -36,66 +35,122 @@ export default function Dashboard() {
           <Paper>
             <StatusAlert />
             <Section title={t('Sales')} direction="row">
-              <CardButton
-                LinkComponent={Link}
-                href={route('sales.new_sale')}
-                variant="contained"
-                startIcon={<AddShoppingCartIcon />}
-              >
-                {t('New sale')}
-              </CardButton>
-              <CardButton
-                LinkComponent={Link}
-                href={route('sales')}
-                variant="contained"
-                startIcon={<ChecklistIcon />}
-              >
-                {t('Listado')}
-              </CardButton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('sales.new_sale')}
+                  variant="contained"
+                  startIcon={<AddShoppingCartIcon />}
+                >
+                  {t('New sale')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('sales')}
+                  variant="contained"
+                  startIcon={<ChecklistIcon />}
+                >
+                  {t('Listing')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('sale_type', { sale_type: 'cash' })}
+                  variant="contained"
+                  startIcon={<PaymentsIcon />}
+                >
+                  {t('Cash')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('sale_type', { sale_type: 'credit' })}
+                  variant="contained"
+                  startIcon={<CreditCardIcon />}
+                >
+                  {t('Credit')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('sale_type', { sale_type: 'layaway' })}
+                  variant="contained"
+                  startIcon={<BookmarksIcon />}
+                >
+                  {t('Layaway')}
+                </CardButton>
+              </Skeleton>
             </Section>
             <Section title={t('Products')} direction="row">
-              <CardButton
-                LinkComponent={Link}
-                href={route('inventory')}
-                variant="contained"
-                startIcon={<InventoryIcon />}
-              >
-                {t('Inventory')}
-              </CardButton>
-              <CardButton
-                LinkComponent={Link}
-                href={route('categories')}
-                variant="contained"
-                startIcon={<CategoryIcon />}
-              >
-                {t('Categories')}
-              </CardButton>
-              <CardButton
-                LinkComponent={Link}
-                href={route('brands')}
-                variant="contained"
-                startIcon={<LocalOfferIcon />}
-              >
-                {t('Brands')}
-              </CardButton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('inventory')}
+                  variant="contained"
+                  startIcon={<InventoryIcon />}
+                >
+                  {t('Inventory')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('categories')}
+                  variant="contained"
+                  startIcon={<CategoryIcon />}
+                >
+                  {t('Categories')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('brands')}
+                  variant="contained"
+                  startIcon={<LocalOfferIcon />}
+                >
+                  {t('Brands')}
+                </CardButton>
+              </Skeleton>
             </Section>
             <Section title={t('Clients & Payments')} direction="row">
-              <CardButton
-                LinkComponent={Link}
-                href={route('clients')}
-                variant="contained"
-                startIcon={<GroupIcon />}
-              >
-                {t('Clients')}
-              </CardButton>
-              <CardButton
-                LinkComponent={Link}
-                href={route('payment_methods')}
-                variant="contained"
-                startIcon={<CreditCardIcon />}
-              >
-                {t('Payments methods')}
-              </CardButton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('clients')}
+                  variant="contained"
+                  startIcon={<GroupIcon />}
+                >
+                  {t('Clients')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('payment_methods')}
+                  variant="contained"
+                  startIcon={<PointOfSaleIcon />}
+                >
+                  {t('Payment methods')}
+                </CardButton>
+              </Skeleton>
+            </Section>
+            <Section title={t('Reports')} direction="row">
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('charts')}
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                >
+                  {t('Charts')}
+                </CardButton>
+              </Skeleton>
             </Section>
           </Paper>
         </Content>
@@ -109,9 +164,9 @@ const Paper = styled(MUIPaper)({
   flexDirection: 'column',
 });
 
-const StyledCardButton = styled(Button)(({ theme }) => ({
+const CardButton = styled(Button)(({ theme }) => ({
   [theme.breakpoints.up('md')]: {
-    width: 155,
+    width: 150,
     height: 140,
     '& .MuiButton-startIcon': {
       margin: 0,
@@ -151,27 +206,6 @@ const StyledCardButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-function CardButton(props: ButtonProps) {
-  const sync = useAppSelector((state) => state.app.sync);
-
-  if (sync === 'ok') {
-    return <StyledCardButton {...props} />;
-  }
-
-  return (
-    <Skeleton variant="rounded">
-      <StyledCardButton {...props} />
-    </Skeleton>
-  );
-}
-
-const Skeleton = styled(MUISkeleton)(({ theme }) => ({
-  '&:not(:last-child)': {
-    marginRight: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-}));
-
 const PiwiContainer = styled.div(({ theme }) => ({
   display: 'grid',
   gridTemplateColumns: '1fr',
@@ -197,5 +231,12 @@ const Content = styled.div(({ theme }) => ({
     gridRowEnd: 'initial',
     gridColumnStart: 3,
     gridColumnEnd: 4,
+  },
+}));
+
+const Skeleton = styled(PiwiSkeleton)(({ theme }) => ({
+  '&:not(:last-child)': {
+    marginRight: theme.spacing(2),
+    marginBottom: theme.spacing(2),
   },
 }));

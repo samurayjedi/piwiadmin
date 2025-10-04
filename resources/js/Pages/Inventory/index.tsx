@@ -26,6 +26,7 @@ import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import { usePaginatorProps } from '@/hooks';
 import IconButtonDropdown from '@/src/lib/piwi/core/IconButtonDropdown';
 import Actions from '@/src/Components/Actions';
+import { useAppSelector } from '@/store/hooks';
 import { getMeasurementSuffix, useProducts } from './hooks';
 import ProductFormDialog, { ProductFormDialogProps } from './ProductFormDialog';
 import WholesaleInfoDialog from './WholesaleInfoDialog';
@@ -33,6 +34,7 @@ import WholesaleInfoDialog from './WholesaleInfoDialog';
 export default function Inventory() {
   const { t } = useTranslation();
   const products = useProducts();
+  const sync = useAppSelector((state) => state.app.sync);
   const { count, page, rows } = usePaginatorProps();
   const [open, setOpen] = useState(false);
   const [id, setId] = useState(0);
@@ -104,7 +106,10 @@ export default function Inventory() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <IconButtonDropdown icon={<MoreVertIcon />}>
+                      <IconButtonDropdown
+                        icon={<MoreVertIcon />}
+                        disabled={sync !== 'ok'}
+                      >
                         <Actions
                           onEdit={() => {
                             setId(p.id);
@@ -153,12 +158,12 @@ export default function Inventory() {
           right: 16,
           display: !open && !confirm ? 'flex' : 'none',
         }}
-        variant="extended"
+        disabled={sync !== 'ok'}
         color="success"
         onClick={() => setOpen(true)}
+        title={t('New product')}
       >
         <AddIcon />
-        {t('New product')}
       </Fab>
       <ProductFormDialog open={open} id={id} onClose={handleDialogClose} />
       <ConfirmDialog

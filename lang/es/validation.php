@@ -181,6 +181,8 @@ return [
         'due_date' => 'Fecha de vencimiento',
         'payment_methods' => 'Métodos de pago',
         'notes' => 'Notas',
+        'interval' => 'Intervalo',
+        'dolar' => 'Precio dolar',
     ],
     'values' => [
         'payment_type' => [

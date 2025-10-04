@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use Illuminate\Support\Facades\Auth;
+use App\Mon3trUtils;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Client;
@@ -90,7 +91,14 @@ class SaleBuilder {
         $this->payment = [
             'payment_type' => request()->get('payment_type'),
             'notification_interval' => request()->get('notification_interval'),
-            'due_date' => request()->get('due_date'),
+            'due_date' => (function() {
+                $due_date = request()->get('due_date', null);
+                if ($due_date !== null) {
+                    $due_date = Mon3trUtils::createCarbonDateFrom($due_date)->format('Y-m-d');
+                }
+
+                return $due_date;
+            })(),
         ];
         foreach ($this->paymentMethods as $payMethod) {
             $this->payment[$payMethod.'_note'] = request()->get($payMethod.'_note', null);

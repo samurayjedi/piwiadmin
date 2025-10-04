@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunk=self.webpackChunk||[]).push([[8750],{58750:(e,r,s)=>{s.r(r),s.d(r,{useCategories:()=>a}),s(16280);var o=s(65300);function a(){const{categories:e}=(0,o.S8)().props;if(!e)throw new Error("For some reason, categories prop is not available in this page.");return e}}}]);

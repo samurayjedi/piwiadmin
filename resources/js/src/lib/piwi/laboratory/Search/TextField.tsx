@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import _ from 'lodash';
 import styled from '@emotion/styled';
@@ -12,33 +12,22 @@ import {
 } from '@mui/material';
 import Popper from '../../core/Popper';
 
-export default function TextField({
-  mockSearch,
-  onClickSuggestion,
-  mockSearchDisabled,
-  ...props
-}: TextFieldProps & { mockSearchDisabled?: boolean }) {
-  if (mockSearchDisabled) {
-    return <StyledTextField {...props} />;
-  }
+export default React.forwardRef<MockSearchForwardedRef, TextFieldProps>(
+  ({ mockSearchDisabled, ...props }, forwardedRef) => {
+    if (mockSearchDisabled) {
+      return <StyledTextField {...props} />;
+    }
 
-  return (
-    <TextFieldMockSearch
-      {...props}
-      mockSearch={mockSearch}
-      onClickSuggestion={onClickSuggestion}
-    />
-  );
-}
+    return <TextFieldMockSearch {...props} ref={forwardedRef} />;
+  },
+);
 
-function TextFieldMockSearch({
-  mockSearch,
-  onClickSuggestion,
-  value,
-  onChange,
-  ...props
-}: TextFieldProps) {
+const TextFieldMockSearch = React.forwardRef<
+  MockSearchForwardedRef,
+  MockSearchTextFieldProps
+>(({ mockSearch, onClickSuggestion, value, onChange, ...props }, ref) => {
   const { t } = useTranslation();
+  const suggClicked = useRef(false);
   const [inputValue, setInputValue] = useState<string>(value);
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -50,11 +39,21 @@ function TextFieldMockSearch({
 
   // Debounce function to limit API calls
   useEffect(() => {
+    if (suggClicked.current === true) {
+      suggClicked.current = false;
+
+      return () => {};
+    }
+
     const timer = setTimeout(async () => {
       if (inputValue.length >= 3) {
         setIsLoading(true);
-        const results = await mockSearch(inputValue);
-        setSearchResults(results);
+        try {
+          const results = await mockSearch(inputValue);
+          setSearchResults(results);
+        } catch (err) {
+          setSearchResults([]);
+        }
         setIsLoading(false);
       } else {
         setSearchResults([]);
@@ -67,6 +66,10 @@ function TextFieldMockSearch({
   const open =
     Boolean(anchorEl) && inputValue.length >= 3 && searchResults.length > 0;
   const id = open ? 'search-popper' : undefined;
+
+  useImperativeHandle(ref, () => ({
+    emptyResults: () => setSearchResults([]),
+  }));
 
   return (
     <ClickAwayListener
@@ -102,11 +105,12 @@ function TextFieldMockSearch({
                 <ListItemButton
                   key={`pre_result_${_.snakeCase(item)}`}
                   onClick={() => {
+                    suggClicked.current = true;
                     setInputValue(item);
-                    setAnchorEl(null);
                     if (onClickSuggestion) {
                       onClickSuggestion(item);
                     }
+                    setAnchorEl(null);
                   }}
                 >
                   <ListItemText primary={item} />
@@ -117,15 +121,22 @@ function TextFieldMockSearch({
       </div>
     </ClickAwayListener>
   );
-}
+});
 
 type MUITextFieldProps = React.ComponentProps<typeof MUITextField>;
-type TextFieldProps = MUITextFieldProps & {
+type MockSearchTextFieldProps = MUITextFieldProps & {
   value: string;
   mockSearch: (s: string) => Promise<string[]>;
   onClickSuggestion?: (s: string) => void;
   onChange: MUITextFieldProps['onChange'];
 };
+type TextFieldProps = MockSearchTextFieldProps & {
+  mockSearchDisabled?: boolean;
+};
+
+export interface MockSearchForwardedRef {
+  emptyResults: () => void;
+}
 
 const StyledTextField = styled(MUITextField)({
   '& .MuiOutlinedInput-root': {

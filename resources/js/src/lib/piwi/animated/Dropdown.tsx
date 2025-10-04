@@ -19,7 +19,7 @@ export default function Dropdown({ on, ...rest }: DropdownProps) {
 const ArrowDropDownIconForwardedRef = React.forwardRef<
   SVGSVGElement,
   SvgIconProps
->((props, ref) => <ArrowDropDownIcon ref={ref} />);
+>((props, ref) => <ArrowDropDownIcon {...props} ref={ref} />);
 
 const AnimatedArrowDropDownIcon = animated(ArrowDropDownIconForwardedRef);
 

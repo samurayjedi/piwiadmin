@@ -6,7 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use  App\Models\Sales\Sale;
+use  App\Models\Sale;
 
 class PaymentReminder extends Notification
 {

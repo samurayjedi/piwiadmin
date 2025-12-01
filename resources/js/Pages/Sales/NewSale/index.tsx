@@ -24,7 +24,7 @@ import SearchProductDialog from './SearchProductDialog';
 import { CartContext } from './hooks';
 import { getPrice } from '../hooks';
 import PaymentDialog from './PaymentDialog';
-import { Cart } from '../types';
+import { type FormCart } from './types';
 
 export default function NewSale() {
   const { t } = useTranslation();
@@ -33,7 +33,7 @@ export default function NewSale() {
   const [dialOpen, setDialOpen] = useState(false);
   const [searchProductOpen, setSearchProductOpen] = useState(true);
   const [onCashOpen, setOnCashOpen] = useState(false);
-  const [cart, setCart] = useState<Cart[]>([]);
+  const [cart, setCart] = useState<FormCart[]>([]);
   const total = useMemo(() => {
     let t2 = 0;
     cart.forEach((c) => {
@@ -56,7 +56,7 @@ export default function NewSale() {
     handleDialOpen();
   }, []);
 
-  const handleDialogAddAction = useCallback((newCart: Cart[]) => {
+  const handleDialogAddAction = useCallback((newCart: FormCart[]) => {
     setCart((prevCart) => {
       const mergedCart = [...prevCart];
       const hasId = (id: number) => {

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Notifications\PaymentReminder;
 use App\Models\User;
-use App\Models\Sales\Sale;
+use App\Models\Sale;
 
 class SendPaymentReminders extends Command
 {
@@ -31,44 +31,39 @@ class SendPaymentReminders extends Command
     public function handle() {
         $interval = $this->argument('interval');
         $users = User::all();
-        $sales = DB::table('sales')
-            ->where('status', 'pending')
+        $sales = Sale::where('status', 'pending')
             ->where(function($query) use($interval) {
-                $now = Carbon::now();
-
                 switch ($interval) {
                     case 'daily':
-                        $query->where('notification_interval', 'daily')->whereDate('created_at', '<=', $now->subDay());
+                        $query->where('notification_interval', 'daily')->whereDate('created_at', '<=', Carbon::now()->subDay());
                         break;
                     case 'weekly':
-                        $query->where('notification_interval', 'weekly')->whereDate('created_at', '<=', $now->subWeek());
+                        $query->where('notification_interval', 'weekly')->whereDate('created_at', '<=', Carbon::now()->subWeek());
                         break;
                     case 'fortnightly':
-                        $query->where('notification_interval', 'fortnightly')->whereDate('created_at', '<=', $now->subWeeks(2));
+                        $query->where('notification_interval', 'fortnightly')->whereDate('created_at', '<=', Carbon::now()->subWeeks(2));
                         break;
                     case 'monthly':
-                        $query->where('notification_interval', 'monthly')->whereDate('created_at', '<=', $now->subMonth());
+                        $query->where('notification_interval', 'monthly')->whereDate('created_at', '<=', Carbon::now()->subMonth());
                         break;
                     case 'bimonthly':
-                        $query->where('notification_interval', 'bimonthly')->whereDate('created_at', '<=', $now->subMonths(2));
+                        $query->where('notification_interval', 'bimonthly')->whereDate('created_at', '<=', Carbon::now()->subMonths(2));
                         break;
                     case 'quarterly':
-                        $query->where('notification_interval', 'quarterly')->whereDate('created_at', '<=', $now->subMonths(3));
+                        $query->where('notification_interval', 'quarterly')->whereDate('created_at', '<=', Carbon::now()->subMonths(3));
                         break;
                     case 'biannual':
-                        $query->where('notification_interval', 'biannual')->whereDate('created_at', '<=', $now->subMonths(6));
+                        $query->where('notification_interval', 'biannual')->whereDate('created_at', '<=', Carbon::now()->subMonths(6));
                         break;
                     case 'yearly':
-                        $query->where('notification_interval', 'yearly')->whereDate('created_at', '<=', $now->subYear());
+                        $query->where('notification_interval', 'yearly')->whereDate('created_at', '<=', Carbon::now()->subYear());
                         break;
                     default:
                         throw new \Exception('Invalid interval: ' . $interval);
                 }
             })
             ->get();
-        foreach ($sales as $rawSale) {
-            $sale = new Sale;
-            $sale->exchangeArray($rawSale);
+        foreach ($sales as $sale) {
             foreach ($users as $user) {
                 $user->notify(new PaymentReminder($sale));
             }

@@ -50,6 +50,6 @@ class AppServiceProvider extends ServiceProvider
         Validator::replacer('required_when', function(...$args) {
             return call_user_func([RequiredWhenValidator::class, 'message'], ...$args);
         }); 
-        \URL::forceScheme('https');       
+        // \URL::forceScheme('https');       
     }
 }

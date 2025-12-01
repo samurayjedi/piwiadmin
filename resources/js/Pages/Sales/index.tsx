@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Link, router } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import AppLayout from '@/src/Layouts/AppLayout';
@@ -12,27 +12,26 @@ import {
   TableCell,
   TableBody,
   TableFooter,
-  TablePagination,
   Fab,
   IconButton,
 } from '@mui/material';
 import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
-import { usePaginatorProps } from '@/hooks';
+import CollapsibleRows from '@/src/lib/piwi/animated/CollapsibleRows';
 import { useSales } from './hooks';
-import ClientInfoDialog from './ClientInfoDialog';
 import ItemsDialog from './ItemsDialog';
-import SaleTableRow from './SaleTableRow';
 import PayDialog from './PayDialog';
 import PaymentsMadeDialog from './PaymentsMadeDialog';
 import Filters from './Filters';
+import TableCellsSale from './TableCellsSale';
+import TableCellsSaleDetails from './TableCellsSaleDetails';
+import Breadcrumbs from './Breadcrumbs';
+import Pagination from './Pagination';
 
 export default function Sales() {
   const { t } = useTranslation();
-  const { page, count, rows } = usePaginatorProps();
   const sales = useSales();
-  const [client, setClient] = useState<Client | undefined>(undefined);
   const [items, setItems] = useState<
     (typeof sales)[number]['sale_items'] | undefined
   >(undefined);
@@ -40,17 +39,13 @@ export default function Sales() {
   const [s2, setS2] = useState<(typeof sales)[number] | undefined>(undefined);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const handleClientDialogClose = useCallback(() => {
-    setClient(undefined);
-  }, []);
-
   const handleItemsDialogClose = useCallback(() => {
     setItems(undefined);
   }, []);
 
   return (
     <>
-      <AppLayout>
+      <AppLayout breadcrumbs={<Breadcrumbs />}>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -67,13 +62,29 @@ export default function Sales() {
             </TableHead>
             <TableBody>
               {sales.length > 0 ? (
-                sales.map((sale) => (
-                  <SaleTableRow
-                    {...sale}
-                    onPay={() => setS(sale)}
-                    onClientClick={() => setClient(sale.client)}
-                  />
-                ))
+                <CollapsibleRows colSpan={8}>
+                  {(activeIndex, setActiveIndex) =>
+                    sales.map((sale, index) => [
+                      <TableCellsSale
+                        {...sale}
+                        active={activeIndex === index}
+                        onRequestCollapse={() =>
+                          setActiveIndex((prev) => {
+                            if (prev === index) {
+                              return -1;
+                            }
+
+                            return index;
+                          })
+                        }
+                      />,
+                      <TableCellsSaleDetails
+                        {...sale}
+                        onPay={(cSale) => setS(cSale)}
+                      />,
+                    ])
+                  }
+                </CollapsibleRows>
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
@@ -98,24 +109,7 @@ export default function Sales() {
                     />
                   </FiltersContainer>
                 </TableCell>
-                <TablePagination
-                  rowsPerPageOptions={[5, 10, 25]} // , { label: t('All'), value: -1 }
-                  colSpan={2}
-                  rowsPerPage={rows}
-                  page={page}
-                  count={count}
-                  onRowsPerPageChange={(ev) =>
-                    router.get(
-                      route('sales', {
-                        page,
-                        rows: parseInt(ev.target.value, 10),
-                      }),
-                    )
-                  }
-                  onPageChange={(ev, newPage) =>
-                    router.get(route('sales', { page: newPage, rows }))
-                  }
-                />
+                <Pagination colSpan={2} />
               </TableRow>
             </TableFooter>
           </Table>
@@ -131,7 +125,6 @@ export default function Sales() {
         <ShoppingCartCheckoutIcon />
         {t('New sale')}
       </Fab>
-      <ClientInfoDialog client={client} onClose={handleClientDialogClose} />
       <ItemsDialog onClose={handleItemsDialogClose} sale_items={items} />
       <PayDialog sale={s} onClose={() => setS(undefined)} />
       <PaymentsMadeDialog sale={s2} onClose={() => setS2(undefined)} />

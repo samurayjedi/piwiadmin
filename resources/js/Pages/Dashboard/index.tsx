@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { route } from 'ziggy-js';
 import { Link } from '@inertiajs/react';
 import { Paper as MUIPaper, Button } from '@mui/material';
-import {
-  Inventory as InventoryIcon,
-  Category as CategoryIcon,
-  LocalOffer as LocalOfferIcon,
-} from '@mui/icons-material';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import CategoryIcon from '@mui/icons-material/Category';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AllInboxIcon from '@mui/icons-material/AllInbox';
 import AppLayout from '@/src/Layouts/AppLayout';
 import Section from '@/src/Components/Section';
 import StatusAlert from '@/src/Components/StatusAlert';
@@ -19,6 +18,7 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PiwiSkeleton from '@/src/Components/Skeleton';
 import Sidebar from './Sidebar';
 
@@ -115,6 +115,26 @@ export default function Dashboard() {
                   startIcon={<LocalOfferIcon />}
                 >
                   {t('Brands')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('stock')}
+                  variant="contained"
+                  startIcon={<AllInboxIcon />}
+                >
+                  {t('Stock')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('inventory.stock.payable_accounts')}
+                  variant="contained"
+                  startIcon={<AccountBalanceWalletIcon />}
+                >
+                  {t('Payable accounts')}
                 </CardButton>
               </Skeleton>
             </Section>

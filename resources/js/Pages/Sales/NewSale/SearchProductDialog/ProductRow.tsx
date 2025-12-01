@@ -13,6 +13,7 @@ import {
   measurementNumericFormatProps,
   getMeasurementSuffix,
 } from '@/Pages/Inventory/hooks';
+import { type Product } from '@/Pages/Inventory/types';
 import HiddenFields from '../HiddenFields';
 import { getPrice } from '../../hooks';
 
@@ -55,7 +56,11 @@ export default function ProductRow({
         {getMeasurementSuffix(p.measurement, p.stock)}
       </TableCell>
       <TableCell>
-        <HiddenFields {...p} />
+        <HiddenFields
+          {...p}
+          category={p.category.category_slug}
+          brand={p.brand.brand_slug}
+        />
         <input type="hidden" name="qty[]" value={qty} />
         <Spinner
           inputRef={ref}

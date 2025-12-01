@@ -140,13 +140,13 @@ return [
     'starts_with' => 'El campo :attribute debe comenzar con alguno de los siguientes: :values.',
     'string' => 'El campo :attribute debe ser una cadena de texto.',
     'timezone' => 'El campo :attribute debe ser una zona horaria válida.',
-    'unique' => 'El :attribute ya ha sido tomado.',
+    'unique' => ':attribute ya existe.',
     'uploaded' => 'El :attribute no pudo ser cargado.',
     'uppercase' => 'El campo :attribute debe estar en mayúsculas.',
     'url' => 'El campo :attribute debe ser una URL válida.',
     'ulid' => 'El campo :attribute debe ser un ULID válido.',
     'uuid' => 'El campo :attribute debe ser un UUID válido.',
-    'required_when' => 'El campo :attribute es obligatorio cuando el campo :other es :value.',
+    'required_when' => 'El campo :attribute es obligatorio cuando :others.',
     'required_if_in' => 'El campo :attribute es obligatorio cuando :array contiene ":items".',
     'custom' => [
         'attribute-name' => [
@@ -183,6 +183,19 @@ return [
         'notes' => 'Notas',
         'interval' => 'Intervalo',
         'dolar' => 'Precio dolar',
+        'provider' => 'Proveedor',
+        'products_entries.*.unit_price' => 'Precio unidad',
+        'products_entries.*.adjustment' => 'Ajuste',
+        'update_prices' => 'Actualizar precios',
+        'initial' => 'Inicial',
+        'initial_payment' => 'Abonar',
+        'adjustment_type' => 'Tipo de ajuste',
+        'adjustment' => 'Ajuste',
+        'reason' => 'Razón',
+        'other_reason' => 'Rason personalizada',
+        'total_amount' => 'Monto total',
+        'payment' => 'Abonar',
+        'amount' => 'Monto',
     ],
     'values' => [
         'payment_type' => [
@@ -194,5 +207,11 @@ return [
             '1' => 'Verdadero',
             '0' => 'Falso',
         ],
+        'reason' => [
+            'Other' => 'Otro',
+        ],
+        'update_prices' => [
+            '1' => 'Verdadero',
+        ]
     ],
 ];

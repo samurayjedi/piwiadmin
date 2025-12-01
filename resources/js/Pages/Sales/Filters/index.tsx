@@ -16,7 +16,7 @@ import FiltersForm from './FiltersForm';
 export default function Filters({ open, onClose }: FiltersProps) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   if (!isMobile) {
     return <SlideableFilters open={open} />;

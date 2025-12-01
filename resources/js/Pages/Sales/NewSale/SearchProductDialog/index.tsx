@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import {
@@ -18,11 +18,15 @@ import {
 import { useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import Search from '@/src/lib/piwi/laboratory/Search';
+import SearchProducts, {
+  SearchProductsFieldRef,
+} from '@/src/Components/SearchProducts';
 import { useAppSelector } from '@/store/hooks';
-import { useRequestFocus, useHandler } from './hooks';
+import Gap from '@/src/lib/piwi/common/Gap';
+import { type Product } from '@/Pages/Inventory/types';
+import { useHandler } from './hooks';
 import ProductRow from './ProductRow';
-import { Cart } from '../../types';
+import { type FormCart } from '../types';
 
 export default function SearchProductDialog({
   open,
@@ -33,9 +37,26 @@ export default function SearchProductDialog({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const sync = useAppSelector((state) => state.app.sync);
-  const [inputRef, retrieveRef] = useRequestFocus(open, sync);
-  const { products, formRef, mockSearch, searchSubmit, handleAddProducts } =
-    useHandler(inputRef, addAction, onClose);
+  const [products, setP] = useState<Product[]>([]);
+  const { formRef, handleAddProducts } = useHandler(addAction, setP);
+  const ref = useRef<SearchProductsFieldRef>(null);
+
+  const add = useCallback(() => {
+    handleAddProducts();
+    ref.current?.reset();
+    setTimeout(() => {
+      if (ref.current) {
+        ref.current.inputRef()?.focus();
+      }
+    }, 100);
+  }, [handleAddProducts]);
+
+  const addAndContinue = useCallback(() => {
+    handleAddProducts();
+    if (onClose) {
+      onClose();
+    }
+  }, [handleAddProducts, onClose]);
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -57,19 +78,7 @@ export default function SearchProductDialog({
               <CloseIcon />
             </IconButton>
           </Header>
-          <Search
-            inputRef={retrieveRef}
-            name="field"
-            label={t('Search')}
-            variant="filled"
-            items={useMemo(
-              () => ({ name: t('Name'), barcode: t('Barcode') }),
-              [t],
-            )}
-            onSubmit={searchSubmit}
-            mockSearch={mockSearch}
-            disabled={sync !== 'ok'}
-          />
+          <SearchProducts ref={ref} onSubmit={setP} />
           <form ref={formRef}>
             {products.length > 0 && (
               <TableContainer>
@@ -101,15 +110,26 @@ export default function SearchProductDialog({
               </TableContainer>
             )}
             <Gap />
-            <Button
-              sx={{ alignSelf: 'flex-end' }}
-              variant="contained"
-              startIcon={<AddShoppingCartIcon />}
-              onClick={handleAddProducts}
-              disabled={!(products.length > 0)}
-            >
-              {t('Add')}
-            </Button>
+            <Actions>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={add}
+                disabled={!(products.length > 0)}
+                sx={{ mr: `4px` }}
+              >
+                {t('Add')}
+              </Button>
+              <Button
+                color="success"
+                variant="contained"
+                startIcon={<AddShoppingCartIcon />}
+                onClick={addAndContinue}
+                disabled={!(products.length > 0)}
+              >
+                {t('Add and continue')}
+              </Button>
+            </Actions>
           </form>
         </Wrapper>
       </DialogContent>
@@ -120,7 +140,7 @@ export default function SearchProductDialog({
 export interface SearchProductDialogProps {
   open: boolean;
   onClose?: () => void;
-  addAction: (p: Cart[]) => void;
+  addAction: (p: FormCart[]) => void;
 }
 
 const Dialog = styled(MUIDialog)({
@@ -150,7 +170,9 @@ const Glue = styled.span({
   display: 'block',
 });
 
-const Gap = styled.div(({ theme }) => ({
-  display: 'block',
-  padding: theme.spacing(2),
-}));
+const Actions = styled.div({
+  display: 'flex',
+  flexDirection: 'row',
+  flex: 1,
+  justifyContent: 'flex-end',
+});

@@ -93,5 +93,9 @@ export function usePaginatorProps() {
     count,
     page,
     rows,
+  } as {
+    page: number;
+    count: number;
+    rows: number;
   };
 }

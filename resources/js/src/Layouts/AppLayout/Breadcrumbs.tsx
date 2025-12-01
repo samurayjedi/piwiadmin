@@ -68,7 +68,7 @@ export default function Breadcrumbs() {
   );
 }
 
-function LastItem({ children }: { children: React.ReactNode }) {
+export function LastItem({ children }: { children: React.ReactNode }) {
   const async = useAppSelector((state) => state.app.sync);
 
   if (async === 'ok') {
@@ -78,7 +78,7 @@ function LastItem({ children }: { children: React.ReactNode }) {
   return <Skeleton variant="text">{children}</Skeleton>;
 }
 
-function Link({ children, ...props }: InertiaLinkProps) {
+export function Link({ children, ...props }: InertiaLinkProps) {
   const async = useAppSelector((state) => state.app.sync);
 
   if (async === 'ok') {

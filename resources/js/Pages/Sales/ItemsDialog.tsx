@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import { type SalesPageProps } from './types';
 import { getMeasurementSuffix } from '../Inventory/hooks';
 
 export default function ItemsDialog({
@@ -76,15 +77,5 @@ export default function ItemsDialog({
 
 export interface ConfirmDialogProps {
   onClose?: () => void;
-  sale_items?: {
-    id: number;
-    sale_id: number;
-    product_id: number;
-    quantity: number;
-    unit_price: number;
-    discount_id: number;
-    created_at: string;
-    updated_at: string;
-    product: Product;
-  }[];
+  sale_items?: SalesPageProps['sale_items'][number][];
 }

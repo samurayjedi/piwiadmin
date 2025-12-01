@@ -4,7 +4,7 @@ import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { AllSeriesType, AxisConfig, HighlightScope } from '@mui/x-charts';
 import { useAppPage } from '@/hooks';
-import { sell_types } from '@/consts';
+import { measurements, sell_types } from '@/consts';
 
 export function useDataset() {
   const {
@@ -14,7 +14,10 @@ export function useDataset() {
     throw new Error('Dataset are no available in this page!');
   }
 
-  return { dataset, dataset_labels };
+  return { dataset, dataset_labels } as {
+    dataset: Record<string, string | number>[];
+    dataset_labels: Record<string, string>;
+  };
 }
 
 export function useChartTunes() {
@@ -44,6 +47,17 @@ export function useChartTunes() {
     sales_date,
     sales_chart_type,
     sales_layout,
+  } as {
+    sales_dataset:
+      | 'sales_by_type'
+      | 'sales_by_category'
+      | 'sales_by_brand'
+      | 'sales_by_client'
+      | 'sales_by_user';
+    sales_timeframe: 'sales_by_month' | 'sales_by_day';
+    sales_date: string;
+    sales_chart_type?: 'bar' | 'line' | 'scatter' | 'pie';
+    sales_layout: 'vertical' | 'horizontal';
   };
 }
 
@@ -55,7 +69,15 @@ export function useBestSelling() {
     throw new Error('Best selling products aren\t available in this page!');
   }
 
-  return bestSelling;
+  return bestSelling as {
+    id: number;
+    name: string;
+    measurement: (typeof measurements)[number];
+    stock: number;
+    total_units_sold: number;
+    total_revenue: number;
+    sold_percentage: number;
+  }[];
 }
 
 export function useChartHeight() {

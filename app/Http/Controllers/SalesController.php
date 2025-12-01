@@ -17,47 +17,82 @@ use App\Models\Product;
 use App\Models\Client;
 use App\Models\SaleBuilder;
 use App\DolarScrapper;
+use App\Models\StockLog;
+use App\Http\Controllers\CurrenciesController;
+use App\Mon3trUtils;
 
 class SalesController extends Controller {
-    public function main(string $sale_type = 'all') {
+    public function sales_by_type(string $sale_type) {
+        return $this->main(-1, $sale_type);
+    }
+
+    public function sale_by_client(int $client_id) {
+        return $this->main($client_id, 'all');
+    }
+
+    public function main(int $client_id = -1, $sale_type = 'all') {
+        $client_name = null;
+        if ($client_id > 0) {
+            $client = Client::withTrashed()->findOrFail($client_id);
+            $client_name = $client->name;
+        } 
         request()->validate([
             'date_init' => 'nullable|date',
             'date_end' => 'nullable|date|after:date_init',
         ]);
+        /** filters */
         $date_init = request()->get('date_init', 'none');
         $date_end = request()->get('date_end', 'none');
+        $sale_id = request()->get('sale_id', -1);
+        /** payment methods */
+        $paymentMethods = PaymentMethod::all();
+        /** sales */
+        $sales = Sale::orderBy('id', 'DESC')
+            ->with([
+                'client' => fn ($query) => $query->withTrashed(),
+                'user',
+                'sale_items',
+                'sale_items.product' => fn ($query) => $query->withTrashed(),
+                'sale_items.product.brand' => fn($query) => $query->withTrashed(),
+                'sale_items.product.category' => fn($query) => $query->withTrashed(),
+                'payments',
+                'payments.payment_method' => fn ($query) => $query->withTrashed(),
+            ])
+            ->when($sale_id > 0, function ($query) use($sale_id) {
+                $query->where('id', $sale_id);
+            })
+            ->when($client_id > 0, function ($query) use($client_id) {
+                $query->where('client_id', $client_id);
+            })
+            ->when($sale_type !== 'all', function($query) use($sale_type) {
+                $query->where('payment_type', $sale_type);
+            })
+            ->when($date_init !== 'none', function($query) use($date_init, $date_end) {
+                $date = Mon3trUtils::createCarbonDateFrom($date_init);
+                if ($date_end !== 'none') {
+                    $query->whereDate('created_at', '>=', $date);
+                } else {
+                    $query->whereDate('created_at', $date);
+                }
+            })
+            ->when($date_end !== 'none', function ($query) use($date_end) {
+                $date = Mon3trUtils::createCarbonDateFrom($date_end);
+                $query->whereDate('created_at', '<=', $date);
+            });
+        /** Pagination */
         $page = intval(request()->get('page', 0));
         $rows = intval(request()->get('rows', 5));
-        $pager = Pagination::normalize('sales', $page, $rows, Sale::count());
+        $pager = Pagination::normalize('sales', $page, $rows, $sales->count());
         if (!is_array($pager)) {
             // is a redirect
             return $pager;
         }
         [$limit, $offset, $count] = $pager;
-        /** payment methods */
-        $paymentMethods = PaymentMethod::all();
-        /** sales */
-        $salesQuery = Sale::orderBy('id', 'DESC')
-            ->with([
-                'client',
-                'user',
-                'sale_items',
-                'sale_items.product',
-                'sale_items.product.brand',
-                'sale_items.product.category',
-                'payments',
-                'payments.payment_method'
-            ]);
-        if ($sale_type !== 'all') {
-            $salesQuery->where('payment_type', $sale_type);
-        }
-        if ($date_init !== 'none') {
-            $salesQuery->whereDate('created_at', '>=', $date_init);
-        }
-        if ($date_end !== 'none') {
-            $salesQuery->whereDate('created_at', '<=', $date_end);
-        }
-        $sales = $salesQuery->skip($offset)->take($limit)->get();
+        /** records */
+        $sales = $sales
+            ->skip($offset)
+            ->take($limit)
+            ->get();
 
         return Inertia::render('Sales', [
             'sales' => $sales->toArray(),
@@ -68,47 +103,16 @@ class SalesController extends Controller {
             'sale_type' => $sale_type,
             'date_init' => $date_init,
             'date_end' => $date_end,
+            'client_id' => $client_id,
+            'client_name' => $client_name,
         ]);
     }
 
-    public function new_sale() {
-        $paymentMethods = PaymentMethod::all();
-
-        return Inertia::render('Sales/NewSale', [
-            'payment_methods' => $paymentMethods->toArray(),
-        ]);
-    }
-
-    public function blackhole(Request $request) {
-        $action = $request->get('action', null);
-        switch ($action) {
-            case 'search_product':
-                $validations = [
-                    'barcode' => [ 'barcode' => 'required|numeric' ],
-                    'name' => [ 'name' => 'required|string|max:255' ],
-                ];
-                $field = $request->get('field', '');
-                if (!array_key_exists($field, $validations)) {
-                    throw new \Exception('Invalid search field!!!!!');
-                }
-
-                $request->validate($validations[$field]);
-                $value = $request->get($field);
-                $products = Product::where($field, 'LIKE', '%'.$value.'%')
-                    ->with(['brand', 'category'])
-                    ->get();
-                if (!$products->count()) {
-                    return back()->withErrors([
-                        $field => __('No products found.'),
-                    ]);
-                }
-                /** payment methods */
-                $paymentMethods = PaymentMethod::all();
-                    
-                return Inertia::render('Sales/NewSale', [
-                    'products' => $products->toArray(),
-                    'payment_methods' => $paymentMethods->toArray(),
-                ]);
+    public function new_sale(Request $request) {
+        $attrs = [
+            'payment_methods' => PaymentMethod::all(),
+        ];
+        switch (request()->get('action', null)) {
             case 'search_client':
                 $request->validate([
                     'identification' => 'required|string|min:8',
@@ -126,16 +130,11 @@ class SalesController extends Controller {
                         
                     ]);
                 }
-                /** payment methods */
-                $paymentMethods = PaymentMethod::all();
-
-                return Inertia::render('Sales/NewSale', [
-                    'client' => $client->toArray(),
-                    'payment_methods' => $paymentMethods->toArray(),
-                ]);
+                $attrs['client'] = $client->toArray();
+                break;
         }
 
-        return back();
+        return Inertia::render('Sales/NewSale', $attrs);
     }
 
     public function register_new_sale() {
@@ -152,11 +151,33 @@ class SalesController extends Controller {
             [$sale, $saleItems, $payments] = $result;
             DB::beginTransaction();
             $sale->save();
+            $sale->load('client'); // load client relationship
             // the sale product items
+            $logProducts = []; $logSaleItems = [];
             foreach ($saleItems as $saleItem) {
                 $saleItem->sale_id = $sale->id;
                 $saleItem->save();
+                // 
+                [$remaining_stock, $product] = Product::remaining_stock($saleItem->product_id);
+                $logProducts[$product->id] = [
+                    'adjustment' => $saleItem->quantity,
+                    'from_stock' => $remaining_stock + $saleItem->quantity,
+                    'to_stock' => $remaining_stock,
+                ];
+                $logSaleItems = [$saleItem->id];
             }
+            // register in stock log a output
+            $log = StockLog::create([
+                'description' => __('Sale to :client, :items item(s).', [
+                    'client' => $sale->client->name,
+                    'items' => count($saleItems),
+                ]),
+                'adjustment_type' => 'subtraction',
+                'reason' => __('Sold'),
+                'note' => __('Sold in receipt #:id.', [ 'id' => $sale->id ]),
+            ]);
+            $log->products()->attach($logProducts);
+            $log->sale_items()->attach($logSaleItems);
             // register the payments
             foreach ($payments as $pay) {
                 $pay->sale_id = $sale->id;
@@ -220,14 +241,16 @@ class SalesController extends Controller {
     public function print_invoice(int $id) {
         $sale = Sale::where('id', '=', $id)
             ->with([
-                'client',
+                'client' => fn ($query) => $query->withTrashed(),
                 'user',
                 'sale_items',
-                'sale_items.product',
-                'sale_items.product.brand',
-                'sale_items.product.category',
+                'sale_items.product' => function ($query) {
+                    $query->withTrashed();
+                },
+                'sale_items.product.brand' => fn($query) => $query->withTrashed(),
+                'sale_items.product.category' => fn($query) => $query->withTrashed(),
                 'payments',
-                'payments.payment_method'
+                'payments.payment_method' => fn ($query) => $query->withTrashed(),
             ])
             ->firstOrFail();
         /** print invoice */
@@ -236,7 +259,7 @@ class SalesController extends Controller {
         $pdf->setPaper([0, 0, 226.77, 800], 'portrait'); 
         $pdf->load_html(view('sales.invoice', [
             'sale' => $sale->toArray(),
-            'dolar' => DolarScrapper::getBsPrice(),
+            'dolar' => CurrenciesController::scrap_bcv(),
         ])->render());
         $pdf->render();
         $pdfPath = public_path('/storage/tmp')."/$pdfUniqName";

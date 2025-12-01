@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 class CurrenciesController extends Controller {
-    private function scrap_bcv() {
+    public static function scrap_bcv() {
         /** init dolar price scrapping */
         $url = 'https://www.bcv.org.ve';
         $context = stream_context_create([
@@ -50,7 +50,7 @@ class CurrenciesController extends Controller {
         }
         session()->forget(['dolar', 'dolar_expires']);
 
-        return response()->json(['dolar' => $this->scrap_bcv()]);
+        return response()->json(['dolar' => self::scrap_bcv()]);
     }
 
     public function set_dolar_price_manually() {

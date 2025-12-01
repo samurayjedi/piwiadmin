@@ -1,4 +1,5 @@
 import { useAppPage } from '@/hooks';
+import { type PaymentMethod } from './types';
 
 export function usePaymentMethods() {
   const { payment_methods } = useAppPage().props;
@@ -8,5 +9,5 @@ export function usePaymentMethods() {
     );
   }
 
-  return payment_methods;
+  return payment_methods as PaymentMethod[];
 }

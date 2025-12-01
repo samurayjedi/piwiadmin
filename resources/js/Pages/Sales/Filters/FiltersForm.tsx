@@ -15,7 +15,7 @@ import { useSaleFilters } from '../hooks';
 export default function FiltersForm({ fullWidth = false }: FiltersFormProps) {
   const { t } = useTranslation();
   const [fuckErrors, onChangeDecorator] = useErrors();
-  const { sale_type, date_init, date_end } = useSaleFilters();
+  const { sale_type, date_init, date_end, client_id } = useSaleFilters();
 
   return (
     <Form
@@ -27,8 +27,12 @@ export default function FiltersForm({ fullWidth = false }: FiltersFormProps) {
       subscription={{ submitting: true }}
       onSubmit={(data) =>
         new Promise<void>((resolve) => {
+          const url =
+            client_id !== -1
+              ? route('sales.client.sale_type', { ...data, client_id })
+              : route('sale_type', data);
           router.get(
-            route('sale_type', data),
+            url,
             {},
             {
               onFinish: () => resolve(),

@@ -5,18 +5,23 @@ import DolarSync from '@/src/DolarSync';
 import PrimaryAppBar from './PrimaryAppBar';
 import Breadcrumbs from './Breadcrumbs';
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
   return (
     <DolarSync>
       <PrimaryAppBar />
       <Container maxWidth="lg" sx={{ paddingBottom: '90px' }}>
         <BreadcrumbsContainer>
-          <Breadcrumbs />
+          {breadcrumbs ?? <Breadcrumbs />}
         </BreadcrumbsContainer>
         {children}
       </Container>
     </DolarSync>
   );
+}
+
+export interface AppLayoutProps {
+  children: React.ReactNode;
+  breadcrumbs?: React.ReactNode;
 }
 
 const BreadcrumbsContainer = styled.div(({ theme }) => ({

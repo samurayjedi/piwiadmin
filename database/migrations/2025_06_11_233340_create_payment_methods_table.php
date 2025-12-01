@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('payment_slug')->unique();
             $table->string('payment_currency');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -1,3 +1,5 @@
+import { type Product } from '@/Pages/Inventory/types';
+
 export default function HiddenFields({
   id,
   barcode,
@@ -11,7 +13,7 @@ export default function HiddenFields({
   wholesale,
   wholesale_profit,
   wholesale_qty,
-}: Product) {
+}: HiddenFieldsProps) {
   return (
     <>
       <input type="hidden" name="id[]" value={id} />
@@ -21,8 +23,8 @@ export default function HiddenFields({
       <input type="hidden" name="profit[]" value={profit} />
       <input type="hidden" name="measurement[]" value={measurement} />
       <input type="hidden" name="stock[]" value={stock} />
-      <input type="hidden" name="brand[]" value={brand.brand_slug} />
-      <input type="hidden" name="category[]" value={category.category_slug} />
+      <input type="hidden" name="brand[]" value={brand} />
+      <input type="hidden" name="category[]" value={category} />
       <input type="hidden" name="wholesale[]" value={wholesale ? 1 : 0} />
       <input
         type="hidden"
@@ -32,4 +34,9 @@ export default function HiddenFields({
       <input type="hidden" name="wholesale_qty[]" value={wholesale_qty ?? ''} />
     </>
   );
+}
+
+export interface HiddenFieldsProps extends Omit<Product, 'category' | 'brand'> {
+  category: string;
+  brand: string;
 }

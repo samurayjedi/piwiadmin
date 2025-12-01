@@ -14,7 +14,7 @@ export default function Actions({ onEdit, onDelete }: ActionsProps) {
   const closeDropdown = useDropdownContext();
 
   return (
-    <List>
+    <List dense>
       <ListItemButton
         onClick={() => {
           onEdit();

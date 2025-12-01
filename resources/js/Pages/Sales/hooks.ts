@@ -1,6 +1,6 @@
 import { useAppPage } from '@/hooks';
 import { usePaymentMethods } from '@/Pages/PaymentMethods/hooks';
-import { Cart } from './types';
+import { type Cart, type SalesPageProps, SellType } from './types';
 
 export function useSales() {
   const { sales } = useAppPage().props;
@@ -8,10 +8,10 @@ export function useSales() {
     throw new Error('The sales props are not available in this page.');
   }
 
-  return sales;
+  return sales as SalesPageProps[];
 }
 
-export function getPrice(item: Cart) {
+export function getPrice(item: getPriceParam) {
   const salePrice = (item.price * item.profit) / 100;
   const wholesaleSalePrice = (item.price * item.wholesale_profit) / 100;
   const isWholesaleSale = item.wholesale && item.qty >= item.wholesale_qty;
@@ -20,6 +20,15 @@ export function getPrice(item: Cart) {
     ? item.price + wholesaleSalePrice
     : item.price + salePrice;
 }
+
+type getPriceParam = {
+  price: Cart['price'];
+  profit: Cart['profit'];
+  wholesale_profit: Cart['wholesale_profit'];
+  wholesale: Cart['wholesale'];
+  qty: Cart['qty'];
+  wholesale_qty: Cart['wholesale_qty'];
+};
 
 export function usePaymentMethodsItems() {
   const payment_methods = usePaymentMethods();
@@ -34,12 +43,18 @@ export function usePaymentMethodsItems() {
 
 export function useSaleFilters() {
   const {
-    props: { sale_type, date_init, date_end },
+    props: { sale_type, date_init, date_end, client_id, client_name },
   } = useAppPage();
 
-  if (!sale_type || !date_init || !date_end) {
+  if (!sale_type || !date_init || !date_end || !client_id) {
     throw new Error('For some reason, filters parameters aren\t available.');
   }
 
-  return { sale_type, date_init, date_end } as const;
+  return { sale_type, date_init, date_end, client_id, client_name } as {
+    sale_type: SellType | 'all';
+    date_init: string;
+    date_end: string;
+    client_id: number;
+    client_name: string | null;
+  };
 }

@@ -1,4 +1,5 @@
 import { useAppPage } from '@/hooks';
+import { type Brand } from './types';
 
 export function useBrands() {
   const { brands } = useAppPage().props;
@@ -8,5 +9,5 @@ export function useBrands() {
     );
   }
 
-  return brands;
+  return brands as Brand[];
 }

@@ -10,6 +10,9 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useAppSelector } from '@/store/hooks';
+import { type Brand } from '../Brands/types';
+import { type Category } from '../Categories/types';
+import { type Product } from './types';
 import { getPrice } from '../Sales/hooks';
 import { getMeasurementSuffix } from './hooks';
 

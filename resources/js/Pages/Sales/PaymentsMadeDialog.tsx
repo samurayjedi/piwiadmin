@@ -11,6 +11,7 @@ import {
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useTheme } from '@mui/material/styles';
 import { useAppSelector } from '@/store/hooks';
+import { type SalesPageProps } from './types';
 
 export default function PaymentsMadeDialog({
   sale,
@@ -86,27 +87,6 @@ export default function PaymentsMadeDialog({
 }
 
 export interface ConfirmDialogProps {
-  sale?: Sale & {
-    client: Client;
-    user: {
-      id: number;
-      name: string;
-      email: string;
-    };
-    sale_items: {
-      id: number;
-      sale_id: number;
-      product_id: number;
-      quantity: number;
-      unit_price: number;
-      discount_id: number;
-      created_at: string;
-      updated_at: string;
-      product: Product;
-    }[];
-    payments: (SalePayment & {
-      payment_method: PaymentMethod;
-    })[];
-  };
+  sale?: SalesPageProps;
   onClose?: () => void;
 }

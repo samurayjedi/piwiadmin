@@ -1,6 +1,5 @@
 import React, { RefObject, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-
 import { sell_types } from '@/consts';
 
 export const CartContext = React.createContext<CartContextType>(null);

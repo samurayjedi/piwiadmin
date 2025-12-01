@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import currencies from './currencies';
 import app from './app';
+import client from './client';
 
 const store = configureStore({
   reducer: {
     currencies,
     app,
+    client,
   },
   devTools: true,
 });

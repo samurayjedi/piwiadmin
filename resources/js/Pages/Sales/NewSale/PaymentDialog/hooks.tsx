@@ -4,6 +4,7 @@ import { router } from '@inertiajs/react';
 import { FormApi } from 'final-form';
 import { useAppDispatch } from '@/store/hooks';
 import { setSync } from '@/store/app';
+import { type Client } from '@/Pages/Clients/types';
 import { useCartContext } from '../hooks';
 
 export const CTX_STEPPER = React.createContext<CtxState>({
@@ -26,10 +27,8 @@ export function useHandlers() {
     (data: Record<string, any>, form: FormApi) =>
       new Promise<void>((resolve) => {
         router.post(
-          route('sales.new_sale.blackhole', {
-            action: 'search_client',
-          }),
-          data,
+          route('sales.new_sale.perform_action'),
+          { ...data, action: 'search_client' },
           {
             onSuccess: (r) => {
               const client = _.get(r, 'props.client', null) as Client | null;

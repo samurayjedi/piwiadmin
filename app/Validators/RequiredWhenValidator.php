@@ -20,6 +20,11 @@ class RequiredWhenValidator {
       $inputName = array_shift($parameters);
       $cond = array_shift($parameters);
       $expectValue = array_shift($parameters);
+      if ($expectValue === 'true'){
+        $expectValue = true;
+      } else if ($expectValue === 'false') {
+        $expectValue = false;
+      }
       if (array_key_exists($inputName, $inputs)) {
         switch ($cond) {
           case '==':
@@ -67,9 +72,11 @@ class RequiredWhenValidator {
   public static function message($message, $attribute, $rule, $parameters) {
     $others = ''; $logicGate = null;
     while (count($parameters)) {
-      $inputName = str_replace(['_', '-'], ' ', array_shift($parameters));
+      $inputName = array_shift($parameters);
+      $inputName = __("validation.attributes.$inputName");
       $cond = array_shift($parameters);
       $expectValue = str_replace(['_', '-'], ' ', array_shift($parameters));
+      $expectValue = __($expectValue);
       $others .= ($logicGate ? " $logicGate " : "")."$inputName $cond $expectValue";
       $logicGate = array_shift($parameters);
       switch ($logicGate) {

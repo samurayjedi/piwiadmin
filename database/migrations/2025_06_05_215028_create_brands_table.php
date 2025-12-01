@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('brand_label');
             $table->string('brand_slug')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

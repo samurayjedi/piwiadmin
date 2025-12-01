@@ -1,4 +1,5 @@
 import { useAppPage } from '@/hooks';
+import { type Category } from './types';
 
 export function useCategories() {
   const { categories } = useAppPage().props;
@@ -8,5 +9,5 @@ export function useCategories() {
     );
   }
 
-  return categories;
+  return categories as Category[];
 }

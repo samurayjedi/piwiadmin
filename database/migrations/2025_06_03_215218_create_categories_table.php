@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('category_label');
             $table->string('category_slug')->unique();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

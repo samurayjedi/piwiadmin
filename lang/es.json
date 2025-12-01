@@ -31,5 +31,17 @@
   "Dec": "Dic",
   "Cash": "Contado",
   "Credit": "Crédito",
-  "Layaway": "Apartado"
+  "Layaway": "Apartado",
+  "Sold": "Vendido",
+  "Sold in receipt #:id.": "Vendido en el recibo #:id.",
+  "Sale to :client, :items item(s).": "Venta a \":client\" de :items producto(s).",
+  "Edited manually via product form.": "Editado manualmente mediante el formulario del producto.",
+  "true": "Verdadero",
+  "false": "Falso",
+  "credit": "Crédito",
+  "and": "y",
+  "or": "o",
+  "The amount :payment must be >= to :total.": "La cantidad del campo :payment debe ser mayor o igual a :total.",
+  "The amount :payment must be < to :total.": "La cantidad del campo :payment debe ser menor a :total.",
+  "Purchase from supplier :provider.": "Compra a proveedor \":provider\"."
 }

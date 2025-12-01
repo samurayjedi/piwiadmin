@@ -46,7 +46,7 @@ const TextFieldMockSearch = React.forwardRef<
     }
 
     const timer = setTimeout(async () => {
-      if (inputValue.length >= 3) {
+      if (anchorEl !== null && inputValue.length >= 3) {
         setIsLoading(true);
         try {
           const results = await mockSearch(inputValue);
@@ -61,7 +61,7 @@ const TextFieldMockSearch = React.forwardRef<
     }, 300); // 300ms debounce delay
 
     return () => clearTimeout(timer);
-  }, [inputValue, mockSearch]);
+  }, [anchorEl, inputValue, mockSearch]);
 
   const open =
     Boolean(anchorEl) && inputValue.length >= 3 && searchResults.length > 0;
@@ -84,7 +84,9 @@ const TextFieldMockSearch = React.forwardRef<
           value={inputValue}
           onChange={(event) => {
             setInputValue(event.target.value);
-            setAnchorEl(event.currentTarget);
+            if (event.target.value.length >= 3) {
+              setAnchorEl(event.currentTarget);
+            }
             if (onChange) {
               onChange(event);
             }
@@ -123,13 +125,15 @@ const TextFieldMockSearch = React.forwardRef<
   );
 });
 
-type MUITextFieldProps = React.ComponentProps<typeof MUITextField>;
-type MockSearchTextFieldProps = MUITextFieldProps & {
+export interface MockSearchProps {
   value: string;
   mockSearch: (s: string) => Promise<string[]>;
   onClickSuggestion?: (s: string) => void;
   onChange: MUITextFieldProps['onChange'];
-};
+}
+
+type MUITextFieldProps = React.ComponentProps<typeof MUITextField>;
+type MockSearchTextFieldProps = MUITextFieldProps & MockSearchProps;
 type TextFieldProps = MockSearchTextFieldProps & {
   mockSearchDisabled?: boolean;
 };

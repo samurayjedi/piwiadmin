@@ -15,6 +15,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import { useAppDispatch } from '@/store/hooks';
 import { setSync } from '@/store/app';
+import { type SalesPageProps } from './types';
 import PayFields from './PayFields';
 
 export default function PayDialog({
@@ -104,27 +105,6 @@ const Actions = styled.div({
 });
 
 export interface ConfirmDialogProps {
-  sale?: Sale & {
-    client: Client;
-    user: {
-      id: number;
-      name: string;
-      email: string;
-    };
-    sale_items: {
-      id: number;
-      sale_id: number;
-      product_id: number;
-      quantity: number;
-      unit_price: number;
-      discount_id: number;
-      created_at: string;
-      updated_at: string;
-      product: Product;
-    }[];
-    payments: (SalePayment & {
-      payment_method: PaymentMethod;
-    })[];
-  };
+  sale?: SalesPageProps;
   onClose?: () => void;
 }

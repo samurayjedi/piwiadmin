@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { Client } from '../Clients/types';
 
 export default function ClientInfoDialog({
   client,

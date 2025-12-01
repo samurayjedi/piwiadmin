@@ -1,5 +1,5 @@
 export const sell_types = ['cash', 'credit', 'layaway'] as const;
-export const sell_notification_intervals = [
+export const notification_intervals = [
   'daily',
   'weekly',
   'fortnightly',

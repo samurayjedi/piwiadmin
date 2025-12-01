@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import { route } from 'ziggy-js';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import AppLayout from '@/src/Layouts/AppLayout';
 import {
   Paper as MUIPaper,
@@ -91,8 +91,13 @@ export default function Inventory() {
                     </TableCell>
                     <TableCell>{p.profit}%</TableCell>
                     <TableCell>
-                      {p.stock}&nbsp;
-                      {getMeasurementSuffix(p.measurement, p.stock)}
+                      <Button
+                        LinkComponent={Link}
+                        href={route('stock.manage.edit', { id: p.id })}
+                      >
+                        {p.stock}&nbsp;
+                        {getMeasurementSuffix(p.measurement, p.stock)}
+                      </Button>
                     </TableCell>
                     <TableCell>{p.category.category_label}</TableCell>
                     <TableCell>{p.brand.brand_label}</TableCell>

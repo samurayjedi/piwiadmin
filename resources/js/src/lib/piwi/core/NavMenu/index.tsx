@@ -61,12 +61,12 @@ export default function NavMenu({ items, loading }: NavProps) {
         const id = `link-${item.key}`;
 
         return loading ? (
-          <Skeleton sx={{ mr: 1 }}>
+          <Skeleton key={id} sx={{ mr: 1 }}>
             <Typography variant="h6">{item.label}</Typography>
           </Skeleton>
         ) : (
           <NavItemContainer
-            key={item.key}
+            key={id}
             id={id}
             onMouseOver={onMouseOver(id)}
             onMouseLeave={onMouseLeave}

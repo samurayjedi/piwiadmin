@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@mui/material';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import { useErrors } from '@/hooks';
-import { sell_types, sell_notification_intervals } from '@/consts';
+import { sell_types, notification_intervals } from '@/consts';
 import { arrayToRecord } from '@/src/lib/miscUtils';
 import PayFields from '@/Pages/Sales/PayFields';
 import Select from '@/src/lib/piwi/core/Select';
@@ -63,9 +63,8 @@ export default function StepPayment() {
                         <Select
                           {...pollito.input}
                           label={t('Notification interval')}
-                          items={arrayToRecord(
-                            sell_notification_intervals,
-                            (item) => t(item),
+                          items={arrayToRecord(notification_intervals, (item) =>
+                            t(item),
                           )}
                           variant="standard"
                           fullWidth

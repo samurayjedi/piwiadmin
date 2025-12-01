@@ -8,12 +8,15 @@ import {
   useMediaQuery,
   IconButton,
   Typography,
+  Alert,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { FormProps } from 'react-final-form';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { setSync } from '@/store/app';
+import { useAppPage } from '@/hooks';
+import Gap from '@/src/lib/piwi/common/Gap';
 import ProductForm from './ProductForm';
 
 export default function ProductFormDialog({
@@ -26,6 +29,9 @@ export default function ProductFormDialog({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useAppDispatch();
   const sync = useAppSelector((state) => state.app.sync);
+  const {
+    props: { errors },
+  } = useAppPage();
 
   const handleSubmitForm = useCallback<FormProps['onSubmit']>(
     (data, form) => {
@@ -66,6 +72,12 @@ export default function ProductFormDialog({
               <CloseIcon />
             </IconButton>
           </Header>
+          {Object.hasOwnProperty.call(errors, 'kernel_panic') && (
+            <>
+              <Alert severity="error">{errors.kernel_panic}</Alert>
+              <Gap />
+            </>
+          )}
           <ProductForm id={id} onSubmit={handleSubmitForm} />
         </Wrapper>
       </DialogContent>
@@ -87,7 +99,7 @@ const Wrapper = styled.div({
 const Header = styled.div(({ theme }) => ({
   display: 'flex',
   flexDirection: 'row',
-  paddingBottom: theme.spacing(2),
+  paddingBottom: theme.spacing(1),
 }));
 
 const Glue = styled.span({

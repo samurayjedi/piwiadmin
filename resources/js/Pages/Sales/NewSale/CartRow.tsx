@@ -6,7 +6,7 @@ import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import { measurementNumericFormatProps } from '@/Pages/Inventory/hooks';
 import { getPrice } from '../hooks';
 import HiddenFields from './HiddenFields';
-import { Cart } from '../types';
+import { type FormCart } from './types';
 
 export default function CartRow({
   qty,
@@ -63,7 +63,7 @@ export default function CartRow({
   );
 }
 
-export interface CartRowProps extends Cart {
+export interface CartRowProps extends FormCart {
   index: number;
   onChange: (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

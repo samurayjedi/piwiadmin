@@ -1,97 +1,97 @@
+import { useTranslation } from 'react-i18next';
 import { router } from '@inertiajs/react';
+import { Form } from 'react-final-form';
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableFooter,
+  Paper,
+} from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
-import CrudTable from '@/src/Components/CrudTable';
-import { usePaginatorProps } from '@/hooks';
+import HtmlForm from '@/src/Components/HtmlForm';
+import { useAppDispatch } from '@/store/hooks';
+import { clientActionSubmit } from '@/store/client';
+import SearchClients from '@/src/Components/SearchClients';
+import ConfirmDeleteDialog from './ConfirmDeleteDialog';
 import { useClients } from './hooks';
+import NewClientTableRow from './NewClientTableRow';
+import ClientsRows from './ClientsRows';
+import NewClientFab from './NewClientFab';
+import InDetbSwitch from './InDebtSwitch';
+import Paginator from './Paginator';
 
 export default function Clients() {
-  const { page, count, rows } = usePaginatorProps();
+  const { t } = useTranslation();
   const clients = useClients();
+  const dispatch = useAppDispatch();
 
   return (
-    <AppLayout>
-      <CrudTable
-        fields={[
-          [
-            'identification',
-            'Identification',
-            {
-              type: 'textfield-masked',
-              props: {
-                mask: '$##########',
-                definitions: {
-                  $: /[VEPJCGRvepjcgr]/,
-                  '#': /[0-9]/,
-                },
-              },
-            },
-          ],
-          ['name', 'Name'],
-          [
-            'phone',
-            'Phone',
-            {
-              type: 'textfield-masked',
-              props: {
-                mask: '&$##-#######',
-                definitions: {
-                  '&': /[0]/,
-                  $: /[24]/,
-                  '#': /[0-9]/,
-                },
-              },
-            },
-          ],
-          ['address', 'Address'],
-        ]}
-        records={clients}
-        onSubmit={(data, action, targetId) => {
-          const url = (() => {
-            switch (action) {
-              case 'add':
-                return route('clients.store');
-              case 'update':
-                return route('clients.update', { id: targetId });
-              case 'delete':
-                return route('clients.delete', { id: targetId });
+    <>
+      <AppLayout>
+        <SearchClients
+          onSubmit={(cls) =>
+            router.visit(route('clients', { ids: cls.map((c) => c.id) }))
+          }
+        />
+        <Paper>
+          <Form
+            subscription={{ submitting: true, pristine: true }}
+            onSubmit={(data, form) =>
+              dispatch(
+                clientActionSubmit({
+                  data,
+                  onSuccess: () => {
+                    form.setConfig('initialValues', {});
+                    form.reset();
+                  },
+                }),
+              )
             }
-
-            return undefined;
-          })();
-
-          return new Promise<void>((resolve, reject) => {
-            if (!url) {
-              reject();
-
-              return;
-            }
-
-            router.post(url, data, {
-              preserveScroll: true,
-              onError: () => {
-                reject();
-              },
-              onSuccess: () => {
-                resolve();
-              },
-            });
-          });
-        }}
-        page={page as number}
-        count={count as number}
-        rows={rows as number}
-        onRowsPerPageChange={(ev) =>
-          router.get(
-            route('clients', {
-              page,
-              rows: parseInt(ev.target.value, 10),
-            }),
-          )
-        }
-        onPageChange={(ev, newPage) =>
-          router.get(route('clients', { page: newPage, rows }))
-        }
-      />
-    </AppLayout>
+            render={({ handleSubmit }) => (
+              <HtmlForm onSubmit={handleSubmit}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>#</TableCell>
+                      <TableCell>{t('Identification')}</TableCell>
+                      <TableCell>{t('Name')}</TableCell>
+                      <TableCell>{t('Phone')}</TableCell>
+                      <TableCell>{t('Address')}</TableCell>
+                      <TableCell>{t('Status')}</TableCell>
+                      <TableCell>{t('Actions')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {!clients.length ? (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          {t('No clients has been registered.')}
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      <ClientsRows />
+                    )}
+                    <NewClientTableRow />
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell colSpan={2}>
+                        <InDetbSwitch />
+                      </TableCell>
+                      <Paginator colSpan={5} />
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+                <NewClientFab />
+              </HtmlForm>
+            )}
+          />
+        </Paper>
+      </AppLayout>
+      <ConfirmDeleteDialog />
+    </>
   );
 }

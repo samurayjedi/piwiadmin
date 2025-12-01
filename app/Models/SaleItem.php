@@ -5,8 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Sale;
 use App\Models\Product;
+use App\Models\StockLog;
+use App\Models\ProductStockSlog;
 
 class SaleItem extends Model
 {
@@ -23,5 +26,9 @@ class SaleItem extends Model
 
     public function product(): BelongsTo {
         return $this->belongsTo(Product::class);
+    }
+
+    public function stock_logs(): BelongsToMany {
+        return $this->belongsToMany(StockLog::class);
     }
 }

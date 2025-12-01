@@ -1,158 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import _ from 'lodash';
-import { useTranslation } from 'react-i18next';
-import { SearchProps } from '@/src/lib/piwi/laboratory/Search';
-import { router } from '@inertiajs/react';
-import { SyncState } from '@/store/app';
+import { Dispatch, SetStateAction, useCallback, useRef } from 'react';
+import { type Product } from '@/Pages/Inventory/types';
 import { SearchProductDialogProps } from '.';
-import { Cart } from '../../types';
-
-export function useRequestFocus(open: boolean, sync: SyncState) {
-  const [sref, retrieveRef] = useState<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (sync !== 'loading') {
-      if (sref && open) {
-        sref.focus();
-      }
-    }
-  }, [open, sref, sync]);
-
-  return [sref, retrieveRef] as const;
-}
-
-function useSearchFetch(inputRef: HTMLInputElement | null) {
-  const { t } = useTranslation();
-  const controller = useRef<AbortController | null>(null);
-
-  return useCallback(
-    (field: string, value: string) => {
-      /** onBefore */
-      if (controller.current !== null) {
-        controller.current.abort();
-      }
-      controller.current = new AbortController();
-      /** when error ocurred */
-      const throwError = () => {
-        return new Promise<void>((resolve) => {
-          router.post(
-            route('redirect', { route: 'sales.new_sale' }),
-            {
-              errors: { [field]: t('Error conecting/receiving, try again.') },
-            },
-            {
-              preserveState: true,
-              onFinish: () => {
-                inputRef?.focus();
-                controller.current = null;
-                resolve();
-              },
-            },
-          );
-        });
-      };
-
-      return fetch(route(`search_product.${field}`, { [field]: value }), {
-        signal: controller.current.signal,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN':
-            _.get(
-              document.querySelector('meta[name="csrf-token"]'),
-              'content',
-            ) || '',
-        },
-      })
-        .then(async (resp) => {
-          if (!resp.ok) {
-            await throwError();
-
-            return null;
-          }
-
-          return resp.json();
-        })
-        .then(async (json: Record<string, any>) => {
-          controller.current = null;
-          if (json.status === 0) {
-            const promise = new Promise<void>((resolve) => {
-              router.post(
-                route('redirect', { route: 'sales.new_sale' }),
-                {
-                  errors: json.errors,
-                },
-                {
-                  preserveState: true,
-                  onFinish: () => {
-                    setTimeout(() => {
-                      inputRef?.focus();
-                    }, 300);
-                    resolve();
-                  },
-                },
-              );
-            });
-            await promise;
-
-            return null;
-          }
-
-          return json;
-        })
-        .catch(async (err) => {
-          if (err.name !== 'AbortError') {
-            await throwError();
-          }
-
-          return null;
-        });
-    },
-    [inputRef, t],
-  );
-}
+import { type FormCart } from '../types';
 
 export function useHandler(
-  inputRef: HTMLInputElement | null,
   addAction: SearchProductDialogProps['addAction'],
-  onClose: SearchProductDialogProps['onClose'],
+  setProducts: Dispatch<SetStateAction<Product[]>>,
 ) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const fetchSearch = useSearchFetch(inputRef);
-
-  const mockSearch = useCallback(
-    (s: string) => {
-      return new Promise<string[]>((resolve) => {
-        fetchSearch('name', s).then((r) => {
-          if (r) {
-            const ps = r.products as Product[];
-            const results = _.map(ps, (p) => p.name);
-
-            resolve(results);
-          } else {
-            resolve([]);
-          }
-        });
-      });
-    },
-    [fetchSearch],
-  );
-
-  const searchSubmit = useCallback<NonNullable<SearchProps['onSubmit']>>(
-    (field, value) =>
-      new Promise<void>((resolve) => {
-        fetchSearch(field, value).then((r) => {
-          if (r) {
-            setProducts(r.products);
-          }
-
-          resolve();
-        });
-      }),
-    [fetchSearch],
-  );
-
   const formRef = useRef<HTMLFormElement>(null);
   const handleAddProducts = useCallback(() => {
     if (formRef.current) {
@@ -175,7 +29,7 @@ export function useHandler(
       const qty = formData.getAll('qty[]') as string[];
 
       /** */
-      const cart = [] as Cart[];
+      const cart = [] as FormCart[];
       id.forEach((v, i) => {
         const q = parseFloat(qty[i]);
         if (q > 0) {
@@ -199,11 +53,8 @@ export function useHandler(
 
       addAction(cart);
       setProducts([]);
-      if (onClose) {
-        onClose();
-      }
     }
-  }, [addAction, onClose]);
+  }, [addAction, setProducts]);
 
-  return { products, formRef, mockSearch, searchSubmit, handleAddProducts };
+  return { setProducts, formRef, handleAddProducts };
 }

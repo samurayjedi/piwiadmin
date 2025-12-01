@@ -4,21 +4,15 @@ use Carbon\Carbon;
 
 class Mon3trUtils {
     public static function createCarbonDateFrom(string $date) {
-        $locale = session()->get('locale', null);
-        if (!$locale) {
-            throw new \RuntimeException('Locale not set!!');
-        }
-        $format = (function () use($locale) {
-            switch ($locale) {
-                case 'en':
-                    return 'Y-m-d';
-                case 'es':
-                    return 'd-m-Y';
+        $formats = ['d-m-Y', 'Y-m-d'];
+        foreach ($formats as $format) {
+            try {
+                return Carbon::createFromFormat($format, $date);
+            } catch (\Exception $e) {
+                continue;
             }
-
-            throw new \RuntimeException("Locale $locale not implemented!!!");
-        })();
+        }
     
-        return Carbon::createFromFormat($format, $date);
+        throw new \Exception("Cannot create carbon instance for date: $date.");
     }
 }

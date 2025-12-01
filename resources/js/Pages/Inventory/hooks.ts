@@ -1,5 +1,6 @@
 import i18next from 'i18next';
 import { useAppPage } from '@/hooks';
+import { type Product } from './types';
 
 export function useProducts() {
   const { products } = useAppPage().props;
@@ -9,7 +10,7 @@ export function useProducts() {
     );
   }
 
-  return products;
+  return products as Product[];
 }
 
 export function getMeasurementSuffix(measurement: string, stock: number) {

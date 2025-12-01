@@ -2,7 +2,7 @@
 import React from 'react';
 import _, { PartialObject, ValueKeyIteratee } from 'lodash';
 
-export function pathToLaravelPath(path: string) {
+export function convertBracketToDot(path: string) {
   return path.replace(/\[([0-9]+)\]/g, '.$1');
 }
 

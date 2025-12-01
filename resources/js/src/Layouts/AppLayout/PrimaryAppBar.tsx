@@ -87,6 +87,11 @@ export default function PrimaryAppBar() {
                         label: t('Brands'),
                         link: route('brands'),
                       },
+                      {
+                        key: 'stock',
+                        label: t('Stock'),
+                        link: route('stock'),
+                      },
                     ],
                   },
                   {

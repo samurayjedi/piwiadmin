@@ -30,6 +30,7 @@ return new class extends Migration
             $table->decimal('wholesale_qty')->nullable();
             $table->decimal('wholesale_profit', 10, 2)->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

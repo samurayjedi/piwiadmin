@@ -98,7 +98,7 @@ return [
     'Client data' => 'Datos del cliente',
     'Payment type' => 'Tipo de pago',
     'Payment interval' => 'Intervalo de pago',
-    'Due date' => 'Fecha de vencimiento',
+    'Due date' => 'Vencimiento',
     'Payment Methods' => 'Métodos de pago',
     'Payment method' => 'Método de pago',
     'Sell' => 'Vender',

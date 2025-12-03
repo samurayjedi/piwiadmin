@@ -9,6 +9,7 @@ import {
   TableCell,
   TableFooter,
   Paper,
+  TableContainer,
 } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import HtmlForm from '@/src/Components/HtmlForm';
@@ -36,22 +37,22 @@ export default function Clients() {
             router.visit(route('clients', { ids: cls.map((c) => c.id) }))
           }
         />
-        <Paper>
-          <Form
-            subscription={{ submitting: true, pristine: true }}
-            onSubmit={(data, form) =>
-              dispatch(
-                clientActionSubmit({
-                  data,
-                  onSuccess: () => {
-                    form.setConfig('initialValues', {});
-                    form.reset();
-                  },
-                }),
-              )
-            }
-            render={({ handleSubmit }) => (
-              <HtmlForm onSubmit={handleSubmit}>
+        <Form
+          subscription={{ submitting: true, pristine: true }}
+          onSubmit={(data, form) =>
+            dispatch(
+              clientActionSubmit({
+                data,
+                onSuccess: () => {
+                  form.setConfig('initialValues', {});
+                  form.reset();
+                },
+              }),
+            )
+          }
+          render={({ handleSubmit }) => (
+            <HtmlForm onSubmit={handleSubmit}>
+              <TableContainer component={Paper}>
                 <Table>
                   <TableHead>
                     <TableRow>
@@ -85,11 +86,11 @@ export default function Clients() {
                     </TableRow>
                   </TableFooter>
                 </Table>
-                <NewClientFab />
-              </HtmlForm>
-            )}
-          />
-        </Paper>
+              </TableContainer>
+              <NewClientFab />
+            </HtmlForm>
+          )}
+        />
       </AppLayout>
       <ConfirmDeleteDialog />
     </>

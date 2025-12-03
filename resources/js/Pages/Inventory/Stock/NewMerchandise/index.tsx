@@ -20,8 +20,6 @@ import Cart from './Cart';
 import SelectProductsForm from './SelectProductsForm';
 import DetailsForm from './DetailsForm';
 
-// import NewMerchandiseDetails from './NewMerchandiseDetails';
-
 export default function Stock() {
   const { t } = useTranslation();
   const {

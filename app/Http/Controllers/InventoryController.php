@@ -24,16 +24,7 @@ use App\Models\PayableAccountItem;
 
 class InventoryController extends Controller {
     public function main() {
-        /** products by pagination */
-        $page = intval(request()->get('page', 0));
-        $rows = intval(request()->get('rows', 5));
-        $pager = Pagination::normalize('inventory', $page, $rows, Product::count());
-        if (!is_array($pager)) {
-            // is a redirect
-            return $pager;
-        }
-        [$limit, $offset, $count] = $pager;
-
+        $ids = request()->get('ids', null);
         $products = Product::select('products.*')
             ->with([
                 'brand' => fn($query) => $query->withTrashed(), 
@@ -43,18 +34,29 @@ class InventoryController extends Controller {
             ->addSelect([
                 DB::raw('products.stock - COALESCE(SUM(sale_items.quantity), 0) as remaining_stock')
             ])
+            ->when(!empty($ids), function($query) use($ids) {
+                $query->whereIn('products.id', $ids);
+            })
             ->groupBy('products.id', 'products.barcode', 'products.name', 
             'products.price', 'products.profit', 'products.stock', 'products.category', 'products.brand',
             'products.wholesale', 'products.wholesale_qty', 'products.wholesale_profit', 'products.created_at',
             'products.updated_at', 'products.deleted_at', 'products.measurement')
-            ->skip($offset)
-            ->take($limit)
-            ->orderBy('id', 'DESC')
-            ->get()
-            ->map(fn ($item) => [
-                ...$item->toArray(),
-                'stock' => (float)$item->remaining_stock,
-            ]);
+            ->orderBy('products.id', 'DESC');
+        /** products pagination */
+        $page = intval(request()->get('page', 0));
+        $rows = intval(request()->get('rows', 5));
+        $pager = Pagination::normalize('inventory', $page, $rows, $products->count());
+        if (!is_array($pager)) {
+            // is a redirect
+            return $pager;
+        }
+        [$limit, $offset, $count] = $pager;
+        $products = $products->skip($offset)->take($limit);
+        /** perform query */
+        $products = $products->get()->map(fn ($item) => [
+            ...$item->toArray(),
+            'stock' => (float)$item->remaining_stock,
+        ]);
 
         return Inertia::render('Inventory', [
             'categories' => Category::all()->toArray(),

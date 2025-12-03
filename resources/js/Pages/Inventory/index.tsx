@@ -27,9 +27,11 @@ import { usePaginatorProps } from '@/hooks';
 import IconButtonDropdown from '@/src/lib/piwi/core/IconButtonDropdown';
 import Actions from '@/src/Components/Actions';
 import { useAppSelector } from '@/store/hooks';
+import SearchProducts from '@/src/Components/SearchProducts';
 import { getMeasurementSuffix, useProducts } from './hooks';
 import ProductFormDialog, { ProductFormDialogProps } from './ProductFormDialog';
 import WholesaleInfoDialog from './WholesaleInfoDialog';
+import { Product } from './types';
 
 export default function Inventory() {
   const { t } = useTranslation();
@@ -57,6 +59,12 @@ export default function Inventory() {
   return (
     <>
       <AppLayout>
+        <SearchProducts
+          variant="outlined"
+          onSubmit={(ps) =>
+            router.visit(route('inventory', { ids: ps.map((p) => p.id) }))
+          }
+        />
         <TableContainer component={Paper}>
           <Table>
             <TableHead>

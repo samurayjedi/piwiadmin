@@ -6,7 +6,7 @@ import { type Product } from '@/Pages/Inventory/types';
 import { useRequestFocus, useSearchProducts } from './hooks';
 
 export default React.forwardRef<SearchProductsFieldRef, SearchProductsProps>(
-  ({ onSubmit }, ref) => {
+  ({ onSubmit, variant = 'filled' }, ref) => {
     const { t } = useTranslation();
     const sync = useAppSelector((state) => state.app.sync);
     const searchRef = useRef<SearchRef>(null);
@@ -28,7 +28,7 @@ export default React.forwardRef<SearchProductsFieldRef, SearchProductsProps>(
         inputRef={retrieveRef}
         name="field"
         label={t('Search')}
-        variant="filled"
+        variant={variant}
         items={useMemo(() => ({ name: t('Name'), barcode: t('Barcode') }), [t])}
         onSubmit={submit}
         mockSearch={mockSubmit}
@@ -40,6 +40,7 @@ export default React.forwardRef<SearchProductsFieldRef, SearchProductsProps>(
 );
 
 export interface SearchProductsProps {
+  variant?: 'standard' | 'outlined' | 'filled';
   onSubmit: (p: Product[]) => void;
 }
 

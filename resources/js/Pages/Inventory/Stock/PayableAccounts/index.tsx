@@ -38,8 +38,8 @@ export default function Stock() {
                 <TableCell>{t('Description')}</TableCell>
                 <TableCell>{t('Total')}</TableCell>
                 <TableCell>{t('Amount paid')}</TableCell>
-                <TableCell>{t('Due date')}</TableCell>
                 <TableCell>{t('Created at')}</TableCell>
+                <TableCell>{t('Due date')}</TableCell>
                 <TableCell>{t('Status')}</TableCell>
               </TableRow>
             </TableHead>

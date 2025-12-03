@@ -71,30 +71,34 @@ function NotificationIconButton() {
             <Scrollable>
               <List dense>
                 {notifications.length ? (
-                  notifications.map((notification) => (
-                    <ListItemButton
-                      onClick={() => {
-                        handlePopoverClose();
-                        router.get(
-                          route('notifications.notification.markAsRead', {
-                            notificationId: notification.id,
-                          }),
-                          {},
-                          {
-                            onFinish: () => {
-                              router.visit(
-                                route(notification.data.route, {
-                                  sale_id: notification.data.sale_id,
-                                }),
-                              );
-                            },
-                          },
-                        );
-                      }}
-                    >
-                      <ListItemText primary={notification.data.message} />
-                    </ListItemButton>
-                  ))
+                  notifications.map((notification) => {
+                    const {
+                      primary,
+                      secondary,
+                      action,
+                      route_name,
+                      route_attrs,
+                    } = notification.data;
+
+                    return (
+                      <ListItemButton
+                        key={`notification-${notification.id}`}
+                        title={action}
+                        onClick={() => {
+                          handlePopoverClose();
+                          router.visit(
+                            route('notifications.notification.markAsRead', {
+                              notificationId: notification.id,
+                              redirect: route_name,
+                              redirect_attrs: route_attrs,
+                            }),
+                          );
+                        }}
+                      >
+                        <ListItemText primary={primary} secondary={secondary} />
+                      </ListItemButton>
+                    );
+                  })
                 ) : (
                   <ListItemButton>
                     <ListItemText primary={t('No notifications.')} />

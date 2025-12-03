@@ -33,12 +33,12 @@ export default function Cells({
       <TableCell>
         <LabelDolarBs value={payableAccount.amount_paid} variant="horizontal" />
       </TableCell>
+      <TableCell>{payableAccount.created_at}</TableCell>
       <TableCell>
         {payableAccount.due_date
           ? payableAccount.due_date
           : t('Not applicable')}
       </TableCell>
-      <TableCell>{payableAccount.created_at}</TableCell>
       <TableCell>
         <ButtonStatus
           variant="text"

@@ -1,14 +1,13 @@
-import { Dispatch, SetStateAction, useCallback, useRef } from 'react';
+import { Dispatch, SetStateAction, useRef } from 'react';
 import { type Product } from '@/Pages/Inventory/types';
-import { SearchProductDialogProps } from '.';
 import { type FormCart } from '../types';
 
 export function useHandler(
-  addAction: SearchProductDialogProps['addAction'],
+  onAdd: (c: FormCart[]) => void,
   setProducts: Dispatch<SetStateAction<Product[]>>,
 ) {
   const formRef = useRef<HTMLFormElement>(null);
-  const handleAddProducts = useCallback(() => {
+  const handleAddProducts = () => {
     if (formRef.current) {
       const formData = new FormData(formRef.current);
       /** */
@@ -51,10 +50,11 @@ export function useHandler(
         }
       });
 
-      addAction(cart);
+      onAdd(cart);
+      // reset
       setProducts([]);
     }
-  }, [addAction, setProducts]);
+  };
 
   return { setProducts, formRef, handleAddProducts };
 }

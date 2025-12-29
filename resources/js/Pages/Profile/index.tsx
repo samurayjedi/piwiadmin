@@ -5,6 +5,7 @@ import AppLayout from '@/src/Layouts/AppLayout';
 import UpdateProfileInfoForm from './UpdateProfileInfoForm';
 import UpdatePasswordForm from './UpdatePasswordForm';
 import DeleteAccount from './DeleteAccount';
+import BusinessForm from './BusinessForm';
 
 export default function Profile({
   // auth,
@@ -18,6 +19,16 @@ export default function Profile({
 
   return (
     <AppLayout>
+      <Paper>
+        <Typography variant="h5" fontWeight="bold">
+          {t('Business information')}
+        </Typography>
+        <Typography variant="subtitle1">
+          {t('Update your business logo and other information.')}
+        </Typography>
+        <div className="spacing" />
+        <BusinessForm />
+      </Paper>
       <Paper>
         <Typography variant="h5" fontWeight="bold">
           {t('Profile Information')}

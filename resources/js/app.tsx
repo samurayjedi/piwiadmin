@@ -34,7 +34,6 @@ i18nTranslator
   });
 
 createInertiaApp({
-  title: (title) => `${title} - `,
   resolve: async (name) => {
     const Page = (await import(`./Pages/${name}`)).default;
 

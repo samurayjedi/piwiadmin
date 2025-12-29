@@ -13,13 +13,15 @@ import { useTranslation } from 'react-i18next';
 import { Field, FormSpy } from 'react-final-form';
 import { useErrors } from '@/hooks';
 import TextFieldMasked from '@/src/lib/piwi/core/TextFieldMasked';
+import { useAppSelector } from '@/store/hooks';
 import { useStepperContext } from './hooks';
 
 export default function StepClientData() {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const { open, activeStep, clientFound, setState } = useStepperContext();
+  const open = useAppSelector((state) => state.new_sale.payDialogOpen);
+  const { activeStep, clientFound, setState } = useStepperContext();
   const [fuckErrors, onChangeDecorator] = useErrors();
 
   useEffect(() => {

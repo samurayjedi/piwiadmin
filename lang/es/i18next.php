@@ -204,6 +204,7 @@ return [
     'Status x' => 'Estado: {{status}}',
     'Completed' => 'Completado',
     'Pending' => 'Pendiente',
+    'Canceled' => 'Anulado',
     'Amount amount, Price price, Date date.' => 'Cantidad: {{amount}}, Precio: {{price}}, Fecha: {{date}}',
     'X revenue' => 'Ingresos: {{x}}',
     'Amount selled' => 'Cantidad vendida',
@@ -268,6 +269,7 @@ return [
     'Not applicable' => 'No aplica',
     'completed' => 'Completado',
     'pending' => 'Pendiente',
+    'canceled' => 'Anulado',
     'Amount to pay' => 'Monto a pagar',
     'Done on' => 'Hecho el',
     'Payable Accounts' => 'Cuentas',
@@ -302,4 +304,6 @@ return [
     'Income' => 'Ingresos',
     'Update prices' => 'Actualizar precios',
     'View sale' => 'Ir a venta',
+    'Void invoice' => 'Anular venta',
+    'Replicate invoice' => 'Replicar compra',
 ];

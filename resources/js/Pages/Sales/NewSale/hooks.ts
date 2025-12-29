@@ -1,25 +1,10 @@
-import React, { RefObject, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
-import { sell_types } from '@/consts';
+import { useMemo } from 'react';
+import { useAppPage } from '@/hooks';
+import { Cart } from '../types';
 
-export const CartContext = React.createContext<CartContextType>(null);
-export function useCartContext() {
-  const ctx = useContext(CartContext);
-  if (ctx === null) {
-    throw new Error('Cart Context is null!!');
-  }
+export function useImportedCart() {
+  const { cart, recreated_sale } = useAppPage().props;
+  const memoCart = useMemo(() => cart, []) as Cart;
 
-  return ctx;
+  return { cart: memoCart, recreated_sale: recreated_sale as boolean };
 }
-
-export function useSaleTypesItems() {
-  const { t } = useTranslation();
-  const items: Record<string, string> = {};
-  sell_types.forEach((slug) => {
-    items[slug] = t(items[slug]);
-  });
-
-  return items;
-}
-
-export type CartContextType = RefObject<HTMLFormElement> | null;

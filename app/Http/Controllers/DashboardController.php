@@ -12,7 +12,9 @@ use App\Models\PayableAccount;
 class DashboardController extends Controller {
     public function main() {
         // Income for current day
-        $salesDay = Sale::whereDate('created_at', today())->get();
+        $salesDay = Sale::whereDate('created_at', today())
+            ->whereNot('status', 'canceled')
+            ->get();
         $incomeDay = $salesDay->sum('amount_paid');
         // Income for week
         $incomeWeek = Sale::select([
@@ -20,14 +22,15 @@ class DashboardController extends Controller {
         ])->whereBetween('created_at', [
             now()->startOfWeek(),
             now()->endOfWeek()
-        ])->first()->week_income;
+        ])->whereNot('status', 'canceled')->first()->week_income;
         // Income for current month
         $salesMonth = Sale::whereMonth('created_at', now()->month)
+            ->whereNot('status', 'canceled')
             ->whereYear('created_at', now()->year)
             ->get();
         $incomeMonth = $salesMonth->sum('amount_paid');
         // Income for current year
-        $salesYear = Sale::whereYear('created_at', now()->year)->get();
+        $salesYear = Sale::whereYear('created_at', now()->year)->whereNot('status', 'canceled')->get();
         $incomeYear = $salesYear->sum('amount_paid');
         $pendingIncome = $salesYear->sum('total_amount') - $incomeYear;
         // payable accounts for the current day

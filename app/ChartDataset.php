@@ -60,9 +60,11 @@ class ChartDataset {
                 $this->select[] = $column.'_label';
                 $this->select[] = DB::raw('COALESCE(SUM(sale_items.quantity), 0) AS sale_count');
                 $this->select[] = DB::raw('COALESCE(SUM(sale_items.unit_price * sale_items.quantity), 0) AS revenue');
+                $this->select[] = 'sales.status';
                 $this->leftJoin[] = ['products', $column.'_slug', '=', "products.$column"];
                 $this->leftJoin[] = ['sale_items', 'products.id', '=', 'sale_items.product_id'];
-                $this->groupBy = [$column.'_slug', $column.'_label'];
+                $this->leftJoin[] = ['sales', 'sale_items.sale_id', '=', 'sales.id'];
+                $this->groupBy = [$column.'_slug', $column.'_label', 'sales.status'];
                 $this->created_at = 'sale_items.created_at';
                 if ($this->chart === 'scatter') {
                     $this->select[] = $this->created_at;
@@ -139,6 +141,7 @@ class ChartDataset {
             $this->query->groupBy($this->groupBy);
         }
         /** where */
+        $this->query->whereNot('sales.status', 'canceled');
         $this->query->whereYear($this->created_at, $this->date->year);
         if ($this->timeframe === 'sales_by_day') {
             $this->query->whereMonth($this->created_at, $this->date->month);
@@ -203,7 +206,7 @@ class ChartDataset {
                             ];
                         } else {
                             $arr = [
-                                ...Arr::except($item->toArray(), [$column.'_slug', $column.'_label', 'revenue', 'sale_count']),
+                                ...Arr::except($item->toArray(), [$column.'_slug', $column.'_label', 'revenue', 'sale_count', 'status']),
                                 $item->{$column.'_slug'} => (float)$item->revenue,
                                 'revenue' => (float)$item->revenue,
                                 'sale_count' => (float)$item->sale_count,

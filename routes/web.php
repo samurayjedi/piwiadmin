@@ -26,6 +26,7 @@ Route::middleware(['auth', 'password.confirm'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/update-business-information', [ProfileController::class, 'update_business_info'])->name('profile.update-business-info');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -41,9 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/dashboard/sales/sale_type/{sale_type}', 'sales_by_type')->name('sale_type');
         Route::get('/dashboard/sales/client_id/{client_id}', 'sale_by_client')->name('sales.client');
         Route::get('/dashboard/sales/client_id/{client_id}/sale_type/{sale_type}', 'main')->name('sales.client.sale_type');
-        //
+        // ....
         Route::post('/dashboard/sales', 'pay')->name('sales.pay');
         Route::get('/dashboard/sales/sale/{id}/print_invoice', 'print_invoice')->name('sales.sale.print_invoice');
+        Route::post('/dashboard/sales/sale/{id}/void', 'void_invoice')->name('sales.void_invoice');
         /** New sale */
         Route::get('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale');
         Route::post('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale.perform_action');

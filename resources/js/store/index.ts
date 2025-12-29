@@ -2,12 +2,16 @@ import { configureStore } from '@reduxjs/toolkit';
 import currencies from './currencies';
 import app from './app';
 import client from './client';
+import new_sale from './new_sale';
+import sales from './sales';
 
 const store = configureStore({
   reducer: {
     currencies,
     app,
     client,
+    new_sale,
+    sales,
   },
   devTools: true,
 });

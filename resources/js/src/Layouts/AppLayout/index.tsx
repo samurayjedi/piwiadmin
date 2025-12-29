@@ -1,21 +1,30 @@
 import React from 'react';
+import { Head } from '@inertiajs/react';
 import styled from '@emotion/styled';
 import { Container } from '@mui/material';
 import DolarSync from '@/src/DolarSync';
+import { useAppPage } from '@/hooks';
 import PrimaryAppBar from './PrimaryAppBar';
 import Breadcrumbs from './Breadcrumbs';
 
 export default function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
+  const {
+    props: { business_name },
+  } = useAppPage();
+
   return (
-    <DolarSync>
-      <PrimaryAppBar />
-      <Container maxWidth="lg" sx={{ paddingBottom: '90px' }}>
-        <BreadcrumbsContainer>
-          {breadcrumbs ?? <Breadcrumbs />}
-        </BreadcrumbsContainer>
-        {children}
-      </Container>
-    </DolarSync>
+    <>
+      <Head title={business_name as string} />
+      <DolarSync>
+        <PrimaryAppBar />
+        <Container maxWidth="lg" sx={{ paddingBottom: '90px' }}>
+          <BreadcrumbsContainer>
+            {breadcrumbs ?? <Breadcrumbs />}
+          </BreadcrumbsContainer>
+          {children}
+        </Container>
+      </DolarSync>
+    </>
   );
 }
 

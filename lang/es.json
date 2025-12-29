@@ -43,5 +43,11 @@
   "or": "o",
   "The amount :payment must be >= to :total.": "La cantidad del campo :payment debe ser mayor o igual a :total.",
   "The amount :payment must be < to :total.": "La cantidad del campo :payment debe ser menor a :total.",
-  "Purchase from supplier :provider.": "Compra a proveedor \":provider\"."
+  "Purchase from supplier :provider.": "Compra a proveedor \":provider\".",
+  "Voided invoice": "Cancelación",
+  "Void invoice failed because a system error, contact de administrator for details.": "Cancelación de factura ha fallado debido a error del sistema, contacta al administrador del sistema para mas información",
+  "Units": "Unidades",
+  "Unit": "Unidad",
+  "(VOIDED)": "(ANULADA)",
+  "Payed": "Pagado"
 }

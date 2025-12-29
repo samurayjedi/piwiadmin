@@ -12,8 +12,8 @@ export default function Logo({ size = 80, href = '/' }: LogoProps) {
     <LogoLink href={sync === 'ok' ? href : '#'}>
       <Tooltip title={t('Home')}>
         <img
-          src="/storage/images/logo.png"
-          alt="logo.png"
+          src="/storage/images/business_logo/logo.png"
+          alt="logo"
           height={size}
           width={size}
           style={{ objectFit: 'cover' }}

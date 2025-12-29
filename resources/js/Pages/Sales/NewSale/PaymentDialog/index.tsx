@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { RefObject, useMemo, useState } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,15 +15,16 @@ import { useTheme } from '@mui/material/styles';
 import { useAppSelector } from '@/store/hooks';
 import { CtxState, CTX_STEPPER } from './hooks';
 import PaymentStepper from './PaymentStepper';
+import { CartRef } from '../Cart';
 
 export default function PaymentDialog({
-  open,
-  amount,
+  cartRef,
   onClose = () => {},
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const open = useAppSelector((state) => state.new_sale.payDialogOpen);
   const dolar = useAppSelector((state) => state.currencies.dolar);
   const [{ activeStep, clientFound }, setState] = useState({
     activeStep: 0,
@@ -32,14 +33,14 @@ export default function PaymentDialog({
   const ctxValue = useMemo(
     () =>
       ({
-        open,
         activeStep,
         clientFound,
-        amount,
+        cartRef,
         setState,
       }) as CtxState,
-    [open, activeStep, clientFound, amount],
+    [activeStep, clientFound, cartRef],
   );
+  const amount = cartRef.current?.total() ?? 0;
 
   return (
     <Dialog
@@ -87,8 +88,7 @@ export default function PaymentDialog({
 }
 
 export interface ConfirmDialogProps {
-  open: boolean;
-  amount: number;
+  cartRef: RefObject<CartRef>;
   onClose?: () => void;
 }
 

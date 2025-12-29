@@ -109,8 +109,31 @@ class SalesController extends Controller {
     }
 
     public function new_sale(Request $request) {
+        $cart = request()->get('cart', null);
         $attrs = [
             'payment_methods' => PaymentMethod::all(),
+            'recreated_sale' => $cart !== null,
+            'cart' => function () use($cart) {
+                if ($cart !== null) {
+                    $quantities = array_column($cart, 'qty', 'id');
+                    return Product::whereIn('id', array_map(fn($item) => $item['id'], $cart))
+                        ->get()
+                        ->map(function ($item, $i) use($quantities) {
+                            $normal = ($item->price * $item->profit) / 100;
+                            $wholesale = ($item->price * $item->wholesale_profit) / 100;
+                            $profit = ($item->wholesale && $quantities[$item->id] > $item->wholesale_qty) ? $wholesale : $normal;
+
+                            return [
+                                ...$item->toArray(),
+                                'qty' => $quantities[$item->id] ?? 0,
+                                'sale_price' => round($item->price + $profit, 2),
+                            ];
+                        })
+                        ->toArray();
+                }
+
+                return [];
+            },
         ];
         switch (request()->get('action', null)) {
             case 'search_client':
@@ -139,9 +162,9 @@ class SalesController extends Controller {
 
     public function register_new_sale() {
         $result = (new SaleBuilder)
-            ->make_validation_rules()
+            ->validate()
             ->exchange_from_request()
-            ->validate_and_make_objects();
+            ->make_objects();
         try {
             if (!is_array($result)) {
                 // the return value must be a redirect, so return it
@@ -266,5 +289,54 @@ class SalesController extends Controller {
         file_put_contents($pdfPath, $pdf->output());
 
         return redirect(asset("storage/tmp/$pdfUniqName"));
+    }
+
+    public function void_invoice(int $id) {
+        try {
+            DB::beginTransaction();
+            $sale = Sale::with(['sale_items', 'sale_items.product'])
+                ->where('id', '=', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            $sale->status = 'canceled';
+            $sale->save();
+            $log = StockLog::create([
+                'description' => __('messages.voided_invoice', ['sale_id' => $id]),
+                'adjustment_type' => 'addition',
+                'reason' => __('Voided invoice'),
+                'note' => request()->get('note'),
+            ]);
+            $log->products()->attach($sale->sale_items->mapWithKeys(function ($item) {
+                [$remaining_stock, $product] = Product::remaining_stock($item->product->id);
+
+                return [
+                    $item->product_id => [
+                        'adjustment' => $item->quantity,
+                        'from_stock' => $remaining_stock,
+                        'to_stock' => $remaining_stock + $item->quantity,
+                    ],
+                ];
+            })->toArray());
+            $log->sale_items()->attach($sale->sale_items->pluck('id')->toArray());
+            // returns items
+            foreach ($sale->sale_items as $item) {
+                $product = $item->product;
+                $product->stock += $item->quantity;
+                $product->save();
+            }
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Void invoice failed: ' . $e->getMessage(), [
+                'sale_id' => $id,
+            ]);
+
+            return back()->withErrors([
+                'kernel_panic' => $e->getMessage(), // __('Void invoice failed because a system error, contact de administrator for details.')
+            ]);
+        }
+
+        return back();
     }
 }

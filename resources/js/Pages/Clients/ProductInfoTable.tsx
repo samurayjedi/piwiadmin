@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { router } from '@inertiajs/react';
 import {
   Table,
   TableHead,
@@ -7,7 +8,9 @@ import {
   TableCell,
   TableFooter,
   Typography,
+  Button,
 } from '@mui/material';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import { getMeasurementSuffix } from '../Inventory/hooks';
 import { ClientWithRelations } from './types';
@@ -52,10 +55,19 @@ export default function ProductInfoTable({
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell colSpan={6}>
+          <TableCell colSpan={5}>
             <Typography variant="body2" fontWeight="bold">
               {sale.notes !== 'null' && sale.notes}
             </Typography>
+          </TableCell>
+          <TableCell align="right">
+            <Button
+              endIcon={<ReceiptIcon />}
+              size="small"
+              onClick={() => router.visit(route('sales', { sale_id: sale.id }))}
+            >
+              {t('Go to sale')}
+            </Button>
           </TableCell>
         </TableRow>
       </TableFooter>

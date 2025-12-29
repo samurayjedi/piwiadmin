@@ -1,26 +1,24 @@
-import React, { useCallback, useContext } from 'react';
+import React, { RefObject, useCallback, useContext } from 'react';
 import _ from 'lodash';
 import { router } from '@inertiajs/react';
 import { FormApi } from 'final-form';
 import { useAppDispatch } from '@/store/hooks';
 import { setSync } from '@/store/app';
 import { type Client } from '@/Pages/Clients/types';
-import { useCartContext } from '../hooks';
+import { CartRef } from '../Cart';
 
 export const CTX_STEPPER = React.createContext<CtxState>({
-  open: false,
   activeStep: 0,
   clientFound: -1,
-  amount: 0,
+  cartRef: { current: null },
   setState: () => {},
 });
 export function useStepperContext() {
   return useContext(CTX_STEPPER);
 }
 
-export function useHandlers() {
+export function useHandlers(cartRef: RefObject<CartRef>) {
   const dispatch = useAppDispatch();
-  const cartContext = useCartContext();
   const { setState } = useStepperContext();
 
   const searchClientSubmit = useCallback(
@@ -69,34 +67,29 @@ export function useHandlers() {
 
   const handleSellSubmit = useCallback(
     (data: Record<string, any>) => {
-      const cartForm = cartContext.current;
+      const cartForm = document.getElementById('new-sale-cart-form');
       if (!cartForm) {
         throw new Error('Cannot get the cart form!!');
       }
-      const formData = new FormData(cartForm);
-      _.forEach(data, (v, k) => {
-        if (k === 'payment_methods') {
-          _.map(v, (paymentMethod) => {
-            formData.append(`${k}[]`, paymentMethod);
-          });
-        } else {
-          formData.append(k, v);
-        }
-      });
 
       return new Promise<void>((resolve) => {
-        router.post(route('sales.new_sale.save'), formData, {
-          onBefore: () => {
-            dispatch(setSync('loading'));
+        router.post(
+          route('sales.new_sale.save'),
+          { ...data, ...cartRef.current?.data() },
+          {
+            forceFormData: true,
+            onBefore: () => {
+              dispatch(setSync('loading'));
+            },
+            onFinish: () => {
+              dispatch(setSync('ok'));
+              resolve();
+            },
           },
-          onFinish: () => {
-            dispatch(setSync('ok'));
-            resolve();
-          },
-        });
+        );
       });
     },
-    [cartContext, dispatch],
+    [cartRef, dispatch],
   );
 
   return {
@@ -107,10 +100,9 @@ export function useHandlers() {
 }
 
 export interface CtxState {
-  open: boolean;
   activeStep: number;
   clientFound: number;
-  amount: number;
+  cartRef: RefObject<CartRef>;
   setState: React.Dispatch<
     React.SetStateAction<{ activeStep: number; clientFound: number }>
   >;

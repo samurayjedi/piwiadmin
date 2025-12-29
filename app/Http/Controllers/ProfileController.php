@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -59,5 +60,48 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function update_business_info() {
+        request()->validate([
+            'business_name' => 'required|string|max:255',
+            'business_logo' => 'required|mimes:png',
+        ]);
+        $path = 'public/images/business_logo';
+        // create file where business_name are
+        $result = file_put_contents(public_path("storage/images/business_logo/business_name.txt"), request()->get('business_name'));
+        if (!$result) {
+            return back()->withErrors([
+                'business_name' => __('Unknown error writting business name file container.')
+            ]);
+        }
+        // Delete existing logo files
+        $this->deleteExistingLogo($path);
+        // Get the uploaded file
+        $file = request()->file('business_logo');
+        // Generate the new filename
+        $extension = $file->getClientOriginalExtension();
+        $filename = 'logo.' . $extension;
+        // Store the file
+        $path = $file->storeAs($path, $filename);
+        
+        return back();
+    }
+
+    /**
+     * Delete existing logo files from the directory
+     */
+    private function deleteExistingLogo(string $directory): void
+    {
+        // Get all files in the directory
+        $files = Storage::files($directory);
+        
+        foreach ($files as $file) {
+            // Check if filename starts with 'logo.'
+            $filename = pathinfo($file, PATHINFO_FILENAME);
+            if ($filename === 'logo') {
+                Storage::delete($file);
+            }
+        }
     }
 }

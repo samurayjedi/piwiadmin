@@ -13,16 +13,13 @@ class SaleBuilder {
     protected $dni, $cart, $payment, $paymentMethods, $total, $amountPaid;
     protected $notes, $rules;
 
-    public function make_validation_rules() {
+    public function validate() {
         $this->rules = [
             /** Products to purchase */
-            'id' => 'required|array',
-            'id.*' => 'required|integer|exists:products,id',
-            'price' => 'required|array',
-            'price.*' => 'required|numeric|min:0',
-            // the amount I'm going to buy
-            'qty' => 'required|array',
-            'qty.*' => 'required|numeric|min:0.01',
+            'cart' => 'required|array',
+            'cart.*.id' => 'required|integer|exists:products,id',
+            'cart.*.sale_price' => 'required|numeric|min:0.01',
+            'cart.*.qty' => 'required|numeric|min:0.01',
             /** client data */
             'identification' => 'required|string|min:8|exists:clients,identification',
             /** Payment */
@@ -63,22 +60,24 @@ class SaleBuilder {
             $this->rules[$paymentMethod.'_note'] = 'nullable|string';
         }
 
+        request()->validate($this->rules);
+
         return $this;
     }
 
     public function exchange_from_request() {
         $this->dni = request()->get('identification');
         $this->cart = [];
-        foreach (request()->get('id') as $i => $id) {
-            $price = request()->get('price')[$i];
-            $profit = request()->get('profit')[$i];
-            $wholesale = request()->get('wholesale')[$i];
-            $wholesale_qty = request()->get('wholesale_qty')[$i];
-            $wholesale_profit = request()->get('wholesale_profit')[$i];
-            $qty = request()->get('qty')[$i];
+        foreach (request()->get('cart') as $cartItem) {
+            $price = $cartItem['sale_price'];
+            $profit = $cartItem['profit'];
+            $wholesale = $cartItem['wholesale'];
+            $wholesale_qty = $cartItem['wholesale_qty'];
+            $wholesale_profit = $cartItem['wholesale_profit'];
+            $qty = $cartItem['qty'];
 
             $this->cart[] = [
-                'id' => $id,
+                'id' => $cartItem['id'],
                 'price' =>  floatval($price),
                 'profit' => floatval($profit),
                 'wholesale' => (bool)$wholesale,
@@ -108,12 +107,11 @@ class SaleBuilder {
         return $this;
     }
 
-    public function validate_and_make_objects() {
-        request()->validate($this->rules);
+    public function make_objects() {
         /** Calculate total */
         $this->total = 0; 
         foreach ($this->cart as $item) {
-            $this->total += $this->get_price($item) * $item['qty'];
+            $this->total += $item['price'] * $item['qty'];
         }
         $this->total = round($this->total, 2);
         /** Calculate & validate amount paid */
@@ -144,7 +142,7 @@ class SaleBuilder {
         $sale->client_id = $client->id;
         $sale->payment_type = $this->payment['payment_type'];
         $sale->total_amount = $this->total;
-        $sale->amount_paid = $this->amountPaid;
+        $sale->amount_paid = min($this->amountPaid, $this->total);
         $sale->status = $this->payment['payment_type'] === 'cash' ? 'completed' : 'pending';
         $sale->due_date = $this->payment['due_date'];
         $sale->notification_interval = $this->payment['notification_interval'];
@@ -155,7 +153,7 @@ class SaleBuilder {
             $saleItem = new SaleItem;
             $saleItem->product_id = $item['id'];
             $saleItem->quantity = $item['qty'];
-            $saleItem->unit_price = $this->get_price($item);
+            $saleItem->unit_price = $item['price'];
             $saleItem->discount_id = null;
             $saleItems[] = $saleItem;
         }

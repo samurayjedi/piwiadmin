@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import _ from 'lodash';
-import { Tabs, Tab as MUITab, Slide } from '@mui/material';
+import { Tabs as MUITabs, Tab as MUITab, Slide } from '@mui/material';
 
 export default function TabsPager({
   tabs,
   tabSize = 'default',
   children,
+  tabsPosition = 'top',
+  additional = null,
 }: TabsPagerProps) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right'>('left');
@@ -14,19 +16,23 @@ export default function TabsPager({
     throw new Error('Number of childs !== tabs count.');
   }
 
+  const onTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setDirection(newValue > index ? 'left' : 'right');
+    setIndex(newValue);
+  };
+
   return (
     <Wrapper>
-      <Tabs
-        value={index}
-        onChange={(event, newValue: number) => {
-          setDirection(newValue > index ? 'left' : 'right');
-          setIndex(newValue);
-        }}
-      >
-        {_.map(tabs, (value, key) => (
-          <Tab key={`tab-${key}`} label={value} size={tabSize} />
-        ))}
-      </Tabs>
+      {tabsPosition === 'top' && (
+        <TabsContainer>
+          <Tabs value={index} onChange={onTabChange}>
+            {_.map(tabs, (value, key) => (
+              <Tab key={`tab-${key}`} label={value} size={tabSize} />
+            ))}
+          </Tabs>
+          <Additional>{additional}</Additional>
+        </TabsContainer>
+      )}
       {React.Children.map(children, (child, i) => (
         <Slide
           key={`slide-tab-${tabs[i]}`}
@@ -41,6 +47,16 @@ export default function TabsPager({
           </SlideWrapper>
         </Slide>
       ))}
+      {tabsPosition === 'bottom' && (
+        <TabsContainer>
+          <BottomTabs value={index} onChange={onTabChange}>
+            {_.map(tabs, (value, key) => (
+              <Tab key={`tab-${key}`} label={value} size={tabSize} />
+            ))}
+          </BottomTabs>
+          <Additional>{additional}</Additional>
+        </TabsContainer>
+      )}
     </Wrapper>
   );
 }
@@ -49,6 +65,8 @@ export interface TabsPagerProps {
   tabs: Record<string, string>;
   children: React.ReactNode;
   tabSize?: 'small' | 'default';
+  tabsPosition?: 'top' | 'bottom';
+  additional?: React.ReactNode;
 }
 
 const Wrapper = styled.div(({ theme }) => ({
@@ -56,6 +74,12 @@ const Wrapper = styled.div(({ theme }) => ({
   flexDirection: 'column',
   margin: theme.spacing(1),
 }));
+
+const TabsContainer = styled.div({
+  display: 'flex',
+  flexDirection: 'row',
+  flex: 1,
+});
 
 const SlideWrapper = styled.div({
   position: 'relative',
@@ -74,4 +98,22 @@ const Tab = styled(MUITab)<{ size: TabsPagerProps['tabSize'] }>(({ size }) => ({
 
     return {};
   })(),
+}));
+
+const Additional = styled.div({
+  display: 'block',
+  borderTop: '2px solid #e0e0e0',
+});
+
+const Tabs = styled(MUITabs)({
+  flex: 1,
+});
+
+const BottomTabs = styled(MUITabs)(({ theme }) => ({
+  flex: 1,
+  borderTop: '2px solid #e0e0e0',
+  '& .MuiTabs-indicator': {
+    top: 0,
+    backgroundColor: theme.palette.primary.main,
+  },
 }));

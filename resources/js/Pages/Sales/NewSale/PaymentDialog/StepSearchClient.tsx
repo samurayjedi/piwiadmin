@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { IconButton, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TextFieldMasked from '@/src/lib/piwi/core/TextFieldMasked';
+import { useAppSelector } from '@/store/hooks';
 import { useErrors } from '@/hooks';
 import { useStepperContext } from './hooks';
 
@@ -11,7 +12,8 @@ export default function StepSearchClient() {
   const { t } = useTranslation();
   const [fuckErrors, onChangeDecorator] = useErrors();
   const ref = useRef<HTMLInputElement>(null);
-  const { open, activeStep } = useStepperContext();
+  const open = useAppSelector((state) => state.new_sale.payDialogOpen);
+  const { activeStep } = useStepperContext();
 
   useEffect(() => {
     if (open && activeStep === 0) {

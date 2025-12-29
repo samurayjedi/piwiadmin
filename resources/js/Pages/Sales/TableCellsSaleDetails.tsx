@@ -1,3 +1,6 @@
+import { useCallback, useMemo, useState } from 'react';
+import { router } from '@inertiajs/react';
+import _ from 'lodash';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,33 +9,102 @@ import {
   TableHead,
   TableRow,
   TableBody,
-  Typography,
   Button,
-  Box,
+  IconButton,
+  ClickAwayListener,
 } from '@mui/material';
 import SoapIcon from '@mui/icons-material/Soap';
+import CommentIcon from '@mui/icons-material/Comment';
+import CopyAllIcon from '@mui/icons-material/CopyAll';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import BlockIcon from '@mui/icons-material/Block';
 import TabsPager from '@/src/lib/piwi/animated/TabsPager';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
-import { useAppSelector } from '@/store/hooks';
+import Popper from '@/src/lib/piwi/core/Popper';
+import { onPay, voidInvoice } from '@/store/sales';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { type SalesPageProps } from './types';
 import { getMeasurementSuffix } from '../Inventory/hooks';
 
 export default function TableCellsSaleDetails({
-  onPay,
   ...sale
 }: TableCellsSaleDetailsProps) {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
   const sync = useAppSelector((state) => state.app.sync);
 
   return (
     <Content>
       <TabsPager
         tabSize="small"
+        tabsPosition="bottom"
         tabs={{
           purchase: t('Purchase'),
           payments_made: t('Payments made'),
         }}
+        additional={
+          <>
+            {sale.notes !== 'null' && sale.notes !== null && (
+              <SaleNotes note={sale.notes} />
+            )}
+            {sale.status !== 'canceled' && (
+              <IconButton
+                color="error"
+                size="small"
+                title={t('Void invoice')}
+                sx={{ mr: 1 }}
+                onClick={() => dispatch(voidInvoice(sale))}
+              >
+                <BlockIcon fontSize="small" />
+              </IconButton>
+            )}
+            {sale.status === 'canceled' && (
+              <IconButton
+                title={t('Replicate invoice')}
+                size="small"
+                color="default"
+                sx={{ mr: 1 }}
+                onClick={() =>
+                  router.post(route('sales.new_sale'), {
+                    cart: sale.sale_items.map((item) => ({
+                      id: item.product_id,
+                      qty: item.quantity,
+                    })),
+                  })
+                }
+              >
+                <CopyAllIcon fontSize="small" />
+              </IconButton>
+            )}
+            {sale.payment_type !== 'cash' && sale.status === 'pending' && (
+              <Button
+                size="small"
+                variant="text"
+                color="warning"
+                startIcon={<SoapIcon />}
+                onClick={() => dispatch(onPay(sale))}
+                disabled={sync !== 'ok'}
+              >
+                {t('Payment')}
+              </Button>
+            )}
+            <Button
+              size="small"
+              variant="text"
+              color="primary"
+              startIcon={<ReceiptLongIcon />}
+              onClick={() =>
+                window.open(
+                  route('sales.sale.print_invoice', { id: sale?.id ?? 0 }),
+                  '_blank',
+                  'noopener,noreferrer',
+                )
+              }
+            >
+              {t('Print Invoice')}
+            </Button>
+          </>
+        }
       >
         <Table size="small">
           <TableHead>
@@ -93,49 +165,48 @@ export default function TableCellsSaleDetails({
           </TableBody>
         </Table>
       </TabsPager>
-      <Footer>
-        {sale.notes !== 'null' ? (
-          <Typography variant="caption" sx={{ flex: 1 }}>
-            <strong>{t('Sale notes')}:</strong>&nbsp;
-            {sale.notes}
-          </Typography>
-        ) : (
-          <Box sx={{ flex: 1 }} />
-        )}
-        {sale.payment_type !== 'cash' && sale.status === 'pending' && (
-          <Button
-            size="small"
-            variant="text"
-            color="warning"
-            startIcon={<SoapIcon />}
-            onClick={() => onPay(sale)}
-            disabled={sync !== 'ok'}
-          >
-            {t('Payment')}
-          </Button>
-        )}
-        <Button
-          size="small"
-          variant="text"
-          color="primary"
-          startIcon={<ReceiptLongIcon />}
-          onClick={() =>
-            window.open(
-              route('sales.sale.print_invoice', { id: sale?.id ?? 0 }),
-              '_blank',
-              'noopener,noreferrer',
-            )
-          }
-        >
-          {t('Print Invoice')}
-        </Button>
-      </Footer>
     </Content>
   );
 }
 
-export interface TableCellsSaleDetailsProps extends SalesPageProps {
-  onPay: (sale: SalesPageProps) => void;
+export interface TableCellsSaleDetailsProps extends SalesPageProps {}
+
+function SaleNotes({ note }: { note: string }) {
+  const { t } = useTranslation();
+  const popoverId = useMemo(() => _.uniqueId('popover-notification_'), []);
+  const [noteAnchor, setNoteAnchor] = useState<HTMLElement | null>(null);
+
+  const onClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setNoteAnchor(event.currentTarget);
+  }, []);
+
+  const handlePopoverClose = useCallback(() => {
+    setNoteAnchor(null);
+  }, []);
+
+  return (
+    <>
+      <IconButton
+        title={t('Note')}
+        onClick={onClick}
+        size="small"
+        color="default"
+        sx={{ mr: 1 }}
+      >
+        <CommentIcon fontSize="small" />
+      </IconButton>
+      <Popper
+        id={popoverId}
+        open={noteAnchor !== null}
+        anchorEl={noteAnchor}
+        placement="bottom"
+      >
+        <ClickAwayListener onClickAway={handlePopoverClose}>
+          <NoteContent>{note}</NoteContent>
+        </ClickAwayListener>
+      </Popper>
+    </>
+  );
 }
 
 const Content = styled.div({
@@ -144,8 +215,9 @@ const Content = styled.div({
   marginTop: -8,
 });
 
-const Footer = styled.div(({ theme }) => ({
+const NoteContent = styled.div(({ theme }) => ({
   display: 'flex',
-  marginTop: theme.spacing(1),
-  alignItems: 'center',
+  flexDirection: 'row',
+  padding: theme.spacing(2),
+  maxWidth: 300,
 }));

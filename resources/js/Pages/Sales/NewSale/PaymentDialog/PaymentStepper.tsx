@@ -9,10 +9,10 @@ import StepPayment from './StepPayment';
 
 export default function PaymentStepper() {
   const { t } = useTranslation();
-  const { activeStep } = useStepperContext();
+  const { activeStep, cartRef } = useStepperContext();
 
   const { searchClientSubmit, clientDataSubmit, handleSellSubmit } =
-    useHandlers();
+    useHandlers(cartRef);
   const onSubmit = (() => {
     switch (activeStep) {
       case 0:

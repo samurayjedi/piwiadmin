@@ -61,7 +61,7 @@ export default function InputFile({
           aria-label="upload documents"
           component="span"
           size="large"
-          color={error ? 'error' : 'inherit'}
+          color={error ? 'error' : 'default'}
         >
           {!filesSelected ? (
             <DocumentScannerIcon />
@@ -72,7 +72,7 @@ export default function InputFile({
         <Typography
           variant="subtitle2"
           gutterBottom
-          color={error ? 'error' : 'inherit'}
+          color={error ? 'error' : 'GrayText'}
         >
           {!filesSelected
             ? label || t('Click for upload files')

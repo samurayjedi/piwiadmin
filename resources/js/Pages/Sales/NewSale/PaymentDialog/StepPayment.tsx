@@ -10,13 +10,16 @@ import { arrayToRecord } from '@/src/lib/miscUtils';
 import PayFields from '@/Pages/Sales/PayFields';
 import Select from '@/src/lib/piwi/core/Select';
 import DatePicker from '@/src/lib/piwi/core/DatePicker';
+import { useAppSelector } from '@/store/hooks';
 import { useStepperContext } from './hooks';
 
 export default function StepPayment() {
   const { t } = useTranslation();
-  const { open, activeStep, setState, amount } = useStepperContext();
+  const open = useAppSelector((state) => state.new_sale.payDialogOpen);
+  const { activeStep, setState, cartRef } = useStepperContext();
   const [fuckErrors, onChangeDecorator] = useErrors();
   const selectRef = useRef<HTMLSelectElement>(null);
+  const amount = cartRef.current?.total() ?? 0;
 
   const back = useCallback(() => {
     setState((prev) => ({ ...prev, activeStep: 1 }));

@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  ChangeEvent,
-  useRef,
-} from 'react';
+import React, { useCallback, ChangeEvent, useRef } from 'react';
 import styled from '@emotion/styled';
 import { IconButton, TextFieldProps } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -13,16 +7,7 @@ import TextFieldNumericFormat, {
   TextFieldNumericFormatProps,
 } from './TextFieldNumericFormat';
 
-const parseValue = (v: any, min: number, max: number) => {
-  const newV = parseFloat(v);
-  if (isNaN(newV)) {
-    return '' as unknown as number;
-  }
-
-  return Math.max(min, Math.min(max, newV));
-};
 export default function Spinner({
-  value = 0,
   step = 1,
   onChange,
   min = Number.MIN_SAFE_INTEGER,
@@ -35,34 +20,45 @@ export default function Spinner({
   const iRef = (inputRef ?? ref) as React.MutableRefObject<
     HTMLInputElement | undefined
   >;
-  const [v, setV] = useState<number>(parseValue(value, min, max));
-
-  useEffect(() => {
-    setV(parseValue(value, min, max));
-  }, [value, min, max]);
-
   const increment = useCallback(() => {
-    setV((x) => Math.min(max, x + step));
     if (iRef.current) {
       iRef.current.focus();
+      // changing value
+      const x = parseFloat(iRef.current.value ?? 0);
+      const nv = Math.min(max, x + step);
+      if (onChange) {
+        onChange({
+          target: { value: nv.toString() },
+          currentTarget: { value: nv.toString() },
+        } as unknown as any);
+      }
+      iRef.current.value = nv.toString();
     }
-  }, [iRef, max, step]);
+  }, [iRef, max, onChange, step]);
 
   const decrement = useCallback(() => {
-    setV((x) => Math.max(min, x - step));
     if (iRef.current) {
       iRef.current.focus();
+      // changing value
+      const x = parseFloat(iRef.current.value ?? 0);
+      const nv = Math.max(min, x - step);
+      if (onChange) {
+        onChange({
+          target: { value: nv.toString() },
+          currentTarget: { value: nv.toString() },
+        } as unknown as any);
+      }
+      iRef.current.value = nv.toString();
     }
-  }, [iRef, min, step]);
+  }, [iRef, min, onChange, step]);
 
   const handleChange = useCallback(
     (ev: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
-      setV(parseValue(ev.target.value, min, max));
       if (onChange) {
         onChange(ev);
       }
     },
-    [onChange, min, max],
+    [onChange],
   );
 
   const handleKeyDown = useCallback(
@@ -91,8 +87,21 @@ export default function Spinner({
         {...props}
         onKeyDown={handleKeyDown}
         inputRef={iRef}
-        value={v.toString()}
         onChange={handleChange}
+        numericFormatProps={{
+          ...(props.numericFormatProps && props.numericFormatProps),
+          isAllowed: (_) => {
+            if (!_.value) {
+              return true;
+            }
+            const converted = parseFloat(_.value);
+            const another = props.numericFormatProps?.isAllowed
+              ? props.numericFormatProps.isAllowed(_)
+              : true;
+
+            return converted >= min && converted <= max && another;
+          },
+        }}
       />
       <IconButton size="small" onClick={increment} sx={{ ml: 1 }}>
         <AddCircleOutlineIcon />
@@ -101,9 +110,8 @@ export default function Spinner({
   );
 }
 
-export type QuantityProps = Omit<TextFieldProps, 'value'> & {
+export type QuantityProps = TextFieldProps & {
   step?: number;
-  value?: number;
   min?: number;
   max?: number;
   numericFormatProps?: TextFieldNumericFormatProps['numericFormatProps'];

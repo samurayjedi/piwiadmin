@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,51 +21,27 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import SearchProducts, {
   SearchProductsFieldRef,
 } from '@/src/Components/SearchProducts';
-import { useAppSelector } from '@/store/hooks';
 import Gap from '@/src/lib/piwi/common/Gap';
 import { type Product } from '@/Pages/Inventory/types';
+import { useAppSelector } from '@/store/hooks';
 import { useHandler } from './hooks';
 import ProductRow from './ProductRow';
-import { type FormCart } from '../types';
+import { FormCart } from '../types';
 
 export default function SearchProductDialog({
-  open,
+  onAdd,
   onClose,
-  addAction,
 }: SearchProductDialogProps) {
   const { t } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const sync = useAppSelector((state) => state.app.sync);
-  const [products, setP] = useState<Product[]>([]);
-  const { formRef, handleAddProducts } = useHandler(addAction, setP);
-  const ref = useRef<SearchProductsFieldRef>(null);
-
-  const add = useCallback(() => {
-    handleAddProducts();
-    ref.current?.reset();
-    setTimeout(() => {
-      if (ref.current) {
-        ref.current.inputRef()?.focus();
-      }
-    }, 100);
-  }, [handleAddProducts]);
-
-  const addAndContinue = useCallback(() => {
-    handleAddProducts();
-    if (onClose) {
-      onClose();
-    }
-  }, [handleAddProducts, onClose]);
-
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === 'Enter') {
-        handleAddProducts();
-      }
-    },
-    [handleAddProducts],
+  const open = useAppSelector(
+    (state) => state.new_sale.searchProductDialogOpen,
   );
+  const [products, setP] = useState<Product[]>([]);
+  const { formRef, handleAddProducts } = useHandler(onAdd, setP);
+  const ref = useRef<SearchProductsFieldRef>(null);
 
   return (
     <Dialog open={open} fullScreen={isMobile} maxWidth="md" onClose={onClose}>
@@ -101,7 +77,11 @@ export default function SearchProductDialog({
                       <ProductRow
                         {...p}
                         key={`searched-product-${p.id}`}
-                        onKeyDown={onKeyDown}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleAddProducts();
+                          }
+                        }}
                         index={i}
                       />
                     ))}
@@ -114,7 +94,15 @@ export default function SearchProductDialog({
               <Button
                 variant="contained"
                 color="primary"
-                onClick={add}
+                onClick={() => {
+                  handleAddProducts();
+                  ref.current?.reset();
+                  setTimeout(() => {
+                    if (ref.current) {
+                      ref.current.inputRef()?.focus();
+                    }
+                  }, 100);
+                }}
                 disabled={!(products.length > 0)}
                 sx={{ mr: `4px` }}
               >
@@ -124,7 +112,12 @@ export default function SearchProductDialog({
                 color="success"
                 variant="contained"
                 startIcon={<AddShoppingCartIcon />}
-                onClick={addAndContinue}
+                onClick={() => {
+                  handleAddProducts();
+                  if (onClose) {
+                    onClose();
+                  }
+                }}
                 disabled={!(products.length > 0)}
               >
                 {t('Add and continue')}
@@ -138,9 +131,8 @@ export default function SearchProductDialog({
 }
 
 export interface SearchProductDialogProps {
-  open: boolean;
   onClose?: () => void;
-  addAction: (p: FormCart[]) => void;
+  onAdd: (cart: FormCart[]) => void;
 }
 
 const Dialog = styled(MUIDialog)({

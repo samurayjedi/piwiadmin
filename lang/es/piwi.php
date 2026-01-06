@@ -14,4 +14,9 @@ return [
         'pay' => 'Pagar',
         'notification_sale_primary' => 'Recordatorio para venta #:id',
     ],
+    'low_stock' => [
+        'primary' => 'El producto ":product_name" tiene bajo stock',
+        'secondary' => 'Solo :stock estan disponibles',
+        'action' => 'Surtir',
+    ],
 ];

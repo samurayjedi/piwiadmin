@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('payment_reminder:send daily')->daily();
         $schedule->command('accounts_reminders:send daily')->daily();
+        $schedule->command('app:send-low-stock-notifications')->daily();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

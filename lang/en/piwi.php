@@ -14,4 +14,9 @@ return [
         'pay' => 'Pay',
         'notification_sale_primary' => 'Reminder for sale #:id',
     ],
+    'low_stock' => [
+        'primary' => 'The product ":product_name" have low stock',
+        'secondary' => 'Only :stock its available',
+        'action' => 'Restock',
+    ],
 ];

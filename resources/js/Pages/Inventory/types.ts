@@ -15,4 +15,5 @@ export interface Product {
   wholesale: boolean;
   wholesale_qty: number;
   wholesale_profit: number;
+  notification_stock: number | null;
 }

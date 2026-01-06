@@ -25,6 +25,7 @@ class Product extends Model
         'stock'            => 'float',
         'wholesale_qty'    => 'float:nullable',
         'wholesale_profit' => 'float:nullable',
+        'notification_stock'    => 'float:nullable',
     ];
 
     public function category(): BelongsTo {
@@ -42,6 +43,26 @@ class Product extends Model
     public function payable_account_items(): HasMany {
         return $this->hasMany(PayableAccountItem::class);
     }
+
+    public function getMeasurementSuffix() {
+        if ($this->stock === 0) {
+            return '';
+        }
+
+        switch ($this->measurement) {
+            case 'unit':
+                if ($this->stock > 1) {
+                    return __('Units');
+                }
+                return __('Unit');
+            case 'liter':
+                return $this->stock > 1 ? 'Lts' : 'Lt';
+            case 'weight':
+                return 'Kg';
+        }
+
+        return '';
+    } 
 
     public static function remaining_stock($id) {
         $product = Product::findOrFail($id);

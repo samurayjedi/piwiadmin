@@ -306,4 +306,5 @@ return [
     'View sale' => 'Ir a venta',
     'Void invoice' => 'Anular venta',
     'Replicate invoice' => 'Replicar compra',
+    'Notify when' => 'Notificar cuando',
 ];

@@ -196,6 +196,7 @@ return [
         'total_amount' => 'Monto total',
         'payment' => 'Abonar',
         'amount' => 'Monto',
+        'notification_stock' => 'Stock',
     ],
     'values' => [
         'payment_type' => [
@@ -212,6 +213,9 @@ return [
         ],
         'update_prices' => [
             '1' => 'Verdadero',
-        ]
+        ],
+        'notification' => [
+            '1' => 'Verdadero',
+        ],
     ],
 ];

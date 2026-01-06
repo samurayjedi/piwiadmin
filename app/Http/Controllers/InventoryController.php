@@ -40,7 +40,7 @@ class InventoryController extends Controller {
             ->groupBy('products.id', 'products.barcode', 'products.name', 
             'products.price', 'products.profit', 'products.stock', 'products.category', 'products.brand',
             'products.wholesale', 'products.wholesale_qty', 'products.wholesale_profit', 'products.created_at',
-            'products.updated_at', 'products.deleted_at', 'products.measurement')
+            'products.updated_at', 'products.deleted_at', 'products.measurement', 'products.notification_stock')
             ->orderBy('products.id', 'DESC');
         /** products pagination */
         $page = intval(request()->get('page', 0));
@@ -81,7 +81,11 @@ class InventoryController extends Controller {
             'wholesale' => 'boolean',
             'wholesale_qty' => 'required_if:wholesale,==,true|numeric',
             'wholesale_profit' => 'required_if:wholesale,==,true|numeric',
+            'notification' => 'boolean',
+            'notification_stock' => 'required_if:notification,==,true|numeric'
         ]);
+        $notification = $request->get('notification', false);
+        $notification_stock = $request->get('notification_stock', null);
 
         $product = new Product;
         $product->barcode = $request->get('barcode');
@@ -96,6 +100,7 @@ class InventoryController extends Controller {
         $product->wholesale = (bool)$wholesale;
         $product->wholesale_qty = $wholesale ? $request->get('wholesale_qty') : null;
         $product->wholesale_profit = $wholesale ? $request->get('wholesale_profit') : null;
+        $product->notification_stock = $notification == 1 ? $notification_stock : null;
         $product->save();
 
         return back();
@@ -114,7 +119,11 @@ class InventoryController extends Controller {
             'wholesale' => 'boolean',
             'wholesale_qty' => 'required_if:wholesale,==,1|numeric',
             'wholesale_profit' => 'required_if:wholesale,==,1|numeric',
+            'notification' => 'boolean',
+            'notification_stock' => 'required_if:notification,==,true|numeric'
         ]);
+        $notification = $request->get('notification', false);
+        $notification_stock = $request->get('notification_stock', null);
 
         try {
             DB::beginTransaction();
@@ -132,6 +141,7 @@ class InventoryController extends Controller {
             $product->wholesale = $wholesale;
             $product->wholesale_qty = $wholesale ? $request->get('wholesale_qty') : null;
             $product->wholesale_profit = $wholesale ? $request->get('wholesale_profit') : null;
+            $product->notification_stock = $notification == 1 ? $notification_stock : null;
             $product->save();
             /** */
             if ($stock !== $product->stock) {
@@ -518,7 +528,7 @@ class InventoryController extends Controller {
             ->groupBy('products.id', 'products.barcode', 'products.name', 
             'products.price', 'products.profit', 'products.stock', 'products.category', 'products.brand',
             'products.wholesale', 'products.wholesale_qty', 'products.wholesale_profit', 'products.created_at',
-            'products.updated_at', 'products.deleted_at', 'products.measurement')
+            'products.updated_at', 'products.deleted_at', 'products.measurement', 'products.notification_stock')
             ->get()
             ->map(fn ($item) => [
                 ...$item->toArray(),

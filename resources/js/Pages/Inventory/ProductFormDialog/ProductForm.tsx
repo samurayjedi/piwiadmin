@@ -10,6 +10,7 @@ import {
   Button,
   Switch,
   FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { Form, Field, FormProps } from 'react-final-form';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
@@ -33,6 +34,7 @@ import WholesalePriceTextfield from './WholesalePriceTextField';
 import StockField from './StockField';
 import WholesaleQtyField from './WholesaleQtyField';
 import WholesaleProfitField from './WholesaleProfitField';
+import NotificationStockField from './NotificationStockField';
 
 export default function ProductForm({ id, onSubmit }: ProductFormProps) {
   const { t } = useTranslation();
@@ -43,7 +45,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
   const categories = useCategories();
   const brands = useBrands();
   const firstField = useRef<HTMLInputElement>(null);
-  let initialValues = !product
+  let initialValues: any = !product
     ? {}
     : _.mapValues(product, (v: any, k) => {
         switch (k) {
@@ -65,7 +67,13 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
 
   return (
     <Form
-      initialValues={initialValues}
+      initialValues={{
+        notification: Boolean(product?.notification_stock),
+        notification_stock: 0,
+        stock: 0,
+        wholesale_qty: 0,
+        ...initialValues,
+      }}
       subscription={{ submitting: true, pristine: true }}
       onSubmit={onSubmit}
       render={({ /** pristine, */ handleSubmit, submitting }) => (
@@ -299,16 +307,42 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
               <WholesalePriceTextfield />
             </Grid>
           </Grid>
-          <Button
-            sx={{ mt: 2, alignSelf: 'flex-end' }}
-            type="submit"
-            variant="contained"
-            color="secondary"
-            startIcon={<SaveIcon />}
-            disabled={sync !== 'ok' || submitting}
-          >
-            {t('Save')}
-          </Button>
+          <FormFooter>
+            <Field
+              name="notification"
+              subscription={{ value: true }}
+              render={({ input }) => (
+                <FormControlLabel
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row-reverse',
+                    alignItems: 'center',
+                  }}
+                  name={input.name}
+                  label={t('Notify when')}
+                  control={
+                    <Checkbox
+                      checked={input.value}
+                      onChange={input.onChange}
+                      color="secondary"
+                    />
+                  }
+                  disabled={submitting}
+                />
+              )}
+            />
+            <NotificationStockField />
+            <Button
+              sx={{ mt: 2, alignSelf: 'flex-end' }}
+              type="submit"
+              variant="contained"
+              color="secondary"
+              startIcon={<SaveIcon />}
+              disabled={sync !== 'ok' || submitting}
+            >
+              {t('Save')}
+            </Button>
+          </FormFooter>
         </StyledHtmlForm>
       )}
     />
@@ -323,6 +357,14 @@ export interface ProductFormProps {
 const StyledHtmlForm = styled(HtmlForm)({
   display: 'flex',
   flexDirection: 'column',
+});
+
+const FormFooter = styled.div({
+  display: 'flex',
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'flex-end',
+  alignItems: 'flex-end',
 });
 
 export const radios = (theme: Theme) =>

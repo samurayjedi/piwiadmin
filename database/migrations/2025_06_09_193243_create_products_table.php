@@ -29,6 +29,7 @@ return new class extends Migration
             $table->boolean('wholesale');
             $table->decimal('wholesale_qty')->nullable();
             $table->decimal('wholesale_profit', 10, 2)->nullable();
+            $table->decimal('notification_stock')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

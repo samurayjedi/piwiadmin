@@ -20,7 +20,6 @@ import {
 import {
   Person as PersonIcon,
   Google as GoogleIcon,
-  Facebook as FacebookIcon,
   LockOpen as LockOpenIcon,
   VpnKey as VpnKeyIcon,
 } from '@mui/icons-material';
@@ -138,11 +137,6 @@ export default function LoginForm({ status }: { status: string }) {
                 <Tooltip title={t('Login via Google')}>
                   <IconButton disabled={submitting}>
                     <GoogleIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('Login via Facebook')}>
-                  <IconButton disabled={submitting}>
-                    <FacebookIcon />
                   </IconButton>
                 </Tooltip>
               </Grid>

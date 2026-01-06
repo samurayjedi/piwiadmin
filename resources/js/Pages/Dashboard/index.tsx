@@ -18,6 +18,7 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import WalletIcon from '@mui/icons-material/Wallet';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PiwiSkeleton from '@/src/Components/Skeleton';
 import Sidebar from './Sidebar';
@@ -157,6 +158,16 @@ export default function Dashboard() {
                   startIcon={<PointOfSaleIcon />}
                 >
                   {t('Payment methods')}
+                </CardButton>
+              </Skeleton>
+              <Skeleton variant="rounded">
+                <CardButton
+                  LinkComponent={Link}
+                  href={route('payable_accounts')}
+                  variant="contained"
+                  startIcon={<WalletIcon />}
+                >
+                  {t('Payable accounts')}
                 </CardButton>
               </Skeleton>
             </Section>

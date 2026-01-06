@@ -17,6 +17,7 @@ use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\ChartsController;
 use App\Http\Controllers\CurrenciesController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\PayableAccounts;
 
 Route::get('/', function () {
     return redirect('/dashboard');
@@ -86,6 +87,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/dashboard/clients/add', 'store')->name('clients.store');
         Route::post('/dashboard/clients/update/id/{id}', 'update')->name('clients.update');
         Route::post('/dashboard/clients/delete/id/{id}', 'delete')->name('clients.delete');
+    });
+    /** Pending Accounts */
+    Route::controller(PayableAccounts::class)->group(function () {
+        Route::get('/dashboard/payable_accounts', 'main')->name('payable_accounts');
     });
     /** Payment Methods */
     Route::controller(PaymentMethodsController::class)->group(function() {

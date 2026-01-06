@@ -20,7 +20,6 @@ import {
   HowToReg as HowToRegIcon,
   AccountCircle as AccountCircleIcon,
   Google as GoogleIcon,
-  Facebook as FacebookIcon,
 } from '@mui/icons-material';
 // Internal Dependencies
 import TextFieldPassword from '@/src/lib/piwi/core/TextFieldPassword';
@@ -144,11 +143,6 @@ export default function Register() {
                 <Tooltip title={t('Register via Google')}>
                   <IconButton disabled={submitting}>
                     <GoogleIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title={t('Register via Facebook')}>
-                  <IconButton disabled={submitting}>
-                    <FacebookIcon />
                   </IconButton>
                 </Tooltip>
               </Grid>

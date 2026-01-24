@@ -154,6 +154,8 @@ return [
         ],
     ],
     'attributes' => [
+        'email' => 'Correo',
+        'password' => 'Contraseña',
         'payment_label' => 'Etiqueta',
         'payment_slug' => 'Slug',
         'payment_currency' => 'Moneda',

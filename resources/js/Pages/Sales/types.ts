@@ -3,7 +3,7 @@ import { type Client } from '../Clients/types';
 import { type PaymentMethod } from '../PaymentMethods/types';
 import { type Product } from '../Inventory/types';
 
-export interface Cart extends Product {
+export interface Cart extends Omit<Product, 'notification_stock'> {
   qty: number;
 }
 
@@ -24,6 +24,7 @@ export interface Sale {
   notes: string;
   created_at: string;
   updated_at: string;
+  escpos_invoice_path: string;
 }
 
 export interface SaleItem {

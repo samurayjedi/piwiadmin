@@ -17,8 +17,10 @@ declare global {
 
   /** */
   interface AppPageProps {
-    auth: {
-      user: User;
+    props: {
+      auth: {
+        user: User;
+      };
     };
   }
 

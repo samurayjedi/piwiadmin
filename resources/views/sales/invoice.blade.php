@@ -2,10 +2,6 @@
     $path = 'images/business_logo/logo.png';
     $mimeType = Storage::disk('public')->mimeType($path);
     $base64Image = base64_encode(Storage::disk('public')->get($path));
-    $business_name = @file_get_contents(public_path("storage/images/business_logo/business_name.txt"));
-    if (!$business_name) {
-        $business_name = config('app.name', 'Laravel');
-    }
     $total = round($sale['total_amount'] * $dolar, 2);
     $toPay = round(($sale['total_amount'] * $dolar) - ($sale['amount_paid'] * $dolar), 2);
     $payed = round($sale['amount_paid'] * $dolar, 2);

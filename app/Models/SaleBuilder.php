@@ -150,6 +150,14 @@ class SaleBuilder {
         // sale items objects
         $saleItems = [];
         foreach ($this->cart as $item) {
+            /** check if the stock have availibity for the product */
+            [$remaining_stock, $p] = Product::remaining_stock($item['id']);
+            if ($item['qty'] > $remaining_stock) {
+                return back()->withErrors([
+                    'payment_type' => __('There is not enough stock for the product:').' '.$p->name,
+                ]);
+            }
+
             $saleItem = new SaleItem;
             $saleItem->product_id = $item['id'];
             $saleItem->quantity = $item['qty'];

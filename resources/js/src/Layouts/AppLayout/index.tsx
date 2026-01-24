@@ -9,12 +9,13 @@ import Breadcrumbs from './Breadcrumbs';
 
 export default function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
   const {
-    props: { business_name },
+    props: { company },
   } = useAppPage();
+  const { name } = company as Record<string, string>;
 
   return (
     <>
-      <Head title={business_name as string} />
+      <Head title={name} />
       <DolarSync>
         <PrimaryAppBar />
         <Container maxWidth="lg" sx={{ paddingBottom: '90px' }}>

@@ -20,6 +20,9 @@ use App\DolarScrapper;
 use App\Models\StockLog;
 use App\Http\Controllers\CurrenciesController;
 use App\Mon3trUtils;
+use App\Events\SaleDone;
+use App\Services\DolarService;
+use App\Services\BusinessInfoService;
 
 class SalesController extends Controller {
     public function sales_by_type(string $sale_type) {
@@ -207,6 +210,12 @@ class SalesController extends Controller {
                 $pay->save();
             }
             DB::commit();
+            // print invoice, etc
+            event(new SaleDone($sale));
+
+            return redirect()->route('sales.sale.print_esc_eos_invoice', [
+                'id' => $sale->id,
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Sale creation failed: '.$e->getMessage());
@@ -215,8 +224,22 @@ class SalesController extends Controller {
                 'kernel_panic' => $e->getMessage(),
             ]);
         }
+    }
 
-        return redirect()->route('sales');
+    public function print_esc_pos_invoice(int $id) {
+        $sale = Sale::with([
+            'client',
+            'user',
+            'sale_items',
+            'sale_items.product',
+            'sale_items.product.brand',
+            'sale_items.product.category',
+            'payments',
+            'payments.payment_method',
+        ])->where('id', $id)->firstOrFail();
+        return Inertia::render('Sales/NewSale/PrintEcsPosInvoice', [
+            'sale' => $sale->toArray(),
+        ]);
     }
 
     public function pay() {
@@ -261,7 +284,7 @@ class SalesController extends Controller {
         return back();
     }
 
-    public function print_invoice(int $id) {
+    public function print_invoice(int $id, DolarService $dolar, BusinessInfoService $info) {
         $sale = Sale::where('id', '=', $id)
             ->with([
                 'client' => fn ($query) => $query->withTrashed(),
@@ -282,7 +305,8 @@ class SalesController extends Controller {
         $pdf->setPaper([0, 0, 226.77, 800], 'portrait'); 
         $pdf->load_html(view('sales.invoice', [
             'sale' => $sale->toArray(),
-            'dolar' => CurrenciesController::scrap_bcv(),
+            'dolar' => $dolar->get_bs_price(),
+            'business_name' => $info->name,
         ])->render());
         $pdf->render();
         $pdfPath = public_path('/storage/tmp')."/$pdfUniqName";

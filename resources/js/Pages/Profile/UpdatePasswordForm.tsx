@@ -17,7 +17,7 @@ export default function UpdatePasswordForm() {
     <>
       <Collapse in={openAlert}>
         <Alert onClose={() => setOpenAlert(false)} severity="success">
-          The Password has been updated.
+          {t('The Password has been updated.')}
         </Alert>
         <div className="spacing" />
       </Collapse>

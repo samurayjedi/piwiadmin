@@ -2,7 +2,7 @@
 {{-- Header --}}
 <x-slot:header>
 <x-mail::header :url="config('app.url')">
-<img src="https://static.wikia.nocookie.net/helck/images/e/e9/Piwi_Color_Profile.png/revision/latest?cb=20161207203238" width="70px" height="70px">
+<img src="{{ env('APP_LOGO') }}" width="70px" height="70px">
 </x-mail::header>
 </x-slot:header>
 

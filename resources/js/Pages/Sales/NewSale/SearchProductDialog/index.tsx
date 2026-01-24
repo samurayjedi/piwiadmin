@@ -27,6 +27,7 @@ import { useAppSelector } from '@/store/hooks';
 import { useHandler } from './hooks';
 import ProductRow from './ProductRow';
 import { FormCart } from '../types';
+import SaleAlerts from '../SaleAlerts';
 
 export default function SearchProductDialog({
   onAdd,
@@ -40,8 +41,8 @@ export default function SearchProductDialog({
     (state) => state.new_sale.searchProductDialogOpen,
   );
   const [products, setP] = useState<Product[]>([]);
-  const { formRef, handleAddProducts } = useHandler(onAdd, setP);
   const ref = useRef<SearchProductsFieldRef>(null);
+  const { formRef, handleAddProducts } = useHandler(ref, onAdd, setP);
 
   return (
     <Dialog open={open} fullScreen={isMobile} maxWidth="md" onClose={onClose}>
@@ -54,6 +55,7 @@ export default function SearchProductDialog({
               <CloseIcon />
             </IconButton>
           </Header>
+          <SaleAlerts />
           <SearchProducts ref={ref} onSubmit={setP} />
           <form ref={formRef}>
             {products.length > 0 && (

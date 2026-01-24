@@ -105,7 +105,7 @@ export default function ResetPassword({
                   startIcon={<LockResetIcon />}
                   disabled={submitting}
                 >
-                  {t('Reset Password')}
+                  {t('Reset password')}
                 </Button>
               </Grid>
             </div>

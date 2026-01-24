@@ -1,8 +1,10 @@
-import { Dispatch, SetStateAction, useRef } from 'react';
+import { Dispatch, RefObject, SetStateAction, useRef } from 'react';
 import { type Product } from '@/Pages/Inventory/types';
+import { SearchProductsFieldRef } from '@/src/Components/SearchProducts';
 import { type FormCart } from '../types';
 
 export function useHandler(
+  inputRef: RefObject<SearchProductsFieldRef>,
   onAdd: (c: FormCart[]) => void,
   setProducts: Dispatch<SetStateAction<Product[]>>,
 ) {
@@ -53,6 +55,15 @@ export function useHandler(
       onAdd(cart);
       // reset
       setProducts([]);
+      if (inputRef.current) {
+        inputRef.current.reset();
+        setTimeout(() => {
+          const sinput = inputRef.current?.inputRef();
+          if (sinput) {
+            sinput.focus();
+          }
+        }, 200);
+      }
     }
   };
 

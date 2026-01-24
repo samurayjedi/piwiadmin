@@ -47,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/dashboard/sales', 'pay')->name('sales.pay');
         Route::get('/dashboard/sales/sale/{id}/print_invoice', 'print_invoice')->name('sales.sale.print_invoice');
         Route::post('/dashboard/sales/sale/{id}/void', 'void_invoice')->name('sales.void_invoice');
+        Route::get('/dashboard/sales/sale/{id}/print_esc_pos_invoice', 'print_esc_pos_invoice')->name('sales.sale.print_esc_eos_invoice');
         /** New sale */
         Route::get('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale');
         Route::post('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale.perform_action');

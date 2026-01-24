@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
 {
@@ -32,15 +33,39 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::withTrashed()
+            ->where('email', $request->email)
+            ->first();
+        
+        if ($user && $user->trashed()) {
+           if (!Hash::check($request->password, $user->password)) {
+                throw ValidationException::withMessages([
+                    'email' => [__('The email is associated to a disabled account, enter the same password you used before.')],
+                    'password' => [__('The provided password does not match our records for this email.')],
+                ]);
+            }
+            $user->restore();
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'email_verified_at' => null,
+            ]);
+        } else if ($user) {
+            return back()->withErrors([
+                'email' => __('The email is already in use.'),
+            ]);
+        } else {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+        }
 
         event(new Registered($user));
 

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Services\BusinessInfoService;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -34,12 +35,9 @@ class HandleInertiaRequests extends Middleware
         if ($user) {
             $notifications = $user->unreadNotifications->toArray();
         }
-        // business name
-        $business_name = @file_get_contents(public_path("storage/images/business_logo/business_name.txt"));
-        if (!$business_name) {
-            $business_name = config('app.name', 'Laravel');
-        }
-        
+        // business info
+        $info = app(BusinessInfoService::class);
+
         // .... 
         return [
             ...parent::share($request),
@@ -48,7 +46,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'language' => session('language', app()->getLocale()),
             'notifications' => $notifications,
-            'business_name' => $business_name,
+            'company' => $info->toArray(),
         ];
     }
 }

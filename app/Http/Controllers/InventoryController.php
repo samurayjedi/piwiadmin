@@ -45,7 +45,10 @@ class InventoryController extends Controller {
         /** products pagination */
         $page = intval(request()->get('page', 0));
         $rows = intval(request()->get('rows', 5));
-        $pager = Pagination::normalize('inventory', $page, $rows, $products->count());
+        /** i don't known why $products->count() do not works, i have to do $products->get()->count(),
+         * i dislike it because i do 2 times the query.... change it when you can
+         */
+        $pager = Pagination::normalize('inventory', $page, $rows, $products->get()->count());
         if (!is_array($pager)) {
             // is a redirect
             return $pager;
@@ -276,6 +279,11 @@ class InventoryController extends Controller {
                 $adjustment = floatval($entry['adjustment']);
                 $idProduct = $entry['id'];
                 [$remaining_stock, $product] = Product::remaining_stock($idProduct);
+                if ($adjustment < 0) {
+                    return back()->withErrors([
+                        'adjustment' => __('If the operation to do is addition, why are you entering a negative value?.'),
+                    ]);
+                }
                 $product->stock += $adjustment;
                 if ($update_prices) {
                     $product->price = floatval($entry['unit_price']);
@@ -379,7 +387,17 @@ class InventoryController extends Controller {
             if ($adjustment_type === 'subtraction') {
                 $product->stock -= floatval($adjustment);
                 $to_stock = $remaining_stock - floatval($adjustment);
+                if ($to_stock < 0) {
+                    return back()->withErrors([
+                        'adjustment' => __('You are trying to reduce the stock to a value < 0.'),
+                    ]);
+                }
             } else {
+                if (floatval($adjustment) < 0) {
+                    return back()->withErrors([
+                        'adjustment' => __('If the operation to do is addition, why are you entering a negative value?.'),
+                    ]);
+                }
                 $product->stock += floatval($adjustment);
                 $to_stock = $remaining_stock + floatval($adjustment);
             }

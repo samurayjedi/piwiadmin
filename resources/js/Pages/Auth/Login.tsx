@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { route } from 'ziggy-js';
 import { Link, usePage, router } from '@inertiajs/react';
@@ -14,8 +13,6 @@ import {
   Button,
   IconButton,
   Grid,
-  Alert,
-  Collapse,
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -26,15 +23,13 @@ import {
 import { useErrors } from '@/hooks';
 import TextFieldPassword from '@/src/lib/piwi/core/TextFieldPassword';
 import Layout from '@/src/Layouts/AuthLayout';
+import Alerts from './Alerts';
 
 export default function LoginForm({ status }: { status: string }) {
-  const [openAlert, setOpenAlert] = useState(Boolean(status));
-  const { canResetPassword } = usePage().props;
   const { t } = useTranslation();
+  const { canResetPassword } = usePage().props;
   const [fuckErrors, onChangeDecorator] = useErrors();
   const subscription: FieldSubscription = { value: true, submitting: true };
-
-  useEffect(() => setOpenAlert(Boolean(status)), [status]);
 
   return (
     <Form
@@ -49,10 +44,7 @@ export default function LoginForm({ status }: { status: string }) {
       render={({ submitting, handleSubmit }) => (
         <Layout>
           <form className="auth-form-content" onSubmit={handleSubmit}>
-            <Collapse in={openAlert}>
-              <Alert onClose={() => setOpenAlert(false)}>{status}</Alert>
-              <div className="spacing" />
-            </Collapse>
+            <Alerts status={status} />
             <Field
               name="email"
               subscription={subscription}
@@ -135,7 +127,10 @@ export default function LoginForm({ status }: { status: string }) {
             <Grid container>
               <Grid item>
                 <Tooltip title={t('Login via Google')}>
-                  <IconButton disabled={submitting}>
+                  <IconButton
+                    disabled={submitting}
+                    href={route('google.login')}
+                  >
                     <GoogleIcon />
                   </IconButton>
                 </Tooltip>

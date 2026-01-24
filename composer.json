@@ -13,7 +13,9 @@
     "inertiajs/inertia-laravel": "^1.0",
     "laravel/framework": "^11.0",
     "laravel/sanctum": "^4.0",
+    "laravel/socialite": "^5.24",
     "laravel/tinker": "^2.9",
+    "mike42/escpos-php": "^4.0",
     "tightenco/ziggy": "^2.0"
   },
   "require-dev": {

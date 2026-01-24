@@ -25,8 +25,9 @@ import {
 import TextFieldPassword from '@/src/lib/piwi/core/TextFieldPassword';
 import Layout from '@/src/Layouts/AuthLayout';
 import { useErrors } from '@/hooks';
+import Alerts from './Alerts';
 
-export default function Register() {
+export default function Register({ status }: { status: string }) {
   const { t } = useTranslation();
   const [fuckErrors, onChangeDecorator] = useErrors();
   const subscription: FieldSubscription = { value: true, submitting: true };
@@ -42,6 +43,7 @@ export default function Register() {
         subscription={{ submitting: true }}
         render={({ submitting, handleSubmit }) => (
           <form className="auth-form-content" onSubmit={handleSubmit}>
+            <Alerts status={status} />
             <Field
               name="email"
               subscription={subscription}
@@ -141,7 +143,10 @@ export default function Register() {
             <Grid container>
               <Grid item>
                 <Tooltip title={t('Register via Google')}>
-                  <IconButton disabled={submitting}>
+                  <IconButton
+                    disabled={submitting}
+                    href={route('google.login', { action: 'register' })}
+                  >
                     <GoogleIcon />
                   </IconButton>
                 </Tooltip>

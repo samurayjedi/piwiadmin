@@ -27,6 +27,7 @@ import SearchProductDialog from './SearchProductDialog';
 
 import PaymentDialog from './PaymentDialog';
 import { useImportedCart } from './hooks';
+import SaleAlerts from './SaleAlerts';
 
 export default function NewSale() {
   const { t } = useTranslation();
@@ -34,11 +35,6 @@ export default function NewSale() {
   const dispatch = useAppDispatch();
   const btnPayRef = useRef<HTMLButtonElement>(null);
   const cartRef = useRef<CartRef>(null);
-
-  const handleSearchProductClose = useCallback(() => {
-    dispatch(closeSearchProductDialog());
-    dispatch(openDial());
-  }, []);
 
   const handleOnCashClose = useCallback(() => {
     dispatch(closePayDialog());
@@ -64,9 +60,10 @@ export default function NewSale() {
         }}
         initialValues={{ cart }}
         subscription={{ submitting: true, pristine: true }}
-        onSubmit={() => console.log('I love lemuel!!!!')}
+        onSubmit={() => {}}
         render={({ handleSubmit }) => (
           <AppLayout>
+            <SaleAlerts />
             <form id="new-sale-cart-form" onSubmit={handleSubmit}>
               <TableContainer component={Paper}>
                 <Table>
@@ -108,7 +105,21 @@ export default function NewSale() {
         )}
       />
       <SearchProductDialog
-        onClose={handleSearchProductClose}
+        onClose={() => {
+          dispatch(closeSearchProductDialog());
+          dispatch(openDial());
+          if (Object.keys(cartRef.current?.data() ?? {}).length) {
+            // focus to pay button
+            setTimeout(() => {
+              if (btnPayRef.current) {
+                const btn = btnPayRef.current.getElementsByTagName('button');
+
+                // avoid access to undefined
+                btn[0]?.focus();
+              }
+            }, 100);
+          }
+        }}
         onAdd={(newCart) => {
           cartRef.current?.add(newCart);
           // focus to pay button

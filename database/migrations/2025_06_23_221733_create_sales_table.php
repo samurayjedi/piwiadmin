@@ -37,6 +37,7 @@ return new class extends Migration
                 ->comment('For credit/layaway sales');
             // ....
             $table->text('notes')->nullable();
+            $table->string('escpos_invoice_path')->nullable();
             $table->timestamps();
         });
     }

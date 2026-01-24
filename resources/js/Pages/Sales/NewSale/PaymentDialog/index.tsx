@@ -16,6 +16,7 @@ import { useAppSelector } from '@/store/hooks';
 import { CtxState, CTX_STEPPER } from './hooks';
 import PaymentStepper from './PaymentStepper';
 import { CartRef } from '../Cart';
+import SaleAlerts from '../SaleAlerts';
 
 export default function PaymentDialog({
   cartRef,
@@ -75,6 +76,7 @@ export default function PaymentDialog({
           </IconButton>
         </DialogHead>
         <Wrapper>
+          <SaleAlerts />
           <CTX_STEPPER.Provider value={ctxValue}>
             <PaymentStepper />
           </CTX_STEPPER.Provider>

@@ -8,9 +8,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
+use App\Services\BusinessInfoService;
 
 class ProfileController extends Controller
 {
@@ -21,6 +22,7 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'goauth' => $request->user()->google_account_linked,
             'status' => session('status'),
         ]);
     }
@@ -34,11 +36,16 @@ class ProfileController extends Controller
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;
+            $request->user()->sendEmailVerificationNotification();
         }
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        return redirect()->route('profile.edit')->with([
+            'status' => !$request->user()->email_verified_at
+                ? __('A new verification link has been sent to the email address you provided during registration.')
+                : null,
+        ]);
     }
 
     /**
@@ -46,6 +53,11 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        if ($request->user() && 
+            $request->user()->google_account_linked && 
+            is_null($request->user()->password)) {
+            return back()->withErrors(['password' => __('You need establish a password to the account.')]);
+        }
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);
@@ -62,19 +74,20 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
-    public function update_business_info() {
+    public function update_business_info(BusinessInfoService $info) {
         request()->validate([
-            'business_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'rif' => 'required|string|min:8',
+            'address' => 'required|string|max:255',
             'business_logo' => 'required|mimes:png',
         ]);
         $path = 'public/images/business_logo';
-        // create file where business_name are
-        $result = file_put_contents(public_path("storage/images/business_logo/business_name.txt"), request()->get('business_name'));
-        if (!$result) {
-            return back()->withErrors([
-                'business_name' => __('Unknown error writting business name file container.')
-            ]);
-        }
+        // create file where business data are
+        $info->update_info([
+            'name' => request()->get('name'),
+            'rif' => request()->get('rif'),
+            'address' => request()->get('address'),
+        ]);
         // Delete existing logo files
         $this->deleteExistingLogo($path);
         // Get the uploaded file

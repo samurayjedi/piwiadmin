@@ -9,6 +9,7 @@
         <!-- <link rel="preconnect" href="https://fonts.bunny.net"> -->
         <!-- <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" /> -->
         <!-- Scripts -->
+        <script type="text/javascript" src="http://localhost:8000/qz-tray.js"></script>
         @routes
         <?php
         $appFilePath = public_path().'/js/app.bundle.js';

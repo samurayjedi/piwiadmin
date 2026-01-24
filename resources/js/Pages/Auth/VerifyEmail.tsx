@@ -1,29 +1,24 @@
-import { useState } from 'react';
-import _ from 'lodash';
 import { route } from 'ziggy-js';
 import { Form } from 'react-final-form';
 import { useTranslation } from 'react-i18next';
 import { Link, router } from '@inertiajs/react';
 import { Alert, Collapse, Typography, Button, Grid } from '@mui/material';
 import Layout from '@/src/Layouts/AuthLayout';
+import Gap from '@/src/lib/piwi/common/Gap';
 
-export default function VerifyEmail() {
+export default function VerifyEmail({ status }: { status: string }) {
   const { t } = useTranslation();
-  const [openAlerts, setOpenAlerts] = useState(false);
+  const openAlerts = Boolean(status);
 
   return (
     <Layout>
       <div className="auth-form-content">
         {openAlerts && (
           <>
-            <Collapse in={openAlerts} className="alert">
-              <Alert onClose={() => setOpenAlerts(false)}>
-                {t(
-                  'A new verification link has been sent to the email address you provided during registration.',
-                )}
-              </Alert>
+            <Collapse in={openAlerts} className="alert" sx={{ mt: -2 }}>
+              <Alert>{status}</Alert>
             </Collapse>
-            <div className="spacing" />
+            <Gap spacing={1} />
           </>
         )}
         <Typography variant="subtitle1">
@@ -43,14 +38,6 @@ export default function VerifyEmail() {
                     {},
                     {
                       onFinish: () => resolve(),
-                      onSuccess: (page) => {
-                        if (
-                          (_.get(page, 'props.status', '') as string) ===
-                          'verification-link-sent'
-                        ) {
-                          setOpenAlerts(true);
-                        }
-                      },
                     },
                   ),
                 )
@@ -63,7 +50,7 @@ export default function VerifyEmail() {
                     color="secondary"
                     disabled={submitting}
                   >
-                    Resend Verification Email
+                    {t('Resend Verification Email')}
                   </Button>
                 </form>
               )}

@@ -63,7 +63,7 @@ export default function BestSellingTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={4} align="center">
-                  <Typography varinat="h6">{t('No records found!')}</Typography>
+                  <Typography variant="h6">{t('No records found!')}</Typography>
                 </TableCell>
               </TableRow>
             )}

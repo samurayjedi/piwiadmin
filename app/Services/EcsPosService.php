@@ -30,7 +30,7 @@ class EcsPosService
     
     public function printInvoice(Sale &$sale) {
         /** Invoice content .................................................................... */
-
+        $this->printer->feed(1);
         // --- HEADER ---
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
         $this->printer->text($this->info->rif."\n");
@@ -39,17 +39,18 @@ class EcsPosService
         $this->printer->selectPrintMode(); // Reset
         $this->printer->text(__('MAIN TAX ADDRESS:').$this->info->address."\n");
         // --- INVOICE INFO ---
-        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER); // Printer::JUSTIFY_LEFT
         $currentDateTime = date('d/m/Y H:i:s'); $invoice = $sale->id;
-        $this->printer->text("$currentDateTime  ".__('Invoice')." #: $invoice\n");
+        $this->printer->text("$currentDateTime  ".__('Sale')." #: $invoice\n");
         $this->printer->text(str_repeat("-", 48) . "\n"); // Horizontal separator
         // --- CUSTOMER DATA ---
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
         $this->printer->text("----------".__('Consumer Data')."----------\n");
         $this->printer->setJustification(Printer::JUSTIFY_LEFT);
         $clientName = $sale->client->name; $identification = $sale->client->identification;
-        $address = $sale->client->address; $seller = $sale->user->name;
-        $this->printer->text(__('NAME').": $clientName\n");
+        $address = empty($sale->client->address) ? __('No indicated.') : $sale->client->address; 
+        $seller = $sale->user->name;
+        $this->printer->text(__('SOCIAL REASON').": $clientName\n");
         $this->printer->text(__('DNI').": $identification\n");
         $this->printer->text(__('Address').": $address\n");
         $this->printer->text(__('Seller').": $seller\n");
@@ -97,12 +98,13 @@ class EcsPosService
         // --- TOTALS SECTION ---
         $this->printer->text(str_repeat("-", 48) . "\n");
         
+        $total = round($this->dolar * $sale->total_amount, 2);
         $totals = [
             __('Net Total')." (Bs.):" => round($this->dolar * $sale->total_amount, 2),
             __('Taxable Base')." (Bs.):" => "0,00",
             __('TAX')." (Bs.):" => "0,00",
             __('Exempt')." (Bs.):" => round($this->dolar * $sale->total_amount, 2),
-            __('TOTAL')." (Bs.):" => round($this->dolar * $sale->total_amount, 2)
+            __('TOTAL')." (Bs.):" => $total,
         ];
 
         foreach ($totals as $label => $value) {
@@ -111,20 +113,45 @@ class EcsPosService
 
         // --- PAYMENT METHOD ---
         $this->printer->text(str_repeat("-", 48) . "\n");
-        $this->printer->text(__("FORMA DE PAGO").":\n");
+        $this->printer->text(__('PAYMENT METHOD(S)').":\n");
+        // for credit/layaway sales, payments can be made several times with the same payment method, here i group them
+        $payments = []; $totalPayed = 0;
         foreach ($sale->payments as $payment) {
-            $method_label = $payment->payment_method->payment_label;
-            $amount = round($this->dolar * $payment->amount, 2);
+            $cAmount = round($this->dolar * $payment->amount, 2);
+            $totalPayed += $cAmount;
+            if (array_key_exists($payment->payment_method->id, $payments)) {
+                $payments[$payment->payment_method->id]['amount'] += $cAmount;
+            } else {
+                $payments[$payment->payment_method->id] = [];
+                $payments[$payment->payment_method->id]['amount'] = $cAmount;
+                $payments[$payment->payment_method->id]['label'] = $payment->payment_method->payment_label;
+            }
+        }
+        foreach ($payments as $payment) {
+            $method_label = $payment['label'];
+            $amount = $payment['amount'];
             $this->printer->text(str_pad("$method_label:", 30) . str_pad($amount, 18, " ", STR_PAD_LEFT) . "\n");
         }
-
+        // if there are several payments, show the total payed
+        if (count($payments) > 1) {
+            $this->printer->text(str_pad(__('Total')." (Bs.):", 30) . str_pad($totalPayed , 18, " ", STR_PAD_LEFT) . "\n");
+        }
+        // if change was given
+        if ($totalPayed > $total) {
+            $this->printer->text(str_pad(__('Change')." (Bs.):", 30) . str_pad($totalPayed - $total , 18, " ", STR_PAD_LEFT) . "\n");
+        }
         // --- FOOTER ---
         $this->printer->text(str_repeat("-", 48) . "\n");
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(__('WITHOUT FISCAL VALIDITY.')."\n");
         $this->printer->text(__('PERISHABLE PRODUCTS CAN ONLY BE EXCHANGED WITHIN 24 HOURS.')."\n");
-        
-        $this->printer->feed(3);
+        $this->printer->feed(1);
         /** .................................................................................... */
+        // print barcode
+        /* $this->printer->setBarcodeHeight(90); 
+        $this->printer->setBarcodeWidth(2);
+        $this->printer->barcode($this->saleBarcodeContent($sale), Printer::BARCODE_CODE128);
+        $this->printer->feed(1); */
         
         $this->printer->cut();
         $this->printer->close();
@@ -154,5 +181,10 @@ class EcsPosService
         }
         
         return $lines;
+    }
+
+    private function saleBarcodeContent(Sale $sale) {
+        return '{C}'.(string)$sale->id;
+        
     }
 }

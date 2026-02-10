@@ -100,6 +100,15 @@ export function usePaginatorProps() {
   };
 }
 
+export async function refreshCsrfToken() {
+  const response = await fetch('/csrf-token');
+  const resp = await response.json();
+  // Update the meta tag in the DOM
+  document
+    .querySelector('meta[name="csrf-token"]')
+    ?.setAttribute('content', resp.token);
+}
+
 export class Qz {
   public static version = 0;
 
@@ -114,6 +123,61 @@ export class Qz {
 
   static startConnection(host: string, usingSecure: boolean) {
     const qz = Qz.getInstance();
+    qz.security.setSignatureAlgorithm('SHA512');
+    qz.security.setCertificatePromise((resolve: any) => {
+      resolve(
+        `-----BEGIN CERTIFICATE-----
+MIIECzCCAvOgAwIBAgIGAZw9aUtSMA0GCSqGSIb3DQEBCwUAMIGiMQswCQYDVQQG
+EwJVUzELMAkGA1UECAwCTlkxEjAQBgNVBAcMCUNhbmFzdG90YTEbMBkGA1UECgwS
+UVogSW5kdXN0cmllcywgTExDMRswGQYDVQQLDBJRWiBJbmR1c3RyaWVzLCBMTEMx
+HDAaBgkqhkiG9w0BCQEWDXN1cHBvcnRAcXouaW8xGjAYBgNVBAMMEVFaIFRyYXkg
+RGVtbyBDZXJ0MB4XDTI2MDIwNzEzMjAzNloXDTQ2MDIwNzEzMjAzNlowgaIxCzAJ
+BgNVBAYTAlVTMQswCQYDVQQIDAJOWTESMBAGA1UEBwwJQ2FuYXN0b3RhMRswGQYD
+VQQKDBJRWiBJbmR1c3RyaWVzLCBMTEMxGzAZBgNVBAsMElFaIEluZHVzdHJpZXMs
+IExMQzEcMBoGCSqGSIb3DQEJARYNc3VwcG9ydEBxei5pbzEaMBgGA1UEAwwRUVog
+VHJheSBEZW1vIENlcnQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCy
+cRU9OXBIxwJto350zunN8Egz1tY057ja7upogwKBG0HdfnTVKpUqQJMzl6gikfdS
+CyHKbVUumuI82/j+o2TMafkC4kzohRRNevNeljWDTkhMDlkJRtO2LMAy+57OppKw
+dGmNaa6enTwva0O/S7HrfAlDjgQYMMvBOnqQbz0T0m+6zdotMQHJJv9+562PmmY+
+32NCN5uiDLgvCSUQdr27yhtwbWoopEdaBibV2gJB4pJxquxd5q6Kcg6Ep5JlxYbv
+5VqiPQ8gz9sYaG2UepbNbu7u8dHsoeIRbz+Fdvk+3XxZ0M3+6dKKQCIdIVCp8C3F
+pcZbwfbrWsYltN10qRPJAgMBAAGjRTBDMBIGA1UdEwEB/wQIMAYBAf8CAQEwDgYD
+VR0PAQH/BAQDAgEGMB0GA1UdDgQWBBQLL2N1iZlsDptlSKSt98rPl1WGGDANBgkq
+hkiG9w0BAQsFAAOCAQEAISzC6GVyeVVSPyCm91Rd1/kdw6vaF4Syx/bXZCEE4svc
+ugbt1zw9iei285p30XcBfJvYI2ld29wVvtLkZp3pgBnq/ZOyvQfrJz3E6n2sk3kD
+Ok1TXVq0jMHTpjnYKwN5YEeTcbTkkqLsDIeYSkFXFyoQfA4j4TRnHlMe4nDvdKub
+cP0PNlhJhvk11F0UeQgyDsd5WdSWBt0LmLsarJUr6RneeLUpddz8BM4ECDZWeUSX
+YU15wKtAaInvKnUKuCreMvyf0bNWvfTxct9IfU60kq+M5LjyHtKFN3RTT3wPr9G8
+QIzVhrhcIIXIU+v7XlqAKWL6yvUJqlYNxHwxab/EsA==
+-----END CERTIFICATE-----`,
+      );
+    });
+    qz.security.setSignaturePromise((toSign: any) => {
+      return (resolve: any) => {
+        fetch(route('sales.new_sale.sign'), {
+          cache: 'no-store',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            credentials: 'include',
+            'X-CSRF-TOKEN':
+              _.get(
+                document.querySelector('meta[name="csrf-token"]'),
+                'content',
+              ) || '',
+          },
+          body: JSON.stringify({ toSign }),
+        }).then(async (resp) => {
+          if (!resp.ok) {
+            throw new Error('Invalid response code');
+          }
+
+          resolve(resp.text());
+        });
+      };
+    });
+    qz.security.setSignatureAlgorithm('SHA512');
     // Connect to a print-server instance, if specified
     const config = { host, usingSecure, retries: 5, delay: 1 };
 

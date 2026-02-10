@@ -39,7 +39,10 @@ export default function PrintEscPosInvoice() {
         setConnected(true);
         setStep(1);
       })
-      .catch(() => setErrorConnect(true));
+      .catch((e) => {
+        console.log(e);
+        setErrorConnect(true);
+      });
 
     return () => {
       Qz.endConnection();
@@ -59,7 +62,10 @@ export default function PrintEscPosInvoice() {
             setStep(2);
           }
         })
-        .catch(() => setErrorFindPrinters(true));
+        .catch((e) => {
+          console.log(e);
+          setErrorFindPrinters(true);
+        });
     }
   }, [connected]);
 
@@ -77,7 +83,7 @@ export default function PrintEscPosInvoice() {
   useEffect(() => {
     if (printed) {
       setTimeout(() => {
-        router.get(route('sales.new_sale'));
+        router.get(route('sales'));
       }, 1500);
     }
   }, [printed]);

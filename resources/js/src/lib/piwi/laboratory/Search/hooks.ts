@@ -24,6 +24,7 @@ export function useSearchFetch(action: string) {
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          credentials: 'include',
           'X-CSRF-TOKEN':
             _.get(
               document.querySelector('meta[name="csrf-token"]'),
@@ -77,6 +78,11 @@ export function useSearchErrors(
       if (onSubmit) {
         const namae = data[name];
         const value = data[namae];
+        if (!value || !value.length) {
+          return new Promise<void>((resolve) => {
+            resolve();
+          });
+        }
 
         return new Promise<any>((resolve) => {
           onSubmit(namae, value)

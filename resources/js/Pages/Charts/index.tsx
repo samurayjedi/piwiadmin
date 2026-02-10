@@ -112,4 +112,5 @@ const NoData = styled.div({
   border: '1px dashed #ccc',
   borderRadius: '8px',
   backgroundColor: '#f5f5f5',
+  height: 150,
 });

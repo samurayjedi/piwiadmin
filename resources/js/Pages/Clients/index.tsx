@@ -69,7 +69,7 @@ export default function Clients() {
                     {!clients.length ? (
                       <TableRow>
                         <TableCell colSpan={7} align="center">
-                          {t('No clients has been registered.')}
+                          {t('No records found!')}
                         </TableCell>
                       </TableRow>
                     ) : (

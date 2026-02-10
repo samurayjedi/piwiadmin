@@ -14,10 +14,13 @@ import {
   TableFooter,
   Fab,
   IconButton,
+  Alert,
 } from '@mui/material';
 import ShoppingCartCheckoutIcon from '@mui/icons-material/ShoppingCartCheckout';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import CloseIcon from '@mui/icons-material/Close';
+import Gap from '@/src/lib/piwi/common/Gap';
+import { useErrors } from '@/hooks';
 import PayDialog from './PayDialog';
 import Filters from './Filters';
 import Breadcrumbs from './Breadcrumbs';
@@ -27,10 +30,18 @@ import ConfirmVoidInvoice from './ConfirmVoidInvoice';
 
 export default function Sales() {
   const { t } = useTranslation();
+  const [fuckErrors] = useErrors();
+  const alertOauthOpen = Boolean(fuckErrors.kernel_panic);
 
   return (
     <>
       <AppLayout breadcrumbs={<Breadcrumbs />}>
+        {alertOauthOpen && (
+          <>
+            <Alert severity="error">{fuckErrors.kernel_panic}</Alert>
+            <Gap spacing={1} />
+          </>
+        )}
         <TableContainer component={Paper}>
           <Table>
             <TableHead>

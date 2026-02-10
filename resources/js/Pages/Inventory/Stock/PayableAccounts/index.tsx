@@ -47,7 +47,7 @@ export default function Stock() {
               {!payable_accounts.length ? (
                 <TableRow>
                   <TableCell colSpan={7} align="center">
-                    {t('No adjustments has been made.')}
+                    {t('No records found!')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -64,14 +64,19 @@ export default function Stock() {
                   rowsPerPage={rows}
                   onRowsPerPageChange={(ev) =>
                     router.get(
-                      route('stock', {
+                      route('inventory.stock.payable_accounts', {
                         page,
                         rows: parseInt(ev.target.value, 10),
                       }),
                     )
                   }
                   onPageChange={(ev, newPage) =>
-                    router.get(route('stock', { page: newPage, rows }))
+                    router.get(
+                      route('inventory.stock.payable_accounts', {
+                        page: newPage,
+                        rows,
+                      }),
+                    )
                   }
                 />
               </TableRow>

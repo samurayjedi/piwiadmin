@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import _ from 'lodash';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
@@ -12,14 +12,18 @@ import {
   Button,
   IconButton,
   ClickAwayListener,
+  List,
+  ListItemButton,
+  ListItemText,
 } from '@mui/material';
 import SoapIcon from '@mui/icons-material/Soap';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import CommentIcon from '@mui/icons-material/Comment';
 import CopyAllIcon from '@mui/icons-material/CopyAll';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import BlockIcon from '@mui/icons-material/Block';
 import TabsPager from '@/src/lib/piwi/animated/TabsPager';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
+import IconButtonDropdown from '@/src/lib/piwi/core/IconButtonDropdown';
 import Popper from '@/src/lib/piwi/core/Popper';
 import { onPay, voidInvoice } from '@/store/sales';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
@@ -58,24 +62,25 @@ export default function TableCellsSaleDetails({
                 <BlockIcon fontSize="small" />
               </IconButton>
             )}
-            {sale.status === 'canceled' && (
-              <IconButton
-                title={t('Replicate invoice')}
-                size="small"
-                color="default"
-                sx={{ mr: 1 }}
-                onClick={() =>
-                  router.post(route('sales.new_sale'), {
-                    cart: sale.sale_items.map((item) => ({
-                      id: item.product_id,
-                      qty: item.quantity,
-                    })),
-                  })
-                }
-              >
-                <CopyAllIcon fontSize="small" />
-              </IconButton>
-            )}
+            {sale.status === 'canceled' &&
+              sale.sale_items.filter((v) => !v.product.deleted_at).length && (
+                <IconButton
+                  title={t('Replicate invoice')}
+                  size="small"
+                  color="default"
+                  sx={{ mr: 1 }}
+                  onClick={() =>
+                    router.post(route('sales.new_sale'), {
+                      cart: sale.sale_items.map((item) => ({
+                        id: item.product_id,
+                        qty: item.quantity,
+                      })),
+                    })
+                  }
+                >
+                  <CopyAllIcon fontSize="small" />
+                </IconButton>
+              )}
             {sale.payment_type !== 'cash' && sale.status === 'pending' && (
               <Button
                 size="small"
@@ -88,21 +93,38 @@ export default function TableCellsSaleDetails({
                 {t('Payment')}
               </Button>
             )}
-            <Button
-              size="small"
-              variant="text"
+            <IconButtonDropdown
+              icon={<ReceiptIcon />}
+              title={t('Print Invoice')}
               color="primary"
-              startIcon={<ReceiptLongIcon />}
-              onClick={() =>
-                window.open(
-                  route('sales.sale.print_invoice', { id: sale?.id ?? 0 }),
-                  '_blank',
-                  'noopener,noreferrer',
-                )
-              }
             >
-              {t('Print Invoice')}
-            </Button>
+              <List dense>
+                <ListItemButton>
+                  <ListItemText
+                    primary={t('Digital')}
+                    onClick={() =>
+                      window.open(
+                        route('sales.sale.print_invoice', {
+                          id: sale?.id ?? 0,
+                        }),
+                        '_blank',
+                        'noopener,noreferrer',
+                      )
+                    }
+                  />
+                </ListItemButton>
+                {sale.escpos_invoice_path && (
+                  <ListItemButton
+                    LinkComponent={Link}
+                    href={route('sales.sale.print_esc_eos_invoice', {
+                      id: sale.id,
+                    })}
+                  >
+                    <ListItemText primary={t('Ticket')} />
+                  </ListItemButton>
+                )}
+              </List>
+            </IconButtonDropdown>
           </>
         }
       >

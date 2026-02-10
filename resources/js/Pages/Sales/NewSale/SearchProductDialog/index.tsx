@@ -45,90 +45,92 @@ export default function SearchProductDialog({
   const { formRef, handleAddProducts } = useHandler(ref, onAdd, setP);
 
   return (
-    <Dialog open={open} fullScreen={isMobile} maxWidth="md" onClose={onClose}>
-      <DialogContent>
-        <Wrapper>
-          <Header>
-            <Typography variant="h6">{t('Add product')}</Typography>
-            <Glue />
-            <IconButton disabled={sync !== 'ok'} onClick={onClose}>
-              <CloseIcon />
-            </IconButton>
-          </Header>
-          <SaleAlerts />
-          <SearchProducts ref={ref} onSubmit={setP} />
-          <form ref={formRef}>
-            {products.length > 0 && (
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell style={{ minWidth: '120px' }}>
-                        {t('Barcode')}
-                      </TableCell>
-                      <TableCell width="100%">{t('Name')}</TableCell>
-                      <TableCell>{t('Price')}</TableCell>
-                      <TableCell>{t('Stock')}</TableCell>
-                      <TableCell style={{ minWidth: '190px' }}>
-                        {t('Quantity')}
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {products.map((p, i) => (
-                      <ProductRow
-                        {...p}
-                        key={`searched-product-${p.id}`}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleAddProducts();
-                          }
-                        }}
-                        index={i}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-            <Gap />
-            <Actions>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  handleAddProducts();
-                  ref.current?.reset();
-                  setTimeout(() => {
-                    if (ref.current) {
-                      ref.current.inputRef()?.focus();
+    open && (
+      <Dialog open={open} fullScreen={isMobile} maxWidth="md" onClose={onClose}>
+        <DialogContent>
+          <Wrapper>
+            <Header>
+              <Typography variant="h6">{t('Add product')}</Typography>
+              <Glue />
+              <IconButton disabled={sync !== 'ok'} onClick={onClose}>
+                <CloseIcon />
+              </IconButton>
+            </Header>
+            <SaleAlerts />
+            <SearchProducts ref={ref} onSubmit={setP} />
+            <form ref={formRef}>
+              {products.length > 0 && (
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell style={{ minWidth: '120px' }}>
+                          {t('Barcode')}
+                        </TableCell>
+                        <TableCell width="100%">{t('Name')}</TableCell>
+                        <TableCell>{t('Price')}</TableCell>
+                        <TableCell>{t('Stock')}</TableCell>
+                        <TableCell style={{ minWidth: '190px' }}>
+                          {t('Quantity')}
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {products.map((p, i) => (
+                        <ProductRow
+                          {...p}
+                          key={`searched-product-${p.id}`}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddProducts();
+                            }
+                          }}
+                          index={i}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+              <Gap />
+              <Actions>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    handleAddProducts();
+                    ref.current?.reset();
+                    setTimeout(() => {
+                      if (ref.current) {
+                        ref.current.inputRef()?.focus();
+                      }
+                    }, 100);
+                  }}
+                  disabled={!(products.length > 0)}
+                  sx={{ mr: `4px` }}
+                >
+                  {t('Add')}
+                </Button>
+                <Button
+                  color="success"
+                  variant="contained"
+                  startIcon={<AddShoppingCartIcon />}
+                  onClick={() => {
+                    handleAddProducts();
+                    if (onClose) {
+                      onClose();
                     }
-                  }, 100);
-                }}
-                disabled={!(products.length > 0)}
-                sx={{ mr: `4px` }}
-              >
-                {t('Add')}
-              </Button>
-              <Button
-                color="success"
-                variant="contained"
-                startIcon={<AddShoppingCartIcon />}
-                onClick={() => {
-                  handleAddProducts();
-                  if (onClose) {
-                    onClose();
-                  }
-                }}
-                disabled={!(products.length > 0)}
-              >
-                {t('Add and continue')}
-              </Button>
-            </Actions>
-          </form>
-        </Wrapper>
-      </DialogContent>
-    </Dialog>
+                  }}
+                  disabled={!(products.length > 0)}
+                >
+                  {t('Add and continue')}
+                </Button>
+              </Actions>
+            </form>
+          </Wrapper>
+        </DialogContent>
+      </Dialog>
+    )
   );
 }
 

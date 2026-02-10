@@ -21,6 +21,7 @@ use App\Models\StockLog;
 use App\Http\Controllers\CurrenciesController;
 use App\Mon3trUtils;
 use App\Events\SaleDone;
+use App\Events\PaymentMade;
 use App\Services\DolarService;
 use App\Services\BusinessInfoService;
 
@@ -212,6 +213,9 @@ class SalesController extends Controller {
             DB::commit();
             // print invoice, etc
             event(new SaleDone($sale));
+            if ($sale->payment_type !== 'cash') {
+                return redirect()->route('sales');
+            }
 
             return redirect()->route('sales.sale.print_esc_eos_invoice', [
                 'id' => $sale->id,
@@ -237,9 +241,38 @@ class SalesController extends Controller {
             'payments',
             'payments.payment_method',
         ])->where('id', $id)->firstOrFail();
+
         return Inertia::render('Sales/NewSale/PrintEcsPosInvoice', [
             'sale' => $sale->toArray(),
         ]);
+    }
+
+    public function sign() {
+        request()->validate(['toSign' => 'required|string']);
+        $toSign = request('toSign');
+        $keyPath = storage_path('app/qz-tray/private-key.pem');
+        if (!file_exists($keyPath)) {
+            \Log::error('Private key file not exists!!!');
+
+            throw new \Exception(__("Critical error, contact the administrator of the system for more details."));
+        }
+        $key = openssl_pkey_get_private("file://{$keyPath}");
+        if (!$key) {
+            \Log::error('Cannot open the private key file!!!');
+
+            throw new \Exception(__("Critical error, contact the administrator of the system for more details."));
+        }
+        $signature = null;
+        $signed = openssl_sign($toSign, $signature, $key, OPENSSL_ALGO_SHA512);
+        if (!$signed) {
+            \Log::error('Signing failed!!');
+
+            throw new \Exception(__("Critical error, contact the administrator of the system for more details."));
+        }
+
+        // Return base64 encoded signature
+        return response(base64_encode($signature))
+            ->header('Content-Type', 'text/plain');
     }
 
     public function pay() {
@@ -257,6 +290,12 @@ class SalesController extends Controller {
         }
         request()->validate($rules);
         $saleId = request()->get('sale_id');
+        $sale = Sale::where('id', '=', $saleId)->firstOrFail();
+        if ($sale->status === 'completed') {
+            return back()->withErrors([
+                'kernel_panic' => __('The sale is already completed.'),
+            ]);
+        }
         $ammountPaid = 0;
         foreach ($paymentMethods as $payMethod) {
             $paymentMethodRecord = PaymentMethod::where('payment_slug', '=', $payMethod)->firstOrFail();
@@ -270,16 +309,25 @@ class SalesController extends Controller {
             $pay->save();
             $ammountPaid += $paymentAmount;
         }
-        $sale = Sale::where('id', '=', $saleId)->firstOrFail();
         $sale->amount_paid = min($sale->total_amount, $sale->amount_paid + $ammountPaid);
+        $statusChanged = false;
         if ($sale->amount_paid == $sale->total_amount) {
             $sale->status = 'completed';
+            $statusChanged = true;
         }
         $notes = request()->get('notes', null);
         if ($notes !== null) {
             $sale->notes = $notes;
         }
         $sale->save();
+
+        event(new PaymentMade($sale));
+        
+        if ($statusChanged) {
+            return redirect()->route('sales.sale.print_esc_eos_invoice', [
+                'id' => $sale->id,
+            ]);
+        }
         
         return back();
     }
@@ -318,30 +366,42 @@ class SalesController extends Controller {
     public function void_invoice(int $id) {
         try {
             DB::beginTransaction();
-            $sale = Sale::with(['sale_items', 'sale_items.product'])
+            $sale = Sale::with([
+                'sale_items', 
+                'sale_items.product' => function ($query) {
+                    $query->withTrashed();
+                }
+            ])
                 ->where('id', '=', $id)
                 ->lockForUpdate()
                 ->firstOrFail();
             $sale->status = 'canceled';
             $sale->save();
-            $log = StockLog::create([
-                'description' => __('messages.voided_invoice', ['sale_id' => $id]),
-                'adjustment_type' => 'addition',
-                'reason' => __('Voided invoice'),
-                'note' => request()->get('note'),
-            ]);
-            $log->products()->attach($sale->sale_items->mapWithKeys(function ($item) {
-                [$remaining_stock, $product] = Product::remaining_stock($item->product->id);
+            // handle trashed products
+            $sale_items = $sale->sale_items
+                ->filter(function ($item) {
+                    return $item->product && !$item->product->trashed();
+                });
+            if ($sale_items->count()) {
+                $log = StockLog::create([
+                    'description' => __('messages.voided_invoice', ['sale_id' => $id]),
+                    'adjustment_type' => 'addition',
+                    'reason' => __('Voided invoice'),
+                    'note' => request()->get('note'),
+                ]);
+                $log->products()->attach($sale_items->mapWithKeys(function ($item) {
+                    [$remaining_stock, $product] = Product::remaining_stock($item->product->id);
 
-                return [
-                    $item->product_id => [
-                        'adjustment' => $item->quantity,
-                        'from_stock' => $remaining_stock,
-                        'to_stock' => $remaining_stock + $item->quantity,
-                    ],
-                ];
-            })->toArray());
-            $log->sale_items()->attach($sale->sale_items->pluck('id')->toArray());
+                    return [
+                        $item->product_id => [
+                            'adjustment' => $item->quantity,
+                            'from_stock' => $remaining_stock,
+                            'to_stock' => $remaining_stock + $item->quantity,
+                        ],
+                    ];
+                })->toArray());
+                $log->sale_items()->attach($sale->sale_items->pluck('id')->toArray());
+            }
             // returns items
             foreach ($sale->sale_items as $item) {
                 $product = $item->product;
@@ -354,10 +414,11 @@ class SalesController extends Controller {
             DB::rollback();
             \Log::error('Void invoice failed: ' . $e->getMessage(), [
                 'sale_id' => $id,
+                'exception' => $e,
             ]);
 
             return back()->withErrors([
-                'kernel_panic' => $e->getMessage(), // __('Void invoice failed because a system error, contact de administrator for details.')
+                'kernel_panic' => __('Void invoice failed because a system error, contact de administrator for details.'),
             ]);
         }
 

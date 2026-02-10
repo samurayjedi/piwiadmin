@@ -20,7 +20,7 @@ import {
   LockOpen as LockOpenIcon,
   VpnKey as VpnKeyIcon,
 } from '@mui/icons-material';
-import { useErrors } from '@/hooks';
+import { useErrors, refreshCsrfToken } from '@/hooks';
 import TextFieldPassword from '@/src/lib/piwi/core/TextFieldPassword';
 import Layout from '@/src/Layouts/AuthLayout';
 import Alerts from './Alerts';
@@ -37,7 +37,10 @@ export default function LoginForm({ status }: { status: string }) {
       onSubmit={(data) =>
         new Promise<void>((resolve) =>
           router.post(route('login'), data, {
-            onFinish: () => resolve(),
+            onFinish: async () => {
+              await refreshCsrfToken();
+              resolve();
+            },
           }),
         )
       }

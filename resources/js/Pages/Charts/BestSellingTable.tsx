@@ -40,25 +40,33 @@ export default function BestSellingTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {_.map(bestSelling, (v) => (
-              <TableRow key={`bestselling-table-row-${v.id}`}>
-                <TableCell>{v.name}</TableCell>
-                <TableCell>
-                  {`${v.total_units_sold} ${getMeasurementSuffix(v.measurement, v.total_units_sold)}`}
-                </TableCell>
-                <TableCell>
-                  <LabelDolarBs value={v.total_revenue} />
-                </TableCell>
-                <TableCell>
-                  <Gauge
-                    width={60}
-                    height={60}
-                    value={Math.ceil(v.sold_percentage)}
-                    text={({ value }) => `${value}%`}
-                  />
+            {Object.keys(bestSelling).length ? (
+              _.map(bestSelling, (v) => (
+                <TableRow key={`bestselling-table-row-${v.id}`}>
+                  <TableCell>{v.name}</TableCell>
+                  <TableCell>
+                    {`${v.total_units_sold} ${getMeasurementSuffix(v.measurement, v.total_units_sold)}`}
+                  </TableCell>
+                  <TableCell>
+                    <LabelDolarBs value={v.total_revenue} />
+                  </TableCell>
+                  <TableCell>
+                    <Gauge
+                      width={60}
+                      height={60}
+                      value={Math.ceil(v.sold_percentage)}
+                      text={({ value }) => `${value}%`}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <Typography varinat="h6">{t('No records found!')}</Typography>
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
           <TableFooter>
             <TableRow>

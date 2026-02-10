@@ -106,7 +106,7 @@ class InventoryController extends Controller {
         $product->notification_stock = $notification == 1 ? $notification_stock : null;
         $product->save();
 
-        return back();
+        return redirect()->route('inventory');
     }
 
     public function update_product_submit(Request $request, int $id) {

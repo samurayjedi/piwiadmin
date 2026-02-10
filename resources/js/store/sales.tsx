@@ -66,6 +66,10 @@ export const slice = createSlice({
       state.void_invoice_dialog_open = false;
       state.sale = undefined;
     });
+    builder.addCase(voidInvoiceAction.rejected, (state) => {
+      state.void_invoice_dialog_open = false;
+      state.sale = undefined;
+    });
   },
 });
 

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Services\EcsPosService;
 use App\Events\SaleDone;
+use App\Events\PaymentMade;
 
 class PrintSaleInvoice
 {
@@ -20,8 +21,9 @@ class PrintSaleInvoice
     /**
      * Handle the event.
      */
-    public function handle(SaleDone $e): void
-    {
-        $this->ecsPos->printInvoice($e->sale);
+    public function handle(SaleDone|PaymentMade $e): void {
+        if ($e->sale->status === 'completed') {
+            $this->ecsPos->printInvoice($e->sale);
+        }
     }
 }

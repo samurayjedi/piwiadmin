@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use App\Models\Client;
 use App\ApiUtils;
 use App\Http\Controllers\Pagination;
@@ -13,22 +14,38 @@ class ClientsController extends Controller {
     public function main(int $page = 0, int $rows = 5) {
         $inDebt = request()->get('in_debt', 0);
         $ids = request()->get('ids', null);
-        $clients = Client::orderBy('id', 'DESC')
+        $clients = Client::select([
+                'clients.*',
+                DB::raw('MAX(sales.id) as latest_sale_id')
+            ])
             ->with([
-                'sales',
+                'sales' => function($query) {
+                    $query->orderBy('id', 'DESC');
+                },
                 'sales.sale_items',
                 'sales.sale_items.product' => fn ($query) => $query->withTrashed(),
                 'sales.sale_items.product.brand',
                 'sales.sale_items.product.category'
             ])
+            ->leftJoin('sales', 'clients.id', '=', 'sales.client_id')
             ->when($inDebt == 1, function($query) {
                 $query->whereHas('sales', function($query) {
                     $query->where('status', 'pending');
                 });
             })
             ->when(!empty($ids), function ($query) use ($ids) {
-                $query->whereIn('id', $ids);
-            });
+                $query->whereIn('clients.id', $ids);
+            })
+            ->groupBy(
+                'clients.id',
+                'clients.identification',
+                'clients.name',
+                'clients.phone',
+                'clients.address',
+                'clients.created_at',
+                'clients.updated_at',
+                'clients.deleted_at'
+            );
         // pagination
         $pager = Pagination::normalize('clients', $page, $rows, $clients->count());
         if (!is_array($pager)) {
@@ -38,6 +55,7 @@ class ClientsController extends Controller {
         [$limit, $offset, $count] = $pager;
         // records
         $clients = $clients
+            ->orderBy('latest_sale_id', 'DESC')
             ->skip($offset)
             ->take($limit)
             ->get();
@@ -55,7 +73,7 @@ class ClientsController extends Controller {
 
     public function store(Request $request) {
         $request->validate([
-            'identification' => 'required|string|min:8',
+            'identification' => 'required|string|min:7',
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|min:11',
             'address' => 'nullable|string|max:255',
@@ -131,7 +149,7 @@ class ClientsController extends Controller {
     public function search_clients(string $field, string $value) {
         $rules = [
             'name' => [ 'name' => 'required|string|max:255' ],
-            'identification' => [ 'identification' => 'required|string|min:8' ],
+            'identification' => [ 'identification' => 'required|string|min:7' ],
         ];
         if ($err=ApiUtils::validate($rules[$field], [$field => $value])) {
             return $err;

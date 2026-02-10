@@ -43,7 +43,7 @@ export default function Stock() {
               {!logs.length ? (
                 <TableRow>
                   <TableCell colSpan={5} align="center">
-                    {t('No adjustments has been made.')}
+                    {t('No records found!')}
                   </TableCell>
                 </TableRow>
               ) : (

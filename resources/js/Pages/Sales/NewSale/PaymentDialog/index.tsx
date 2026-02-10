@@ -44,48 +44,53 @@ export default function PaymentDialog({
   const amount = cartRef.current?.total() ?? 0;
 
   return (
-    <Dialog
-      open={open}
-      fullScreen={isMobile}
-      maxWidth="sm"
-      fullWidth
-      onClose={onClose}
-      keepMounted
-    >
-      <DialogContent>
-        <DialogHead>
-          <DialogTitle>
-            <Typography variant="h6">
-              {t('Total to pay:')}
-              &nbsp;
-              {amount.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD',
-              })}
-            </Typography>
-            <Typography variant="subtitle1" color="gray">
-              {(amount * dolar).toLocaleString('es-VE', {
-                style: 'currency',
-                currency: 'VES',
-              })}
-            </Typography>
-          </DialogTitle>
-          <Glue />
-          <IconButton onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        </DialogHead>
-        <Wrapper>
-          <SaleAlerts />
-          <CTX_STEPPER.Provider value={ctxValue}>
-            <PaymentStepper />
-          </CTX_STEPPER.Provider>
-        </Wrapper>
-      </DialogContent>
-      <DialogActions>
-        <LinearProgress variant="determinate" value={(activeStep * 100) / 2} />
-      </DialogActions>
-    </Dialog>
+    open && (
+      <Dialog
+        open={open}
+        fullScreen={isMobile}
+        maxWidth="sm"
+        fullWidth
+        onClose={onClose}
+        keepMounted
+      >
+        <DialogContent>
+          <DialogHead>
+            <DialogTitle>
+              <Typography variant="h6">
+                {t('Total to pay:')}
+                &nbsp;
+                {amount.toLocaleString('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                })}
+              </Typography>
+              <Typography variant="subtitle1" color="gray">
+                {(amount * dolar).toLocaleString('es-VE', {
+                  style: 'currency',
+                  currency: 'VES',
+                })}
+              </Typography>
+            </DialogTitle>
+            <Glue />
+            <IconButton onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          </DialogHead>
+          <Wrapper>
+            <SaleAlerts />
+            <CTX_STEPPER.Provider value={ctxValue}>
+              <PaymentStepper />
+            </CTX_STEPPER.Provider>
+          </Wrapper>
+        </DialogContent>
+        <DialogActions>
+          <LinearProgress
+            variant="determinate"
+            value={(activeStep * 100) / 2}
+          />
+        </DialogActions>
+      </Dialog>
+    )
   );
 }
 

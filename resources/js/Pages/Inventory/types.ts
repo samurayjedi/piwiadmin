@@ -16,4 +16,5 @@ export interface Product {
   wholesale_qty: number;
   wholesale_profit: number;
   notification_stock: number | null;
+  deleted_at: string | null;
 }

@@ -38,7 +38,6 @@ export default function Inventory() {
   const products = useProducts();
   const sync = useAppSelector((state) => state.app.sync);
   const { count, page, rows } = usePaginatorProps();
-  console.log('pager options:', { count, page, rows });
   const [open, setOpen] = useState(false);
   const [id, setId] = useState(0);
   const [confirm, setConfirm] = useState(false);

@@ -19,6 +19,10 @@ use App\Http\Controllers\CurrenciesController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\PayableAccounts;
 
+Route::get('/csrf-token', function () {
+    return response()->json(['token' => csrf_token()]);
+});
+
 Route::get('/', function () {
     return redirect('/dashboard');
 });
@@ -51,8 +55,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         /** New sale */
         Route::get('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale');
         Route::post('/dashboard/sales/new_sale', 'new_sale')->name('sales.new_sale.perform_action');
-        // Route::post('/dashboard/sales/new_sale', 'blackhole')->name('sales.new_sale.blackhole');
         Route::post('/dashboard/sales/new_sale/save', 'register_new_sale')->name('sales.new_sale.save');
+        Route::post('/dashboard/sales/new_sale/qz_signing', 'sign')->name('sales.new_sale.sign');
     });
     /** Categories */
     Route::controller(CategoriesController::class)->group(function() {

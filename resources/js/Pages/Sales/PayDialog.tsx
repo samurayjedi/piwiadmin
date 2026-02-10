@@ -71,9 +71,9 @@ export default function PayDialog() {
                   onFinish: () => {
                     dispatch(setSync('ok'));
                     form.reset();
+                    onClose();
                     resolve();
                   },
-                  onSuccess: () => onClose(),
                 },
               );
             })

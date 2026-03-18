@@ -38,6 +38,7 @@ return new class extends Migration
             // ....
             $table->text('notes')->nullable();
             $table->string('escpos_invoice_path')->nullable();
+            $table->foreignId('paydesk_session_id')->constrained();
             $table->timestamps();
         });
     }

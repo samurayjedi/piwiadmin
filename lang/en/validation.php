@@ -190,5 +190,5 @@ return [
     */
 
     'attributes' => [],
-
+    'snake_case' => 'The :attribute must be in snake case format.',
 ];

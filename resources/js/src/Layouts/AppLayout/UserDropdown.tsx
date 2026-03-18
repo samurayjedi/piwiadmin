@@ -12,6 +12,8 @@ import {
   ListItemText,
   ClickAwayListener,
 } from '@mui/material';
+import RuleIcon from '@mui/icons-material/Rule';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AccountBoxIcon from '@mui/icons-material/AccountBox';
@@ -19,7 +21,7 @@ import Dropdown from '@/src/lib/piwi/animated/Dropdown';
 import Skeleton from '@/src/Components/Skeleton';
 import Popper from '@/src/lib/piwi/core/Popper';
 
-export default function LoginDropdown() {
+export default function UserDropdown() {
   const { t } = useTranslation();
   const ref = useRef<HTMLButtonElement | null>(null);
   const [on, setOn] = useState(false);
@@ -50,6 +52,25 @@ export default function LoginDropdown() {
                   <SettingsIcon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText>{t('Settings')}</ListItemText>
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton
+                LinkComponent={Link}
+                href={route('authorized_users')}
+              >
+                <ListItemIcon>
+                  <HowToRegIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>{t('Manage users')}</ListItemText>
+              </ListItemButton>
+            </ListItem>
+            <ListItem disablePadding>
+              <ListItemButton LinkComponent={Link} href={route('roles')}>
+                <ListItemIcon>
+                  <RuleIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>{t('Roles')}</ListItemText>
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>

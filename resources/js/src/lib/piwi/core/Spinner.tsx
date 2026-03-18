@@ -80,7 +80,12 @@ export default function Spinner({
 
   return (
     <Container>
-      <IconButton size="small" onClick={decrement} sx={{ mr: 1 }}>
+      <IconButton
+        size="small"
+        onClick={decrement}
+        disabled={props.disabled}
+        sx={{ mr: 1 }}
+      >
         <RemoveCircleOutlineIcon />
       </IconButton>
       <TextFieldNumericFormat
@@ -103,7 +108,12 @@ export default function Spinner({
           },
         }}
       />
-      <IconButton size="small" onClick={increment} sx={{ ml: 1 }}>
+      <IconButton
+        size="small"
+        onClick={increment}
+        disabled={props.disabled}
+        sx={{ ml: 1 }}
+      >
         <AddCircleOutlineIcon />
       </IconButton>
     </Container>

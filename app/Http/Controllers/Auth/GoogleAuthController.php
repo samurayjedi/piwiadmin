@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use App\Models\AuthorizedUser;
 
 class GoogleAuthController extends Controller {
     public function redirect() {
@@ -44,7 +45,7 @@ class GoogleAuthController extends Controller {
                 $userLogged->google_account_linked = true;
                 $userLogged->save();
 
-                return back();
+                return redirect()->route('profile.edit');
             }
             /** If the user are login, check first if its account is linked to google
              * if not, returns error
@@ -58,6 +59,13 @@ class GoogleAuthController extends Controller {
                             ? __('The email it\'s already registered and the account is not linked to google.')
                             : __('Account is not linked to google.'),
                     ]);
+            }
+            if (!$user || $user->id !== 1) {
+                if (!AuthorizedUser::where('email', $email)->exists()) {
+                    return redirect()->route($route)->withErrors([
+                        'kernel_panic' => __('Your email it\'s not authorized for use this system, contact the administrator first.'),
+                    ]);
+                }
             }
             /** Login or register the user */
             $userNotRegistered = !$user;

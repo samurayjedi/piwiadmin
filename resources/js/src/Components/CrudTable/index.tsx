@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import { Form, FormProps } from 'react-final-form';
@@ -23,6 +23,7 @@ import TableRowFields from './TableRowFields';
 import TableFooterPager from './TableFooterPager';
 import { Mode, CrudTableProps } from './types';
 import Actions from '../Actions';
+import { initialize } from './utils';
 
 export default function CrudTable({
   fields,
@@ -39,8 +40,8 @@ export default function CrudTable({
   const [mode, setMode] = useState<Mode>('none');
   const [targetId, setTargetId] = useState(0);
   const percent = 100 / fields.length;
+  const initialValues = useMemo(() => initialize(fields), [fields]);
 
-  const cancel = useCallback(() => setMode('none'), []);
   const formOnSubmit = useCallback<FormProps['onSubmit']>(
     (data, form) => {
       return new Promise<void>((resolve) => {
@@ -52,7 +53,11 @@ export default function CrudTable({
             }
             setMode('none');
             setTargetId(0);
-            form.reset();
+            if (mode === 'update') {
+              form.initialize(initialValues);
+            } else {
+              form.reset();
+            }
             dispatch(setSync('ok'));
             resolve();
           })
@@ -67,6 +72,7 @@ export default function CrudTable({
 
   return (
     <Form
+      initialValues={initialValues}
       subscription={{ submitting: true, pristine: true }}
       onSubmit={formOnSubmit}
       render={({ /** pristine, */ handleSubmit, form }) => (
@@ -88,61 +94,60 @@ export default function CrudTable({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {!records.length ? (
-                  mode !== 'add' ? (
-                    <TableRow>
-                      <TableCell colSpan={fields.length + 2} align="center">
-                        {t('No records found!')}
-                      </TableCell>
-                    </TableRow>
-                  ) : null
-                ) : (
-                  records.map((record) =>
-                    mode === 'update' && targetId === record.id ? (
-                      <TableRowFields
-                        key={`crud-table-edit-record-${record.id}-row`}
-                        record_id={record.id}
-                        fields={fields}
-                        mode="update"
-                        onCancel={cancel}
-                      />
-                    ) : (
-                      <TableRow key={`crud-table-record-${record.id}-row`}>
-                        <TableCell>{`${record.id}`}</TableCell>
-                        {fields.map(([key]) => (
-                          <TableCell
-                            key={`crud-table-record-${record.id}-${key}-cell`}
-                          >{`${record[key] ?? ''}`}</TableCell>
-                        ))}
-                        <TableCell>
-                          <IconButtonDropdown icon={<MoreVertIcon />}>
-                            <Actions
-                              onEdit={() => {
-                                form.reset();
-                                form.batch(() => {
-                                  fields.forEach(([key]) => {
-                                    form.change(key, record[key]);
-                                  });
-                                });
-                                setTargetId(parseInt(`${record.id}`, 10));
-                                setMode('update');
-                              }}
-                              onDelete={() => {
-                                setTargetId(parseInt(`${record.id}`, 10));
-                                setMode('delete');
-                              }}
-                            />
-                          </IconButtonDropdown>
+                {!records.length
+                  ? mode !== 'add' && (
+                      <TableRow>
+                        <TableCell colSpan={fields.length + 2} align="center">
+                          {t('No records found!')}
                         </TableCell>
                       </TableRow>
-                    ),
-                  )
-                )}
+                    )
+                  : records.map((record) =>
+                      mode === 'update' && targetId === record.id ? (
+                        <TableRowFields
+                          key={`crud-table-edit-record-${record.id}-row`}
+                          record_id={record.id}
+                          fields={fields}
+                          mode="update"
+                          onCancel={() => {
+                            form.initialize(initialValues);
+                            setMode('none');
+                          }}
+                        />
+                      ) : (
+                        <TableRow key={`crud-table-record-${record.id}-row`}>
+                          <TableCell>{`${record.id}`}</TableCell>
+                          {fields.map(([key]) => (
+                            <TableCell
+                              key={`crud-table-record-${record.id}-${key}-cell`}
+                            >{`${record[key] ? (Array.isArray(record[key]) ? record[key].map((r) => t(r)).join(', ') : record[key]) : ''}`}</TableCell>
+                          ))}
+                          <TableCell>
+                            <IconButtonDropdown icon={<MoreVertIcon />}>
+                              <Actions
+                                onEdit={() => {
+                                  form.initialize(record);
+                                  setTargetId(parseInt(`${record.id}`, 10));
+                                  setMode('update');
+                                }}
+                                onDelete={() => {
+                                  setTargetId(parseInt(`${record.id}`, 10));
+                                  setMode('delete');
+                                }}
+                              />
+                            </IconButtonDropdown>
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )}
                 {mode === 'add' && (
                   <TableRowFields
                     fields={fields}
                     mode="add"
-                    onCancel={cancel}
+                    onCancel={() => {
+                      form.reset();
+                      setMode('none');
+                    }}
                   />
                 )}
               </TableBody>
@@ -159,7 +164,7 @@ export default function CrudTable({
             open={mode === 'delete'}
             title={t('Are you sure?')}
             message={t('This action cannot be undone.')}
-            onCancel={cancel}
+            onCancel={() => setMode('none')}
             onConfirm={() => form.submit()}
           />
           <Fab

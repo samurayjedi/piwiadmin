@@ -47,7 +47,8 @@ const headerSize = 60;
 const triangleSize = 32;
 const Paper = styled(MuiPaper)<{ label: string }>(({ theme, label }) => ({
   position: 'relative',
-  width: 500,
+  width: '100%',
+  maxWidth: 500,
   '&::before': {
     content: `"${label}"`,
     color: theme.palette.common.white,

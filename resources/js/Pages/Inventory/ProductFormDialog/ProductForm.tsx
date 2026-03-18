@@ -219,7 +219,7 @@ export default function ProductForm({ id, onSubmit }: ProductFormProps) {
               />
             </Grid>
             <Grid item xs={12} md={3}>
-              <StockField />
+              <StockField disabled={Boolean(id)} />
             </Grid>
             <Grid item xs={12} md={3}>
               <Field

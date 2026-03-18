@@ -11,7 +11,7 @@ import { useTheme } from '@mui/material/styles';
 import Logo from '@/src/Logo';
 import NavMenu from '@/src/lib/piwi/core/NavMenu';
 import { useAppSelector } from '@/store/hooks';
-import LoginDropdown from './LoginDropdown';
+import UserDropdown from './UserDropdown';
 import Notifications from './Notifications';
 import DolarPrice from './DolarPrice';
 
@@ -121,7 +121,7 @@ export default function PrimaryAppBar() {
           )}
           <Box sx={{ flex: 1 }} />
           <DolarPrice />
-          <LoginDropdown />
+          <UserDropdown />
           <Notifications />
         </Toolbar>
       </Container>

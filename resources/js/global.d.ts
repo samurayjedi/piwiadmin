@@ -19,7 +19,7 @@ declare global {
   interface AppPageProps {
     props: {
       auth: {
-        user: User;
+        user: User | undefined;
       };
     };
   }

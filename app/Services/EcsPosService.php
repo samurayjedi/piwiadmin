@@ -4,10 +4,13 @@ namespace App\Services;
 use Mike42\Escpos\PrintConnectors\FilePrintConnector;
 // use Mike42\Escpos\PrintConnectors\NetworkPrintConnector;
 use Mike42\Escpos\Printer;
+use Illuminate\Support\Facades\DB;
 use App\Models\Sale;
 use App\Http\Controllers\CurrenciesController;
 use App\Services\DolarService;
 use App\Services\BusinessInfoService;
+use App\Models\PaydeskSession;
+use App\Models\PaydeskPartialCut;
 
 class EcsPosService
 {
@@ -27,17 +30,21 @@ class EcsPosService
         // $connector = new NetworkPrintConnector('127.0.0.1', 9100);
         $this->printer = new Printer($connector);
     }
-    
-    public function printInvoice(Sale &$sale) {
-        /** Invoice content .................................................................... */
-        $this->printer->feed(1);
-        // --- HEADER ---
+
+    private function header() {
         $this->printer->setJustification(Printer::JUSTIFY_CENTER);
         $this->printer->text($this->info->rif."\n");
         $this->printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
         $this->printer->text($this->info->name."\n");
         $this->printer->selectPrintMode(); // Reset
         $this->printer->text(__('MAIN TAX ADDRESS:').$this->info->address."\n");
+    }
+    
+    public function printInvoice(Sale &$sale) {
+        /** Invoice content .................................................................... */
+        $this->printer->feed(1);
+        // --- HEADER ---
+        $this->header();
         // --- INVOICE INFO ---
         $this->printer->setJustification(Printer::JUSTIFY_CENTER); // Printer::JUSTIFY_LEFT
         $currentDateTime = date('d/m/Y H:i:s'); $invoice = $sale->id;
@@ -138,7 +145,8 @@ class EcsPosService
         }
         // if change was given
         if ($totalPayed > $total) {
-            $this->printer->text(str_pad(__('Change')." (Bs.):", 30) . str_pad($totalPayed - $total , 18, " ", STR_PAD_LEFT) . "\n");
+            $change = round($totalPayed - $total, 2);
+            $this->printer->text(str_pad(__('Change')." (Bs.):", 30) . str_pad($change , 18, " ", STR_PAD_LEFT) . "\n");
         }
         // --- FOOTER ---
         $this->printer->text(str_repeat("-", 48) . "\n");
@@ -157,6 +165,180 @@ class EcsPosService
         $this->printer->close();
         $sale->escpos_invoice_path = $this->helper;
         $sale->save();
+        $this->helper = null;
+    }
+
+    private function cut_closure_header($id, $name, $email) {
+        // --- HEADER ---
+        $this->header();
+        // --- TICKET INFO ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $currentDateTime = date('d/m/Y H:i:s');
+        $this->printer->text("$currentDateTime\n");
+        $this->printer->text(str_repeat("-", 48) . "\n"); // Horizontal separator
+        // --- USER DATA ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text("----------".__('User Info')."----------\n");
+        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
+        $this->printer->text(__('ID').": #$id\n");
+        $this->printer->text(__('NAME').": $name\n");
+        $this->printer->text(__('EMAIL').": $email\n");
+    }
+
+    private function cut_closure_amounts_table(array $amounts) {
+        $this->printer->setJustification(Printer::JUSTIFY_LEFT);
+        $this->printer->text(str_pad(__('Payment Method'), 25) . str_pad(__('Amount'), 15, ' ', STR_PAD_LEFT) . "\n");
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        // amount per payment method
+        $totalAmount = 0;
+        try {
+            foreach ($amounts as $a) {
+                $paymentMethod = $a['payment_method']['payment_label'];
+                $amount = number_format($a['amount'], 2);
+                $totalAmount += $a['amount'];
+                
+                // Format: Payment Method (left) + Amount (right aligned)
+                $this->printer->text(str_pad($paymentMethod, 25) . str_pad($amount, 15, ' ', STR_PAD_LEFT) . "\n");
+            }
+        } catch (\Exception $e) {
+            \Log::error('Cannot generate ticket because: '. $e->getMessage(), [
+                'amounts' => $amounts,
+            ]);
+
+            throw $e;
+        }
+
+        return $totalAmount;
+    }
+
+    private function cut_closure_total_line($total) {
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $this->printer->setJustification(Printer::JUSTIFY_RIGHT);
+        $this->printer->text(__('TOTAL') . ": " . number_format($total, 2) . "\n");
+        $this->printer->selectPrintMode();
+    }
+    
+    public function print_cut_ticket(PaydeskPartialCut &$cut) {
+        $queries = DB::getQueryLog();
+        $id = $cut->user->id;
+        $name = $cut->user->name;
+        $email = $cut->user->name;
+        $paydeskName = strtoupper($cut->session->paydesk->name);
+        $cuttedAt = $cut->created_at->format('d/m/Y H:i:s');
+        /** Ticket ============================================================================================================= */
+        $this->printer->feed(1);
+        $this->cut_closure_header($id, $name, $email);
+        // --- PAYMENT SUMMARY ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->selectPrintMode(Printer::MODE_DOUBLE_HEIGHT);
+        $this->printer->feed(1);
+        $this->printer->text(__('":paydesk" Cut', ['paydesk' => $paydeskName])."\n");
+        $this->printer->selectPrintMode();
+        $this->printer->feed(1);
+        // --- FUNDS BEFORE THE USER TAKES THE PAYDESK ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(__('Start with funds').":\n");
+        $this->printer->selectPrintMode();
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $previousCut = PaydeskPartialCut::with([
+            'amounts',
+            'amounts.payment_method'
+        ])
+            ->where('id', '<', $cut->id)
+            ->where('paydesk_session_id', $cut->paydesk_session_id)
+            ->orderBy('id', 'desc')
+            ->first();
+        $initialFunds = $previousCut ? (function() use($previousCut, $cut) {
+            $arr = $previousCut->amounts->toArray();
+            foreach ($cut->session->openings as $o) {
+                $exists = false;
+                for ($i = 0; $i < count($arr); $i++) {
+                    if ($arr[$i]['payment_method_id'] == $o->payment_method_id) {
+                        $arr[$i]['amount'] += $o->amount;
+                        $exists = true;
+                    }
+                }
+                if (!$exists) {
+                    $arr[] = $o->toArray();
+                }
+            }
+
+            return $arr;
+        })() : $cut->session->openings->toArray();
+        $initFundsTotal = $this->cut_closure_amounts_table($initialFunds);
+        $this->cut_closure_total_line($initFundsTotal);
+        // --- SELLED FUNDS ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(__('Sells').":\n");
+        $this->printer->selectPrintMode();
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $sells = $cut->amounts->toArray();
+        /* foreach ($sells as &$sell) {
+            foreach ($initialFunds as $initFund) {
+                if ($sell['payment_method_id'] === $initFund['payment_method_id']) {
+                    $sell['amount'] = $initFund['amount'] - $sell['amount'];
+                    $sell['amount'] *= -1;
+                }
+            }
+        } */
+        $cutTotal = $this->cut_closure_amounts_table($sells);
+        $this->cut_closure_total_line($cutTotal);
+        // --- CUT INFO AND FOOTER ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $this->printer->text(__('Cutted at')." ".$cuttedAt."\n"); // closet at or cut at
+        $this->printer->text(str_repeat("=", 48) . "\n");
+        $this->printer->text(__('THANK YOU') . "\n");
+        $this->printer->feed(1);
+        $this->printer->cut();
+        /** ==================================================================================================================== */
+        $cut->escpos_invoice_path = $this->helper;
+        $cut->save();
+        $this->helper = null;
+    }
+
+    public function print_closure_ticket(PaydeskSession &$session) {
+        $user = $session->user ?? $session->cuts()->with('user')->latest('id')->firstOrFail()->user;
+        $id = $user->id;
+        $name = $user->name;
+        $email = $user->email;
+        $paydeskName = strtoupper($session->paydesk->name);
+        $closedAt = $session->close_at->format('d/m/Y H:i:s');
+        /** Ticket ============================================================================================================= */
+        $this->printer->feed(1);
+        $this->cut_closure_header($id, $name, $email);
+        // --- PAYMENT SUMMARY ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->selectPrintMode(Printer::MODE_DOUBLE_HEIGHT);
+        $this->printer->feed(1);
+        $this->printer->text(__('":paydesk" CLOSURE', ['paydesk' => $paydeskName])."\n");
+        $this->printer->selectPrintMode();
+        $this->printer->feed(1);
+        // --- PAYDESK INITIAL FUNDS ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(__('Initial funds').":\n");
+        $this->printer->selectPrintMode();
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $totalInitFunds = $this->cut_closure_amounts_table($session->openings->toArray());
+        $this->cut_closure_total_line($totalInitFunds);
+        // --- PAYDESK SELLED FUNDS ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(__('Sells').":\n");
+        $this->printer->selectPrintMode();
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $totalFundsOnClose = $this->cut_closure_amounts_table($session->closures->toArray());
+        $this->cut_closure_total_line($totalFundsOnClose);
+        // --- CLOSURE INFO AND FOOTER ---
+        $this->printer->setJustification(Printer::JUSTIFY_CENTER);
+        $this->printer->text(str_repeat("-", 48) . "\n");
+        $this->printer->text(__('Closed at')." ".$closedAt."\n"); // closet at or cut at
+        $this->printer->text(str_repeat("=", 48) . "\n");
+        $this->printer->text(__('THANK YOU') . "\n");
+        $this->printer->feed(1);
+        $this->printer->cut();
+        /** ==================================================================================================================== */
+        $session->escpos_invoice_path = $this->helper;
+        $session->save();
         $this->helper = null;
     }
 

@@ -9,12 +9,10 @@ import {
   StepContent,
   Paper as MuiPaper,
   Typography,
-  Alert,
 } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import SearchProducts from '@/src/Components/SearchProducts';
 import Gap from '@/src/lib/piwi/common/Gap';
-import { useAppPage } from '@/hooks';
 import { type Product } from '../../types';
 import Cart from './Cart';
 import SelectProductsForm from './SelectProductsForm';
@@ -22,9 +20,6 @@ import DetailsForm from './DetailsForm';
 
 export default function Stock() {
   const { t } = useTranslation();
-  const {
-    props: { errors },
-  } = useAppPage();
   const [step, setStep] = useState(0);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<
@@ -40,12 +35,6 @@ export default function Stock() {
   return (
     <AppLayout>
       <Paper>
-        {Object.hasOwnProperty.call(errors, 'kernel_panic') && (
-          <>
-            <Alert severity="error">{errors.kernel_panic}</Alert>
-            <Gap />
-          </>
-        )}
         <Cart
           selectedProducts={selectedProducts}
           count={count}

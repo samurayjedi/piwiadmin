@@ -1,4 +1,6 @@
+import { useMemo } from 'react';
 import { useAppPage } from '@/hooks';
+import { CrudTableProps } from '@/src/Components/CrudTable/types';
 import { type Category } from './types';
 
 export function useCategories() {
@@ -10,4 +12,22 @@ export function useCategories() {
   }
 
   return categories as Category[];
+}
+export function useFields(): CrudTableProps['fields'] {
+  return useMemo(
+    () => [
+      ['category_label', 'Label'],
+      [
+        'category_slug',
+        'Slug',
+        {
+          type: 'textfield',
+          props: (mode) => ({
+            disabled: mode === 'update',
+          }),
+        },
+      ],
+    ],
+    [],
+  );
 }

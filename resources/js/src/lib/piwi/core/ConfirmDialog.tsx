@@ -15,6 +15,7 @@ export default function ConfirmDialog({
   message,
   onConfirm = () => {},
   onCancel = () => {},
+  children,
   ...props
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
@@ -31,7 +32,7 @@ export default function ConfirmDialog({
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{message}</DialogContentText>
+        <DialogContentText>{message ?? children}</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button
@@ -57,7 +58,7 @@ export default function ConfirmDialog({
 
 export interface ConfirmDialogProps extends DialogProps {
   title: string;
-  message: string;
+  message?: string;
   onConfirm?: (disabled: Dispatch<SetStateAction<boolean>>) => void;
   onCancel?: () => void;
 }

@@ -27,7 +27,6 @@ import { useAppSelector } from '@/store/hooks';
 import { useHandler } from './hooks';
 import ProductRow from './ProductRow';
 import { FormCart } from '../types';
-import SaleAlerts from '../SaleAlerts';
 
 export default function SearchProductDialog({
   onAdd,
@@ -56,7 +55,6 @@ export default function SearchProductDialog({
                 <CloseIcon />
               </IconButton>
             </Header>
-            <SaleAlerts />
             <SearchProducts ref={ref} onSubmit={setP} />
             <form ref={formRef}>
               {products.length > 0 && (

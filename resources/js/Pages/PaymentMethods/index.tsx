@@ -2,38 +2,17 @@ import { router } from '@inertiajs/react';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
 import { usePaginatorProps } from '@/hooks';
-import { usePaymentMethods } from './hooks';
+import { usePaymentMethods, useFields } from './hooks';
 
 export default function Categories() {
   const { page, count, rows } = usePaginatorProps();
   const paymentMethods = usePaymentMethods();
+  const fields = useFields();
 
   return (
     <AppLayout>
       <CrudTable
-        fields={[
-          ['payment_label', 'Label'],
-          [
-            'payment_slug',
-            'Slug',
-            {
-              type: 'textfield',
-              props: (mode) => ({
-                disabled: mode === 'update',
-              }),
-            },
-          ],
-          [
-            'payment_currency',
-            'Currency',
-            {
-              type: 'select',
-              props: {
-                items: { Bs: 'Bs.', $: 'Dolar' },
-              },
-            },
-          ],
-        ]}
+        fields={fields}
         records={paymentMethods}
         onSubmit={(data, action, targetId) => {
           const url = (() => {

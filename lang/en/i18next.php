@@ -12,4 +12,5 @@ return [
     'Add/Substract items from the stock of product_name as you need.' => 'Add/Substract items from the stock of {{product_name}} as you need.',
     'x device(s) has been found.' => '{{x}} device(s) has been found.',
     'Printer x was selected' => 'Printer {{x}} was selected',
+    'Configure the initial amounts for the paydesk "paydesk".' => 'Configure the initial amounts for the paydesk "{{paydesk}}".',
 ];

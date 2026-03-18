@@ -8,12 +8,10 @@ import {
   StepContent,
   Paper as MuiPaper,
   Typography,
-  Alert,
 } from '@mui/material';
 import AppLayout from '@/src/Layouts/AppLayout';
 import SearchProducts from '@/src/Components/SearchProducts';
 import Gap from '@/src/lib/piwi/common/Gap';
-import { useAppPage } from '@/hooks';
 import { type Product } from '../../types';
 import StockForm from './StockForm';
 import SelectProductForm from './SelectProductForm';
@@ -21,9 +19,6 @@ import { useProduct } from './hooks';
 
 export default function Stock() {
   const { t } = useTranslation();
-  const {
-    props: { errors },
-  } = useAppPage();
   const pr = useProduct();
   const [step, setStep] = useState(pr ? 2 : 0);
   const [products, setProducts] = useState<Product[]>(pr ? [pr] : []);
@@ -62,12 +57,6 @@ export default function Stock() {
   return (
     <AppLayout>
       <Paper>
-        {Object.hasOwnProperty.call(errors, 'kernel_panic') && (
-          <>
-            <Alert severity="error">{errors.kernel_panic}</Alert>
-            <Gap />
-          </>
-        )}
         <Stepper activeStep={step} orientation="vertical">
           <Step>
             <StepLabel>{t('Search product')}</StepLabel>

@@ -116,7 +116,6 @@ class InventoryController extends Controller {
             'price' => 'required|numeric',
             'profit' => 'required|numeric',
             'measurement' => 'required|string|in:unit,liter,weight',
-            'stock' => 'required|numeric',
             'category' => 'required|string|max:255',
             'brand' => 'required|string|max:255',
             'wholesale' => 'boolean',
@@ -130,14 +129,12 @@ class InventoryController extends Controller {
 
         try {
             DB::beginTransaction();
-            [$remaining_stock, $product] = Product::remaining_stock($id);
-            $stock = $product->stock; $adjustment = $request->get('stock') - $remaining_stock;
+            $product = Product::findOrFail($id);
             $product->barcode = $request->get('barcode');
             $product->name = $request->get('name');
             $product->price = $request->get('price');
             $product->profit = $request->get('profit');
             $product->measurement = $request->get('measurement');
-            $product->stock = $product->stock + $adjustment;
             $product->category = $request->get('category');
             $product->brand = $request->get('brand');
             $wholesale = (bool)$request->get('wholesale');
@@ -146,21 +143,6 @@ class InventoryController extends Controller {
             $product->wholesale_profit = $wholesale ? $request->get('wholesale_profit') : null;
             $product->notification_stock = $notification == 1 ? $notification_stock : null;
             $product->save();
-            /** */
-            if ($stock !== $product->stock) {
-                $log = StockLog::create([
-                    'description' => $product->name,
-                    'adjustment_type' => 'subtraction',
-                    'reason' => __('Edited manually via product form.'),
-                ]);
-                $log->products()->attach([
-                    $product->id => [
-                        'adjustment' => $adjustment,
-                        'from_stock' => $remaining_stock,
-                        'to_stock' => $remaining_stock + $adjustment,
-                    ],
-                ]);
-            }
 
             DB::commit();
 
@@ -291,9 +273,9 @@ class InventoryController extends Controller {
                 $product->save();
                 $log->products()->attach([
                     $idProduct => [
-                    'adjustment' => $adjustment,
-                    'from_stock' => $remaining_stock,
-                    'to_stock' => $remaining_stock + $adjustment,
+                        'adjustment' => $adjustment,
+                        'from_stock' => $remaining_stock,
+                        'to_stock' => $remaining_stock + $adjustment,
                     ],
                 ]);
             }

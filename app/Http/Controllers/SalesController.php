@@ -22,8 +22,14 @@ use App\Http\Controllers\CurrenciesController;
 use App\Mon3trUtils;
 use App\Events\SaleDone;
 use App\Events\PaymentMade;
+use App\Events\PaydeskClosed;
 use App\Services\DolarService;
 use App\Services\BusinessInfoService;
+use App\Models\PaydeskSession;
+use App\Models\Paydesk;
+use App\Models\PaydeskPartialCut;
+use App\Models\User;
+use App\Events\PaydeskCut;
 
 class SalesController extends Controller {
     public function sales_by_type(string $sale_type) {
@@ -112,7 +118,69 @@ class SalesController extends Controller {
         ]);
     }
 
-    public function new_sale(Request $request) {
+    public function new_sale() {
+        /** first the Paydesk must be open */
+        /** Paydesk session, check if exists of create it */
+        $paydesk = Paydesk::with('petty_cash_funds')->findOrFail(1);
+        $user = auth()->user();
+        $session = PaydeskSession::where('paydesk_id', $paydesk->id)
+            ->where('status', 'open')
+            ->first();
+        // if session not exists
+        if (!$session) {
+            if ($paydesk->petty_cash_funds->isEmpty()) {
+                return back()->withErrors([
+                    'kernel_panic' => __('The administrator has not configured petty cash funds for the paydesk ":paydesk".', [
+                        'paydesk' => $paydesk->name,
+                    ]),
+                ]);
+            }
+            // if session not found, open a new one
+            $newSession = new PaydeskSession;
+            $newSession->paydesk_id = $paydesk->id;
+            $newSession->user_id = $user->id;
+            $newSession->open_at = now();
+            $newSession->status = 'open';
+            $newSession->save();
+            $newSession->openings()->createMany($paydesk->petty_cash_funds->map(fn ($p) => [
+                'payment_method_id' => $p->payment_method_id,
+                'amount' => $p->amount,
+            ])->toArray());
+        } else if($session->need_to_be_closed()) {
+            $sessionUserId = $session->user_id ?? $session->cuts()->latest('id')->firstOrFail()->user_id;
+            if ($user->id !== $sessionUserId) {
+                $anotherUser = User::findOrFail($sessionUserId);
+
+                return back()->withErrors([
+                    'kernel_panic' => __('The user ":name" have the paydesk ":paydesk" opened since ":days" day(s), it must be closed.', [
+                        'name' => $anotherUser->name,
+                        'paydesk' => $paydesk->name,
+                        'days' => $session->using_since_days(),
+                    ]),
+                ]);
+            }
+
+            return back()->withErrors([
+                'kernel_panic' => __('You have the paydesk ":paydesk" opened since ":days" day(s), it must be closed.', [
+                    'paydesk' => $paydesk->name,
+                    'days' => $session->using_since_days(),
+                ]),
+            ]);
+        } else if (!$session->user_id) { // the session paydesk is in cut state
+            /** Set the current user as the one using the paydesk */
+            $session->user_id = $user->id;
+            $session->save();
+        } else if ($session->user_id !== $user->id) {
+            $anotherUser = User::findOrFail($session->user_id);
+
+            return back()->withErrors([
+                'kernel_panic' => __('The user ":name" is using the paydesk ":paydesk".', [
+                    'name' => $anotherUser->name,
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        }
+        /** generate the new sale view */
         $cart = request()->get('cart', null);
         $attrs = [
             'payment_methods' => PaymentMethod::all(),
@@ -141,12 +209,12 @@ class SalesController extends Controller {
         ];
         switch (request()->get('action', null)) {
             case 'search_client':
-                $request->validate([
+                request()->validate([
                     'identification' => 'required|string|min:8',
                 ]);
 
                 /** clients */
-                $iden = $request->get('identification');
+                $iden = request()->get('identification');
                 $client;
                 try {
                     $client = Client::where('identification', '=', $iden)->firstOrFail();
@@ -165,6 +233,18 @@ class SalesController extends Controller {
     }
 
     public function register_new_sale() {
+        /** Find the paydesk session */
+        $paydesk = Paydesk::findOrFail(1);
+        $user = auth()->user();
+        $session = PaydeskSession::where('paydesk_id', $paydesk->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'open')
+            ->whereBetween('open_at', [
+                now()->startOfDay(),
+                now()->endOfDay()
+            ])
+            ->firstOrFail();
+        /** ..... */
         $result = (new SaleBuilder)
             ->validate()
             ->exchange_from_request()
@@ -177,6 +257,9 @@ class SalesController extends Controller {
             }
             [$sale, $saleItems, $payments] = $result;
             DB::beginTransaction();
+            /** assoc the sale to the paydesk session */
+            $sale->paydesk_session_id = $session->id;
+            /** complete the sale */
             $sale->save();
             $sale->load('client'); // load client relationship
             // the sale product items
@@ -216,10 +299,19 @@ class SalesController extends Controller {
             if ($sale->payment_type !== 'cash') {
                 return redirect()->route('sales');
             }
+            /** if the user have permission, print invoice, otherwise, redirect to see sales, or if not have permission
+             * to see sales, to new_sale again
+             */
+            $user = auth()->user();
+            if ($user->hasPermission('reprint_sales_invoices')) {
+                return redirect()->route('sales.sale.print_esc_eos_invoice', [
+                    'file' => base64_encode($sale->escpos_invoice_path),
+                ]);
+            } else if ($user->hasPermission('see_sales')) {
+                return redirect()->route('sales');
+            }
 
-            return redirect()->route('sales.sale.print_esc_eos_invoice', [
-                'id' => $sale->id,
-            ]);
+            return Inertia::location(route('sales.new_sale'));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Sale creation failed: '.$e->getMessage());
@@ -228,51 +320,6 @@ class SalesController extends Controller {
                 'kernel_panic' => $e->getMessage(),
             ]);
         }
-    }
-
-    public function print_esc_pos_invoice(int $id) {
-        $sale = Sale::with([
-            'client',
-            'user',
-            'sale_items',
-            'sale_items.product',
-            'sale_items.product.brand',
-            'sale_items.product.category',
-            'payments',
-            'payments.payment_method',
-        ])->where('id', $id)->firstOrFail();
-
-        return Inertia::render('Sales/NewSale/PrintEcsPosInvoice', [
-            'sale' => $sale->toArray(),
-        ]);
-    }
-
-    public function sign() {
-        request()->validate(['toSign' => 'required|string']);
-        $toSign = request('toSign');
-        $keyPath = storage_path('app/qz-tray/private-key.pem');
-        if (!file_exists($keyPath)) {
-            \Log::error('Private key file not exists!!!');
-
-            throw new \Exception(__("Critical error, contact the administrator of the system for more details."));
-        }
-        $key = openssl_pkey_get_private("file://{$keyPath}");
-        if (!$key) {
-            \Log::error('Cannot open the private key file!!!');
-
-            throw new \Exception(__("Critical error, contact the administrator of the system for more details."));
-        }
-        $signature = null;
-        $signed = openssl_sign($toSign, $signature, $key, OPENSSL_ALGO_SHA512);
-        if (!$signed) {
-            \Log::error('Signing failed!!');
-
-            throw new \Exception(__("Critical error, contact the administrator of the system for more details."));
-        }
-
-        // Return base64 encoded signature
-        return response(base64_encode($signature))
-            ->header('Content-Type', 'text/plain');
     }
 
     public function pay() {
@@ -423,5 +470,130 @@ class SalesController extends Controller {
         }
 
         return back();
+    }
+
+    public function close_paydesk() {
+        $paydesk = Paydesk::findOrFail(1);
+        $user = auth()->user();
+        $session = PaydeskSession::with([
+            'sales',
+            'sales.payments',
+            'sales.payments.payment_method',
+        ])
+            ->where('paydesk_id', $paydesk->id)
+            ->where('status', 'open')
+            ->first();
+        if (!$session) {
+            return back()->withErrors([
+                'kernel_panic' => __('No open session found for paydesk ":paydesk".', [
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        } else if(!$session->user_id && $user->id !== 1) {
+            return back()->withErrors([
+                'kernel_panic' => __('The paydesk ":paydesk" was left open; only the user who takes possession or the administrator can close it.', [
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        } else if ($session->user_id !== $user->id && $user->id !== 1) {
+            $anotherUser = User::findOrFail($session->user_id);
+
+            return back()->withErrors([
+                'kernel_panic' => __('The user ":name" has the paydesk ":paydesk" open, he/she must be close it.', [
+                    'name' => $anotherUser->name,
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        }
+        $session->status = 'close';
+        $session->close_at = now();
+        $session->save();
+        /** Get all payments from each sale */
+        $closures = [];
+        foreach ($session->sales as $sale) {
+            foreach ($sale->payments as $payment) {
+                if (!array_key_exists($payment->payment_method_id, $closures)) {
+                    $closures[$payment->payment_method_id] = [
+                        'payment_method_id' => $payment->payment_method_id,
+                        'amount' => $payment->amount,
+                    ];
+                } else {
+                    $closures[$payment->payment_method_id]['amount'] += $payment->amount;
+                }
+            }
+        }
+        $session->closures()->createMany(array_values($closures));
+
+        event(new PaydeskClosed($session->id, 'closure'));
+        $session->refresh();
+        
+        return redirect()->route('sales.sale.print_esc_eos_invoice', [
+            'file' => base64_encode($session->escpos_invoice_path),
+        ]);
+    }
+
+    public function cut_paydesk() {
+        $paydesk = Paydesk::findOrFail(1);
+        $user = auth()->user();
+        $session = PaydeskSession::with([
+            'sales',
+            'sales.payments',
+            'sales.payments.payment_method',
+        ])
+            ->where('paydesk_id', $paydesk->id)
+            ->where('status', 'open')
+            ->first();
+        if (!$session) {
+            return back()->withErrors([
+                'kernel_panic' => __('No open session found for paydesk ":paydesk".', [
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        } else if (!$session->user_id) {
+            return back()->withErrors([
+                'kernel_panic' => __('The paydesk ":paydesk" was left open and no one has taken possession, it is not posible make the cut.', [
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        } else if ($session->user_id !== $user->id) {
+            $anotherUser = User::findOrFail($session->user_id);
+
+            return back()->withErrors([
+                'kernel_panic' => __('The user ":name" has the paydesk ":paydesk" open, only he/she can do the cut.', [
+                    'name' => $anotherUser->name,
+                    'paydesk' => $paydesk->name,
+                ]),
+            ]);
+        }
+        $userIdTemp = $session->user_id;
+        /** put the paydesk session as cutted */
+        $session->user_id = null;
+        $session->save();
+        /** save the amounts */
+        $amounts = [];
+        foreach ($session->sales as $sale) {
+            foreach ($sale->payments as $payment) {
+                if (!array_key_exists($payment->payment_method_id, $amounts)) {
+                    $amounts[$payment->payment_method_id] = [
+                        'payment_method_id' => $payment->payment_method_id,
+                        'amount' => $payment->amount,
+                    ];
+                } else {
+                    $amounts[$payment->payment_method_id]['amount'] += $payment->amount;
+                }
+            }
+        }
+        $cut = new PaydeskPartialCut;
+        $cut->paydesk_session_id = $session->id;
+        $cut->user_id = $userIdTemp;
+        $cut->save();
+        $cut->amounts()->createMany(array_values($amounts));
+
+        event(new PaydeskCut($cut->id));
+        $cut->refresh();
+
+        return redirect()->route('sales.sale.print_esc_eos_invoice', [
+            'file' => base64_encode($cut->escpos_invoice_path),
+        ]);
     }
 }

@@ -24,10 +24,8 @@ import {
 import Dial from './Dial';
 import Cart, { CartRef } from './Cart';
 import SearchProductDialog from './SearchProductDialog';
-
 import PaymentDialog from './PaymentDialog';
 import { useImportedCart } from './hooks';
-import SaleAlerts from './SaleAlerts';
 
 export default function NewSale() {
   const { t } = useTranslation();
@@ -63,7 +61,6 @@ export default function NewSale() {
         onSubmit={() => {}}
         render={({ handleSubmit }) => (
           <AppLayout>
-            <SaleAlerts />
             <form id="new-sale-cart-form" onSubmit={handleSubmit}>
               <TableContainer component={Paper}>
                 <Table>

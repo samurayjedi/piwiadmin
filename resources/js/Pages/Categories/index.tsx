@@ -2,28 +2,17 @@ import { router } from '@inertiajs/react';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
 import { usePaginatorProps } from '@/hooks';
-import { useCategories } from './hooks';
+import { useCategories, useFields } from './hooks';
 
 export default function Categories() {
   const { page, count, rows } = usePaginatorProps();
   const categories = useCategories();
+  const fields = useFields();
 
   return (
     <AppLayout>
       <CrudTable
-        fields={[
-          ['category_label', 'Label'],
-          [
-            'category_slug',
-            'Slug',
-            {
-              type: 'textfield',
-              props: (mode) => ({
-                disabled: mode === 'update',
-              }),
-            },
-          ],
-        ]}
+        fields={fields}
         records={categories}
         onSubmit={(data, action, targetId) => {
           const url = (() => {

@@ -4,7 +4,7 @@ import Spinner from '@/src/lib/piwi/core/Spinner';
 import { useErrors } from '@/hooks';
 import { measurementNumericFormatProps } from '../hooks';
 
-export default function StockField() {
+export default function StockField({ disabled }: { disabled: boolean }) {
   const { t } = useTranslation();
   const [fuckErrors, onChangeDecorator] = useErrors();
   const {
@@ -26,7 +26,7 @@ export default function StockField() {
               label={t('Stock')}
               fullWidth
               color="secondary"
-              disabled={submitting}
+              disabled={submitting || disabled}
               onChange={onChangeDecorator(input.onChange)}
               error={Boolean(fuckErrors[input.name])}
               helperText={fuckErrors[input.name]}

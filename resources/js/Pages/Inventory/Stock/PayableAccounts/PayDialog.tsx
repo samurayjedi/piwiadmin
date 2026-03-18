@@ -9,14 +9,12 @@ import {
   useMediaQuery,
   InputAdornment,
   TextField,
-  Alert,
   Button,
 } from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import TextFieldDolarBs from '@/src/Components/TextFieldDolarBs';
 import { useTheme } from '@mui/material/styles';
 import { useErrors } from '@/hooks';
-import Gap from '@/src/lib/piwi/common/Gap';
 import LabelDolarBs from '@/src/Components/LabelDolarBs';
 import usePayableAccounts from './hooks';
 
@@ -58,12 +56,6 @@ export default function PayDialog({ id, onClose = () => {} }: PayDialogProps) {
         />
       </DialogTitle>
       <DialogContent>
-        {Object.hasOwnProperty.call(fuckErrors, 'kernel_panic') && (
-          <>
-            <Alert severity="error">{fuckErrors.kernel_panic}</Alert>
-            <Gap />
-          </>
-        )}
         <Form
           onSubmit={(data) =>
             new Promise<void>((resolve) =>

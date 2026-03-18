@@ -6,6 +6,7 @@ import DolarSync from '@/src/DolarSync';
 import { useAppPage } from '@/hooks';
 import PrimaryAppBar from './PrimaryAppBar';
 import Breadcrumbs from './Breadcrumbs';
+import SystemAlerts from './SystemAlerts';
 
 export default function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
   const {
@@ -25,6 +26,7 @@ export default function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
           {children}
         </Container>
       </DolarSync>
+      <SystemAlerts />
     </>
   );
 }

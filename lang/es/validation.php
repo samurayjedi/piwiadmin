@@ -199,6 +199,8 @@ return [
         'payment' => 'Abonar',
         'amount' => 'Monto',
         'notification_stock' => 'Stock',
+        'petty_cash_funds.*.payment_method' => 'Método de pago',
+        'petty_cash_funds.*.amount' => 'Monto',
     ],
     'values' => [
         'payment_type' => [
@@ -220,4 +222,5 @@ return [
             '1' => 'Verdadero',
         ],
     ],
+    'snake_case' => ':attribute debe estar en formato snake (ej: some_slug).',
 ];

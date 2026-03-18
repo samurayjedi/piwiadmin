@@ -71,6 +71,10 @@ class ClientsController extends Controller {
         ]);
     }
 
+    public function indebt_clients() {
+        return redirect()->route('clients', ['in_debt' => true]);
+    }
+
     public function store(Request $request) {
         $request->validate([
             'identification' => 'required|string|min:7',

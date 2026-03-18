@@ -117,7 +117,7 @@ export default function TableCellsSaleDetails({
                   <ListItemButton
                     LinkComponent={Link}
                     href={route('sales.sale.print_esc_eos_invoice', {
-                      id: sale.id,
+                      file: btoa(sale.escpos_invoice_path),
                     })}
                   >
                     <ListItemText primary={t('Ticket')} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
+import { useAppPage } from '@/hooks';
 import {
   Paper as MUIPaper,
   Stepper,
@@ -15,12 +16,11 @@ import { Link, router } from '@inertiajs/react';
 import AppLayout from '@/src/Layouts/AppLayout';
 import Gap from '@/src/lib/piwi/common/Gap';
 import Select from '@/src/lib/piwi/core/Select';
-import { Qz } from '@/hooks';
-import { useSale } from './hooks';
+import Qz from './Qz';
 
-export default function PrintEscPosInvoice() {
+export default function ESCPos() {
   const { t } = useTranslation();
-  const sale = useSale();
+  const { file } = useAppPage().props;
   const [step, setStep] = useState(0);
   const [connected, setConnected] = useState(false);
   const [found, setFound] = useState(false);
@@ -39,8 +39,7 @@ export default function PrintEscPosInvoice() {
         setConnected(true);
         setStep(1);
       })
-      .catch((e) => {
-        console.log(e);
+      .catch(() => {
         setErrorConnect(true);
       });
 
@@ -62,8 +61,7 @@ export default function PrintEscPosInvoice() {
             setStep(2);
           }
         })
-        .catch((e) => {
-          console.log(e);
+        .catch(() => {
           setErrorFindPrinters(true);
         });
     }
@@ -71,7 +69,7 @@ export default function PrintEscPosInvoice() {
 
   useEffect(() => {
     if (selectedPrinter) {
-      Qz.print(`/storage/tmp/${sale.escpos_invoice_path}`, selectedPrinter)
+      Qz.print(`/storage/tmp/${file}`, selectedPrinter)
         .then(() => {
           setStep(4);
           setPrinted(true);
@@ -198,9 +196,7 @@ export default function PrintEscPosInvoice() {
             <StepLabel>{t('Redirect.')}</StepLabel>
             <StepContent>
               <Typography>
-                {t(
-                  'Print successful, please wait while you are redirected to the sales page...',
-                )}
+                {t('Print successful, please wait while you are redirected...')}
               </Typography>
             </StepContent>
           </Step>

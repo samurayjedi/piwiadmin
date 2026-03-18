@@ -12,7 +12,9 @@ import UpdateProfileInfoForm from './UpdateProfileInfoForm';
 import UpdatePasswordForm from './UpdatePasswordForm';
 import DeleteAccount from './DeleteAccount';
 import BusinessForm from './BusinessForm';
+import PettyCashFunds from './PettyCashFunds';
 import Alerts from '../Auth/Alerts';
+import { usePaydesk } from '../Paydesk/hooks';
 
 export default function Profile({
   // auth,
@@ -25,6 +27,8 @@ export default function Profile({
   goauth: boolean;
 }) {
   const { t } = useTranslation();
+  const paydesk = usePaydesk();
+  const mark = `petty-cash-funds-${paydesk.id}`;
 
   return (
     <AppLayout>
@@ -38,6 +42,18 @@ export default function Profile({
         </Typography>
         <div className="spacing" />
         <BusinessForm />
+      </Paper>
+      <Paper>
+        <Typography id={mark} variant="h5" fontWeight="bold">
+          {t('Petty cash funds.')}
+        </Typography>
+        <Typography variant="subtitle1">
+          {t('Configure the initial amounts for the paydesk "paydesk".', {
+            paydesk: paydesk.name,
+          })}
+        </Typography>
+        <div className="spacing" />
+        <PettyCashFunds mark={mark} />
       </Paper>
       <Paper>
         <Typography variant="h5" fontWeight="bold">

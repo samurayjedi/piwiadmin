@@ -1,15 +1,17 @@
+import { useState } from 'react';
 import styled from '@emotion/styled';
 import { useTranslation } from 'react-i18next';
 import { route } from 'ziggy-js';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Paper as MUIPaper, Button } from '@mui/material';
+import BlindsClosedIcon from '@mui/icons-material/BlindsClosed';
+import ContentCutIcon from '@mui/icons-material/ContentCut';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import AllInboxIcon from '@mui/icons-material/AllInbox';
 import AppLayout from '@/src/Layouts/AppLayout';
 import Section from '@/src/Components/Section';
-import StatusAlert from '@/src/Components/StatusAlert';
 import GroupIcon from '@mui/icons-material/Group';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
@@ -22,171 +24,205 @@ import WalletIcon from '@mui/icons-material/Wallet';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PiwiSkeleton from '@/src/Components/Skeleton';
 import Sidebar from './Sidebar';
+import PaydeskConfirmDialog from './PaydeskConfirmDialog';
+import { usePaydesk } from '../Paydesk/hooks';
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const paydesk = usePaydesk();
 
   return (
-    <AppLayout>
-      <PiwiContainer>
-        <SidebarContainer>
-          <Sidebar />
-        </SidebarContainer>
-        <Content>
-          <Paper>
-            <StatusAlert />
-            <Section title={t('Sales')} direction="row">
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('sales.new_sale')}
-                  variant="contained"
-                  startIcon={<AddShoppingCartIcon />}
-                >
-                  {t('New sale')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('sales')}
-                  variant="contained"
-                  startIcon={<ChecklistIcon />}
-                >
-                  {t('Listing')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('sale_type', { sale_type: 'cash' })}
-                  variant="contained"
-                  startIcon={<PaymentsIcon />}
-                >
-                  {t('Cash')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('sale_type', { sale_type: 'credit' })}
-                  variant="contained"
-                  startIcon={<CreditCardIcon />}
-                >
-                  {t('Credit')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('sale_type', { sale_type: 'layaway' })}
-                  variant="contained"
-                  startIcon={<BookmarksIcon />}
-                >
-                  {t('Layaway')}
-                </CardButton>
-              </Skeleton>
-            </Section>
-            <Section title={t('Products')} direction="row">
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('inventory')}
-                  variant="contained"
-                  startIcon={<InventoryIcon />}
-                >
-                  {t('Inventory')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('categories')}
-                  variant="contained"
-                  startIcon={<CategoryIcon />}
-                >
-                  {t('Categories')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('brands')}
-                  variant="contained"
-                  startIcon={<LocalOfferIcon />}
-                >
-                  {t('Brands')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('stock')}
-                  variant="contained"
-                  startIcon={<AllInboxIcon />}
-                >
-                  {t('Stock')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('inventory.stock.payable_accounts')}
-                  variant="contained"
-                  startIcon={<AccountBalanceWalletIcon />}
-                >
-                  {t('Payable accounts')}
-                </CardButton>
-              </Skeleton>
-            </Section>
-            <Section title={t('Clients & Payments')} direction="row">
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('clients')}
-                  variant="contained"
-                  startIcon={<GroupIcon />}
-                >
-                  {t('Clients')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('payment_methods')}
-                  variant="contained"
-                  startIcon={<PointOfSaleIcon />}
-                >
-                  {t('Payment methods')}
-                </CardButton>
-              </Skeleton>
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('payable_accounts')}
-                  variant="contained"
-                  startIcon={<WalletIcon />}
-                >
-                  {t('Payable accounts')}
-                </CardButton>
-              </Skeleton>
-            </Section>
-            <Section title={t('Reports')} direction="row">
-              <Skeleton variant="rounded">
-                <CardButton
-                  LinkComponent={Link}
-                  href={route('charts')}
-                  variant="contained"
-                  startIcon={<BarChartIcon />}
-                >
-                  {t('Charts')}
-                </CardButton>
-              </Skeleton>
-            </Section>
-          </Paper>
-        </Content>
-      </PiwiContainer>
-    </AppLayout>
+    <>
+      <AppLayout>
+        <PiwiContainer>
+          <SidebarContainer>
+            <Sidebar />
+          </SidebarContainer>
+          <Content>
+            <Paper>
+              <Section title={t('Sales')} direction="row">
+                <Skeleton variant="rounded">
+                  <CardButton
+                    variant="contained"
+                    startIcon={<AddShoppingCartIcon />}
+                    onClick={() => {
+                      if (
+                        (paydesk.session && paydesk.session.user_id) ||
+                        !paydesk.petty_cash_funds.length
+                      ) {
+                        router.visit(route('sales.new_sale'));
+                      } else {
+                        setOpen(true);
+                      }
+                    }}
+                  >
+                    {t('New sale')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('sales')}
+                    variant="contained"
+                    startIcon={<ChecklistIcon />}
+                  >
+                    {t('Listing')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('sale_type', { sale_type: 'cash' })}
+                    variant="contained"
+                    startIcon={<PaymentsIcon />}
+                  >
+                    {t('Cash')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('sale_type', { sale_type: 'credit' })}
+                    variant="contained"
+                    startIcon={<CreditCardIcon />}
+                  >
+                    {t('Credit')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('sale_type', { sale_type: 'layaway' })}
+                    variant="contained"
+                    startIcon={<BookmarksIcon />}
+                  >
+                    {t('Layaway')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('cut_paydesk')}
+                    variant="contained"
+                    startIcon={<ContentCutIcon />}
+                  >
+                    {t('Cut')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('close_paydesk')}
+                    variant="contained"
+                    startIcon={<BlindsClosedIcon />}
+                  >
+                    {t('Closure')}
+                  </CardButton>
+                </Skeleton>
+              </Section>
+              <Section title={t('Products')} direction="row">
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('inventory')}
+                    variant="contained"
+                    startIcon={<InventoryIcon />}
+                  >
+                    {t('Inventory')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('categories')}
+                    variant="contained"
+                    startIcon={<CategoryIcon />}
+                  >
+                    {t('Categories')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('brands')}
+                    variant="contained"
+                    startIcon={<LocalOfferIcon />}
+                  >
+                    {t('Brands')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('stock')}
+                    variant="contained"
+                    startIcon={<AllInboxIcon />}
+                  >
+                    {t('Stock')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('inventory.stock.payable_accounts')}
+                    variant="contained"
+                    startIcon={<AccountBalanceWalletIcon />}
+                  >
+                    {t('Payable accounts')}
+                  </CardButton>
+                </Skeleton>
+              </Section>
+              <Section title={t('Clients & Payments')} direction="row">
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('clients')}
+                    variant="contained"
+                    startIcon={<GroupIcon />}
+                  >
+                    {t('Clients')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('payment_methods')}
+                    variant="contained"
+                    startIcon={<PointOfSaleIcon />}
+                  >
+                    {t('Payment methods')}
+                  </CardButton>
+                </Skeleton>
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('payable_accounts')}
+                    variant="contained"
+                    startIcon={<WalletIcon />}
+                  >
+                    {t('Payable accounts')}
+                  </CardButton>
+                </Skeleton>
+              </Section>
+              <Section title={t('Reports')} direction="row">
+                <Skeleton variant="rounded">
+                  <CardButton
+                    LinkComponent={Link}
+                    href={route('charts')}
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                  >
+                    {t('Charts')}
+                  </CardButton>
+                </Skeleton>
+              </Section>
+            </Paper>
+          </Content>
+        </PiwiContainer>
+      </AppLayout>
+      <PaydeskConfirmDialog open={open} onClose={() => setOpen(false)} />
+    </>
   );
 }
 
@@ -231,8 +267,8 @@ const CardButton = styled(Button)(({ theme }) => ({
     color: theme.palette.text.primary,
     transform: 'scale(1.1)',
   },
+  marginLeft: theme.spacing(2),
   '&:not(:last-child)': {
-    marginRight: theme.spacing(2),
     marginBottom: theme.spacing(2),
   },
 }));
@@ -266,8 +302,12 @@ const Content = styled.div(({ theme }) => ({
 }));
 
 const Skeleton = styled(PiwiSkeleton)(({ theme }) => ({
+  marginLeft: theme.spacing(2),
   '&:not(:last-child)': {
-    marginRight: theme.spacing(2),
     marginBottom: theme.spacing(2),
+  },
+  '& > :first-child': {
+    marginLeft: 0,
+    marginBottom: 0,
   },
 }));

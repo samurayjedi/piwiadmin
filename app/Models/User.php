@@ -10,6 +10,8 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Sale;
+use App\Models\AuthorizedUser;
+use App\Models\PaydeskSession;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -81,5 +83,28 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sales(): HasMany {
         return $this->hasMany(Sale::class);
+    }
+
+    public function paydesk_sessions(): HasMany {
+        return $this->hasMany(PaydeskSession::class);
+    }
+
+    public function cuts(): HasMany {
+        return $this->hasMany(PaydeskPartialCut::class);
+    }
+
+    public function hasPermission(string $permission) {
+        if ($this->id === 1) {
+            return true;
+        }
+        $au = AuthorizedUser::with('role')
+            ->where('email', $this->email)->first();
+        if ($au) {
+            $capabilities = json_decode($au->role->capabilities);
+
+            return in_array($permission, $capabilities);
+        }
+        
+        return false;
     }
 }

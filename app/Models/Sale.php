@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Client;
 use App\Models\SaleItem;
 use App\Models\Payment;
+use App\Modls\PaydeskSession;
 
 class Sale extends Model
 {
@@ -39,5 +40,9 @@ class Sale extends Model
 
     public function getCreatedAtAttribute($value) {
         return Carbon::parse($value)->format('Y-m-d H:i:s');
+    }
+
+    public function session(): BelongsTo {
+        return $this->belongsTo(PaydeskSession::class);
     }
 }

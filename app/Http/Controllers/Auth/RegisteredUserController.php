@@ -13,6 +13,7 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Validation\ValidationException;
+use App\Models\AuthorizedUser;
 
 class RegisteredUserController extends Controller
 {
@@ -36,6 +37,13 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
+        if (User::count()) {
+            if (!AuthorizedUser::where('email', $request->email)->exists()) {
+                return back()->withErrors([
+                    'email' => __('Your email it\'s not authorized for use this system, contact the administrator first.'),
+                ]);
+            }
+        }
 
         $user = User::withTrashed()
             ->where('email', $request->email)

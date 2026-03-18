@@ -2,28 +2,17 @@ import { router } from '@inertiajs/react';
 import AppLayout from '@/src/Layouts/AppLayout';
 import CrudTable from '@/src/Components/CrudTable';
 import { usePaginatorProps } from '@/hooks';
-import { useBrands } from './hooks';
+import { useBrands, useFields } from './hooks';
 
 export default function Brands() {
   const { page, count, rows } = usePaginatorProps();
   const brands = useBrands();
+  const fields = useFields();
 
   return (
     <AppLayout>
       <CrudTable
-        fields={[
-          ['brand_label', 'Label'],
-          [
-            'brand_slug',
-            'Slug',
-            {
-              type: 'textfield',
-              props: (mode) => ({
-                disabled: mode === 'update',
-              }),
-            },
-          ],
-        ]}
+        fields={fields}
         records={brands}
         onSubmit={(data, action, targetId) => {
           const url = (() => {

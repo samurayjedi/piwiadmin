@@ -20,7 +20,7 @@ module.exports = {
   }, */
   output: {
     filename: '[name].bundle.js',
-    path: path.resolve(__dirname, './public/js/'),
+    path: path.resolve(__dirname, './public_html/js/'),
   },
   module: {
     rules: [

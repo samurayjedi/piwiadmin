@@ -7,10 +7,31 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use App\Models\Sale;
 use App\Models\PayableAccount;
+use App\Models\Paydesk;
+use App\Models\PaydeskSession;
 
 
 class DashboardController extends Controller {
     public function main() {
+        /** Paydesk */
+        $paydesk = Paydesk::with([
+            'petty_cash_funds' => fn ($q) => $q->with('payment_method'), 
+        ])->findOrFail(1);
+        $session = PaydeskSession::with([
+                'openings', 
+                'openings.payment_method', 
+                'closures',
+                'closures.payment_method',
+                'cuts' => function($query) {
+                    $query->orderBy('id', 'DESC');
+                },
+                'cuts.amounts',
+                'cuts.amounts.payment_method',
+            ])
+            ->where('paydesk_id', $paydesk->id)
+            ->where('status', 'open')
+            ->first();
+        /** Metrics */
         // Income for current day
         $salesDay = Sale::whereDate('created_at', today())
             ->whereNot('status', 'canceled')
@@ -65,6 +86,10 @@ class DashboardController extends Controller {
 
 
         return Inertia::render('Dashboard', [
+            'paydesk' => [
+                ...$paydesk->toArray(),
+                'session' => $session ? $session->toArray() : null,
+            ],
             'metrics' => [
                 'dayIncome' => $incomeDay,
                 'weekIncome' => floatval($incomeWeek),

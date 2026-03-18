@@ -55,6 +55,7 @@ const SectionTitle = styled.div<{ title: string }>(({ theme, title }) => ({
 const SectionContent = styled.div<{ direction: 'row' | 'column' }>(
   ({ theme, direction }) => ({
     padding: theme.spacing(4),
+    paddingLeft: theme.spacing(2),
     display: 'flex',
     flexDirection: direction,
     alignItems: 'flex-start',

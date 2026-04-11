@@ -1,0 +1,35 @@
+{
+    "name": "Piwi Admin Dev Env",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "remoteUser": "samurayjedi",
+    "runArgs": [
+        "--name", "piwi-admin-container",
+        "-p", "8000:8000",
+        "-p", "3000:3000"
+    ],
+    "mounts": [
+        "source=/home/samurayjedi/Workspace,target=/home/samurayjedi/Workspace,type=bind"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bmewburn.vscode-intelephense-client",
+                "onecentlin.laravel-extension-pack",
+                "github.copilot"
+            ],
+            "settings": {
+                "github.copilot.chat.mcp.servers": [
+                    {
+                        "name": "Laravel Boost",
+                        "command": "php",
+                        "args": ["artisan", "boost:serve"]
+                    }
+                ]
+            }
+        }
+    },
+    // Start MariaDB and create the DB/User automatically
+    "postCreateCommand": "sudo service mariadb start && sudo mysql -e \"CREATE DATABASE IF NOT EXISTS piwi_admin; GRANT ALL PRIVILEGES ON piwi_admin.* TO 'samurayjedi'@'localhost' IDENTIFIED BY 'Exusiai-Ofu'; FLUSH PRIVILEGES;\""
+}
